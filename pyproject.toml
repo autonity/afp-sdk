@@ -1,0 +1,88 @@
+[build-system]
+requires = ["uv_build>=0.8.13,<0.9.0"]
+build-backend = "uv_build"
+
+[project]
+name = "afp-sdk"
+version = "0.1.0"
+description = "Autonomous Futures System Python SDK"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = [
+    "autonity",
+    "web3",
+    "trading",
+    "crypto",
+    "prediction",
+    "forecast",
+    "markets",
+]
+requires-python = ">=3.11"
+dependencies = [
+    "decorator>=5.2.1",
+    "inflection>=0.5.1",
+    "pydantic>=2.10.6",
+    "requests>=2.32.0",
+    "siwe>=4.4.0",
+    "web3>=7.6.0",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+
+[project.urls]
+Homepage = "https://github.com/autonity/afp-sdk"
+Source = "https://github.com/autonity/afp-sdk"
+Issues = "https://github.com/autonity/afp-sdk/issues"
+Changes = "https://github.com/autonity/afp-sdk/blob/master/CHANGELOG.md"
+
+[dependency-groups]
+dev = [
+    "check-wheel-contents>=0.6.3",
+    "poethepoet>=0.33.1",
+    "pydistcheck>=0.10.0",
+    "pyright>=1.1.397",
+    "pytest>=8.3.5",
+    "ruff>=0.11.0",
+    "twine>=6.1.0",
+    "types-requests>=2.32.0.20250306",
+]
+
+[tool.poe.tasks]
+lint = [
+    { cmd = "ruff check ." },
+    { cmd = "ruff format --check ." },
+    { cmd = "pyright ." },
+]
+test = { cmd = "pytest -v ." }
+check-dist = [
+    { cmd = "twine check --strict dist/*" },
+    { cmd = "check-wheel-contents dist/*.whl" },
+    { cmd = "pydistcheck --inspect dist/*" },
+]
+
+[tool.pyright]
+strict = ["./afp"]
+exclude = ["./tests", "./.venv"]
+
+[tool.uv]
+package = true
+
+[tool.uv.build-backend]
+module-name = "afp"
+module-root = ""
+source-include = [
+    "examples/**",
+    "tests/**",
+    ".env.template",
+    ".envrc",
+    ".gitignore",
+    "CHANGELOG.md",
+    "devenv.*",
+    "uv.lock",
+]

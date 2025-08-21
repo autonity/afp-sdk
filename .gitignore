@@ -1,0 +1,20 @@
+# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+
+# Python
+__pycache__/
+build/
+dist/
+*.egg-info/
+.venv
+.coverage
+
+# secrets
+.env
+
+# IDE Stuff
+.vscode
