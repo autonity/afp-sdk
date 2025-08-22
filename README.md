@@ -1,4 +1,4 @@
-# Autonomous Futures System Python SDK
+# Autonity Futures Protocol Python SDK
 
 ## Installation
 
@@ -21,7 +21,7 @@ The `afp` package consists of the following:
 
 ### Preparation
 
-In order to use the Futures System, traders need to prepare the following:
+In order to use the AFP system, traders need to prepare the following:
 
 - The ID of a product to be traded.
 - An Autonity account for managing the margin account. It needs to hold a
