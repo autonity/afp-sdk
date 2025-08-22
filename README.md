@@ -24,6 +24,7 @@ The `afp` package consists of the following:
 In order to use the AFP system, traders need to prepare the following:
 
 - The ID of a product to be traded.
+- The address of the product's collateral token.
 - An Autonity account for managing the margin account. It needs to hold a
   balance in ATN (for paying gas fee) and in the product's collateral token.
 - An Autonity account for signing intents. The two accounts can be the same.
@@ -36,23 +37,31 @@ We can store those in the following constants (using random example IDs):
 import os
 
 PRODUCT_ID = "0x38d502bb683f53ec7c3d7a14b4aa47ac717659e121426131c0189c15bf4b9460"
-MARGIN_ACCOUNT_ID = "0x214D8030d65d80586a84AD9C7acfa349D7301785"
+COLLATERAL_ASSET = "0xD1A1e4035a164cF42228A8aAaBC2c0Ac9e49687B"
 MARGIN_ACCOUNT_PRIVATE_KEY = os.environ["MARGIN_ACCOUNT_PRIVATE_KEY"]
-INTENT_ACCOUNT_ID = "0x32424b0E17F1084070cF432621d4F73bF4B0b997"
 INTENT_ACCOUNT_PRIVATE_KEY = os.environ["INTENT_ACCOUNT_PRIVATE_KEY"]
 AUTONITY_RPC_URL = "https://bakerloo.autonity-apis.com"
 ```
 
+Account IDs (addresses) may be retrieved from the private keys with `eth_account`:
+
+```py
+from eth_account import Account
+
+MARGIN_ACCOUNT_ID = Account.from_key(MARGIN_ACCOUNT_PRIVATE_KEY).address
+INTENT_ACCOUNT_ID = Account.from_key(INTENT_ACCOUNT_PRIVATE_KEY).address
+```
+
 ### Clearing API
 
-The functions of the clearing API can be accessed via the `afp.Clearing`
+Functions of the Clearing API can be accessed via the `afp.Clearing`
 session object. It connects to the specified Autonity RPC provider and
-communicates with smart contracts related to the specified product.
+communicates with the Clearing System smart contracts.
 
 ```py
 import afp
 
-clearing = afp.Clearing(MARGIN_ACCOUNT_PRIVATE_KEY, AUTONITY_RPC_URL, PRODUCT_ID)
+clearing = afp.Clearing(MARGIN_ACCOUNT_PRIVATE_KEY, AUTONITY_RPC_URL)
 ```
 
 Collateral can be deposited into the margin account with
@@ -61,21 +70,21 @@ Collateral can be deposited into the margin account with
 ```py
 from decimal import Decimal
 
-clearing.deposit_into_margin_account(Decimal("100.00"))
-print(clearing.get_capital())
+clearing.deposit_into_margin_account(COLLATERAL_ASSET, Decimal("100.00"))
+print(clearing.capital(COLLATERAL_ASSET))
 ```
 
 The intent account should be authorized to submit orders. This is only required
 if the intent account and the margin account are different.
 
 ```py
-clearing.authorize(INTENT_ACCOUNT_ID)
+clearing.authorize(COLLATERAL_ASSET, INTENT_ACCOUNT_ID)
 ```
 
 ### Trading API
 
 The functions of the trading API can be accessed via the `afp.Trading` session
-object. It communicates with the exchange and authenticates on creation with
+object. It communicates with the AutEx exchange and authenticates on creation with
 the intent account's private key.
 
 ```py
@@ -108,20 +117,28 @@ intent = trading.create_intent(
 ```
 
 The intent expressing a limit order can then be submitted to the exchange with
-`trading.submit_limit_order()` that returns the accepted order, or raises
-`afp.exceptions.OrderRejected` if the exchange rejects the order.
+`trading.submit_limit_order()` that returns the created order object.
 
 ```py
 order = trading.submit_limit_order(intent)
+print(order)
 ```
 
-The exchange can be polled to get order fills with `trading.order_fills()`.
+The exchange then performs various checks to ensure that the order is valid. To
+ensure that the order has been accepted, its state can be polled with
+`trading.order()`.
 
 ```py
-from time import sleep
+order = trading.order(order.id)
+print(order.state)
+```
 
-sleep(1)
-print(trading.order_fills(product_id=PRODUCT_ID))
+Fills of orders submitted by the authenticated intent account can be queried
+with `trading.order_fills()`.
+
+```py
+fills = trading.order_fills(product_id=PRODUCT_ID)
+print(fills)
 ```
 
 See further code examples in the [examples](./examples/) directory.

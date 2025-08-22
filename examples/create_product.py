@@ -5,9 +5,6 @@ from pprint import pprint
 import afp
 
 
-ADMIN_ACCOUNT_PRIVATE_KEY = (
-    "0x926b0e772d87247fb08832e7fd55e528ae5997680713367a4786c92e7d909154"
-)
 BUILDER_ACCOUNT_PRIVATE_KEY = (
     "0x926b0e772d87247fb08832e7fd55e528ae5997680713367a4786c92e7d909154"
 )
@@ -43,10 +40,6 @@ def main():
 
     builder.register_product(product)
     print(builder.product_state(product.id))
-
-    # Exchange admin approves the product for trading
-    admin = afp.Admin(ADMIN_ACCOUNT_PRIVATE_KEY)
-    admin.approve_product(product.id)
 
 
 if __name__ == "__main__":
