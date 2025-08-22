@@ -61,9 +61,9 @@ lint = [
 ]
 test = { cmd = "pytest -v ." }
 check-dist = [
-    { cmd = "twine check --strict dist/*" },
+    { cmd = "twine check --strict dist/*.whl dist/*.tar.gz" },
     { cmd = "check-wheel-contents dist/*.whl" },
-    { cmd = "pydistcheck --inspect dist/*" },
+    { cmd = "pydistcheck --inspect dist/*.whl dist/*.tar.gz" },
 ]
 
 [tool.pyright]
@@ -81,7 +81,6 @@ source-include = [
     "tests/**",
     ".env.template",
     ".envrc",
-    ".gitignore",
     "CHANGELOG.md",
     "devenv.*",
     "uv.lock",
