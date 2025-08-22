@@ -66,6 +66,12 @@ check-dist = [
     { cmd = "check-wheel-contents dist/*.whl" },
     { cmd = "pydistcheck --inspect dist/*.whl dist/*.tar.gz" },
 ]
+doc-gen = [
+    { cmd = "mkdir -p build/docs" },
+    # Cut submodule documentation from the generated md files (submodule names start lowercase)
+    { shell = "griffe2md 'afp' | sed '/### afp\\.[a-z]/,$d' > build/docs/afp.md" },
+    { shell = "griffe2md 'afp.bindings' | sed '/### afp\\.bindings\\.[a-z]/,$d' > build/docs/bindings.md" },
+]
 
 [tool.pyright]
 strict = ["./afp"]

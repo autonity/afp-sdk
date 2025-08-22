@@ -134,3 +134,4 @@ The package uses [`uv`](https://docs.astral.sh/uv/) as project manager.
 - Linters can be executed with the `uv run poe lint` command.
 - Tests can be executed with the `uv run poe test` command.
 - Distributions can be checked before release with the `uv run poe check-dist` command.
+- Markdown API documentation can be generated with the `uv run poe doc-gen` command.
