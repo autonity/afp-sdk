@@ -28,3 +28,7 @@ jobs:
         run: uv run poe lint
       - name: Test
         run: uv run poe test
+      - name: Build
+        run: uv build
+      - name: Check build contents
+        run: uv run poe check-dist
