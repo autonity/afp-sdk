@@ -8,6 +8,20 @@ The library can be installed in a virtualenv with:
 pip install afp-sdk
 ```
 
+## Overview
+
+The `afp` package consists of the following:
+
+- `afp` module: High-level API for interacting with the Clearing System and the
+  AutEx exchange.
+    - `afp.Builder` class: API for building and submitting new products.
+    - `afp.Clearing` class: API for managing margin accounts.
+    - `afp.Liquidation` class: API for participating in liquidation auctions.
+    - `afp.Trading` class: API for trading in the AutEx exchange.
+    - `afp.Admin` class: API for AutEx administration, restricted to AutEx admins.
+- `afp.bindings` submodule: Low-level API that provides typed Python bindings
+  for the Clearing System smart contracts.
+
 ## Usage
 
 ### Preparation
