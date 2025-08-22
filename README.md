@@ -8,6 +8,15 @@ The library can be installed in a virtualenv with:
 pip install afp-sdk
 ```
 
+## Overview
+
+The `afp` package consists of the following:
+
+- `afp` top-level module: High-level API for interacting with the Clearing
+  System and the AutEx exchange.
+- `afp.bindings` submodule: Low-level API that provides typed Python bindings
+  for the Clearing System smart contracts.
+
 ## Usage
 
 ### Preparation
@@ -17,7 +26,7 @@ In order to use the Futures System, traders need to prepare the following:
 - The ID of a product to be traded.
 - An Autonity account for managing the margin account. It needs to hold a
   balance in ATN (for paying gas fee) and in the product's collateral token.
-- An Autonity account for signing intents.
+- An Autonity account for signing intents. The two accounts can be the same.
 - The address of an Autonity RPC provider. They can be found on
   [Chainlist](https://chainlist.org/?search=autonity&testnets=true).
 
@@ -56,7 +65,8 @@ clearing.deposit_into_margin_account(Decimal("100.00"))
 print(clearing.get_capital())
 ```
 
-The intent account should be authorized to submit orders.
+The intent account should be authorized to submit orders. This is only required
+if the intent account and the margin account are different.
 
 ```py
 clearing.authorize(INTENT_ACCOUNT_ID)
@@ -115,99 +125,6 @@ print(trading.order_fills(product_id=PRODUCT_ID))
 ```
 
 See further code examples in the [examples](./examples/) directory.
-
-## API Reference
-
-### Admin API
-
-```py
-admin = afp.Admin(admin_account_private_key)
-
-admin.approve_product(product_id)
-admin.delist_product(product_id)
-```
-
-### Builder API
-
-```py
-builder = afp.Builder(builder_account_private_key, autonity_rpc_url)
-
-builder.create_product(symbol, description, start_time, oracle_address,
-                       fsp_precision, alpha, beta, fsp_calldata,
-                       earliest_fsp_submission_time, collateral_asset,
-                       tick_size, unit_value, initial_margin_requirement,
-                       maintenance_margin_requirement, clearing_fee_rate,
-                       tradeout_interval, extended_metadata)
-builder.register_product(product)
-
-builder.product_state(product_id)
-```
-
-### Clearing API
-
-```py
-clearing = afp.Clearing(margin_account_private_key, autonity_rpc_url)
-
-clearing.authorize(collateral_asset, intent_account_id)
-clearing.deposit_into_margin_account(collateral_asset, amount)
-clearing.withdraw_from_margin_account(collateral_asset, amount)
-clearing.initiate_final_settlement(product_id, accounts)
-
-clearing.collateral_asset(product_id)
-clearing.product_state(product_id)
-
-clearing.capital(collateral_asset)
-clearing.maintenance_margin_available(collateral_asset)
-clearing.maintenance_margin_used(collateral_asset)
-clearing.margin_account_equity(collateral_asset)
-clearing.position(collateral_asset, position_id)
-clearing.positions(collateral_asset)
-clearing.profit_and_loss(collateral_asset)
-clearing.withdrawable_amount(collateral_asset)
-```
-
-### Trading API
-
-```py
-trading = afp.Trading(intent_account_private_key)
-
-trading.create_intent(product, side, limit_price, quantity, max_trading_fee_rate,
-                      good_until_time, [margin_account_id])
-trading.submit_limit_order(intent)
-trading.submit_cancel_order(intent_hash)
-
-trading.products()
-trading.product(product_id)
-trading.market_depth(product_id)
-trading.iter_market_depth(product_id)
-trading.open_orders()
-trading.order(intent_hash)
-trading.order_fills([product_id], [intent_hash], [start], [end])
-trading.iter_order_fills([product_id], [intent_hash])
-```
-
-### Liquidation API
-
-```py
-liquidation = afp.Liquidation(liquidator_account_private_key)
-
-liquidation.request_liquidation(margin_account_id, collateral_asset)
-liquidation.create_bid(product_id, price, quantity, side)
-liquidation.submit_bids(margin_account_id, collateral_asset, bids)
-
-liquidation.auction_data(margin_account_id, collateral_asset)
-```
-
-### Bindings API
-
-```py
-afp.bindings.ClearingDiamond(w3)
-afp.bindings.MarginAccount(w3, address)
-afp.bindings.MarginAccountRegistry(w3)
-afp.bindings.OracleProvider(w3)
-afp.bindings.ProductRegistry(w3)
-afp.bindings.TradingProtocol(w3, address)
-```
 
 ## Development
 

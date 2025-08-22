@@ -44,6 +44,7 @@ Changes = "https://github.com/autonity/afp-sdk/blob/master/CHANGELOG.md"
 [dependency-groups]
 dev = [
     "check-wheel-contents>=0.6.3",
+    "griffe2md>=1.2.1",
     "poethepoet>=0.33.1",
     "pydistcheck>=0.10.0",
     "pyright>=1.1.397",
@@ -85,3 +86,6 @@ source-include = [
     "devenv.*",
     "uv.lock",
 ]
+
+[tool.griffe2md]
+docstring_style = "numpy"

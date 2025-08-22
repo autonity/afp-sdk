@@ -22,7 +22,7 @@ from .base import ClearingSystemAPI
 
 
 class Builder(ClearingSystemAPI):
-    """API for creating and submitting a product to be traded.
+    """API for building and submitting new products.
 
     Parameters
     ----------

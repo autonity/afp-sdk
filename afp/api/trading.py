@@ -25,7 +25,7 @@ from .base import ExchangeAPI
 
 
 class Trading(ExchangeAPI):
-    """Object representing a trading session with the exchange.
+    """API for trading in the AutEx exchange.
 
     Authenticates with the exchange on creation.
 

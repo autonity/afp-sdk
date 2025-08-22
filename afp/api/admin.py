@@ -5,7 +5,7 @@ from .base import ExchangeAPI
 
 
 class Admin(ExchangeAPI):
-    """Object representing an administration session with the exchange.
+    """API for AutEx administration, restricted to AutEx admins.
 
     Authenticates with the exchange on creation.
 

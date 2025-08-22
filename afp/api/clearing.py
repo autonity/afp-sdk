@@ -26,7 +26,7 @@ from .builder import Builder
 
 
 class Clearing(ClearingSystemAPI):
-    """Object representing a session with the Clearing System.
+    """API for managing margin accounts.
 
     Parameters
     ----------
