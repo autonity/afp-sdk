@@ -2,7 +2,8 @@
 
 ## Installation
 
-The library can be installed in a virtualenv with:
+This library is published on PyPI as the [afp-sdk](https://pypi.org/project/afp-sdk/)
+package. It can be installed in a virtualenv with:
 
 ```py
 pip install afp-sdk
