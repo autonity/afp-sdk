@@ -13,21 +13,20 @@ AUTONITY_RPC_URL = "https://autonity.rpc.web3cdn.network/testnet"
 
 
 def main():
-    # Builder creates a product
     builder = afp.Builder(BUILDER_ACCOUNT_PRIVATE_KEY, AUTONITY_RPC_URL)
 
     product = builder.create_product(
         symbol="SDK-TEST-1",
         description="Test Product 1",
         oracle_address="0xd8A8C5A492Fc2448cFcF980218c0F7D2De4d6FB3",
-        precision=1,
-        alpha=10**4,
-        beta=0,
-        fsp_calldata="0x",
+        fsv_decimals=1,
+        fsp_alpha=10000000000000000000000,
+        fsp_beta=0,
+        fsv_calldata="0x",
         start_time=datetime.now() + timedelta(minutes=1),
         earliest_fsp_submission_time=datetime.now() + timedelta(days=7),
         collateral_asset="0xB855D5e83363A4494e09f0Bb3152A70d3f161940",
-        tick_size=18,
+        tick_size=6,
         unit_value=Decimal("0.5"),
         initial_margin_requirement=Decimal("0.2"),
         maintenance_margin_requirement=Decimal("0.1"),
