@@ -1,4 +1,4 @@
-"""Typed bindings around the smart contracts of the Autonity Futures Protocol."""
+"""Typed bindings around the smart contracts of the Autonomous Futures Protocol."""
 
 from .auctioneer_facet import AuctionConfig, AuctionData, BidData
 from .bankruptcy_facet import LAAData, PositionLossData

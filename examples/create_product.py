@@ -9,7 +9,7 @@ BUILDER_ACCOUNT_PRIVATE_KEY = (
     "0x926b0e772d87247fb08832e7fd55e528ae5997680713367a4786c92e7d909154"
 )
 
-AUTONITY_RPC_URL = "https://autonity.rpc.web3cdn.network/testnet"
+AUTONITY_RPC_URL = "https://bakerloo.autonity-apis.com"
 
 
 def main():
