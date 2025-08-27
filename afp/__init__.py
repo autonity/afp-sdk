@@ -1,4 +1,4 @@
-"""Autonity Futures Protocol Python SDK."""
+"""Autonomous Futures Protocol Python SDK."""
 
 from afp import bindings
 from .api.admin import Admin

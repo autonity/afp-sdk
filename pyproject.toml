@@ -5,7 +5,7 @@ build-backend = "uv_build"
 [project]
 name = "afp-sdk"
 version = "0.1.0"
-description = "Autonity Futures Protocol Python SDK"
+description = "Autonomous Futures Protocol Python SDK"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
