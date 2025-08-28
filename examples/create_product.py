@@ -21,7 +21,7 @@ def main():
         oracle_address="0xd8A8C5A492Fc2448cFcF980218c0F7D2De4d6FB3",
         fsv_decimals=1,
         fsp_alpha=Decimal("10000"),
-        fsp_beta=0,
+        fsp_beta=Decimal("0"),
         fsv_calldata="0x",
         start_time=datetime.now() + timedelta(minutes=1),
         earliest_fsp_submission_time=datetime.now() + timedelta(days=7),
