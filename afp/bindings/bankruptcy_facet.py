@@ -83,7 +83,7 @@ class BankruptcyFacet:
         bankrupt_account_id: eth_typing.ChecksumAddress,
         collateral_token: eth_typing.ChecksumAddress,
         product_ids: typing.List[hexbytes.HexBytes],
-        laas: typing.List[eth_typing.ChecksumAddress],
+        laas: typing.List[typing.List[eth_typing.ChecksumAddress]],
     ) -> contract.ContractFunction:
         """Binding for `mutualizeLosses` on the BankruptcyFacet contract.
 
@@ -92,7 +92,7 @@ class BankruptcyFacet:
         bankrupt_account_id : eth_typing.ChecksumAddress
         collateral_token : eth_typing.ChecksumAddress
         product_ids : typing.List[hexbytes.HexBytes]
-        laas : typing.List[eth_typing.ChecksumAddress]
+        laas : typing.List[typing.List[eth_typing.ChecksumAddress]]
 
         Returns
         -------
