@@ -172,7 +172,7 @@ class ProductSpecification(Model):
     oracle_address: Annotated[str, AfterValidator(validators.validate_address)]
     fsv_decimals: Annotated[int, Field(ge=0, lt=256)]  # uint8
     fsp_alpha: Decimal
-    fsp_beta: int
+    fsp_beta: Decimal
     fsv_calldata: Annotated[str, AfterValidator(validators.validate_hexstr)]
     # Product
     start_time: Timestamp
