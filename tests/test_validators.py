@@ -1,4 +1,6 @@
+import decimal
 from datetime import datetime, UTC
+from decimal import Decimal
 
 import pytest
 
@@ -45,3 +47,25 @@ def test_validate_hexstr32__pass():
 def test_validate_hexstr32__error(value):
     with pytest.raises(ValueError):
         validators.validate_hexstr32(value)
+
+
+def test_validate_limit_price__pass():
+    assert str(validators.validate_limit_price(Decimal("1.25"), 2)) == "1.25"
+    assert str(validators.validate_limit_price(Decimal("1.25"), 4)) == "1.2500"
+
+
+def test_validate_limit_price__rounding():
+    assert (
+        str(validators.validate_limit_price(Decimal("1.25"), 1, decimal.ROUND_DOWN))
+        == "1.2"
+    )
+
+
+def test_validate_limit_price__error():
+    with pytest.raises(ValueError):
+        validators.validate_limit_price(Decimal("1.25"), 1)
+
+
+def test_validate_limit_price__invalid_rounding_mode():
+    with pytest.raises(TypeError):
+        validators.validate_limit_price(Decimal("1.25"), 1, "foobar")

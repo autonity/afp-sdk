@@ -54,6 +54,7 @@ class Trading(ExchangeAPI):
         max_trading_fee_rate: Decimal,
         good_until_time: datetime,
         margin_account_id: str | None = None,
+        rounding: str | None = None,
     ) -> Intent:
         """Creates an intent with the given intent data, generates its hash and signs it
         with the configured account's private key.
@@ -61,6 +62,13 @@ class Trading(ExchangeAPI):
         The intent account's address is derived from the private key. The intent account
         is assumed to be the same as the margin account if the margin account ID is not
         specified.
+
+        The limit price must have at most as many fractional digits as the product's
+        tick size, or if `rounding` is specified then the limit price is rounded to the
+        appropriate number of fractional digits. `rounding` may be one of
+        `ROUND_CEILING`, `ROUND_FLOOR`, `ROUND_UP`, `ROUND_DOWN`, `ROUND_HALF_UP`,
+        `ROUND_HALF_DOWN`, `ROUND_HALF_EVEN` and `ROUND_05UP`; see the rounding modes of
+        the `decimal` module of the Python Standard Library.
 
         Parameters
         ----------
@@ -71,6 +79,8 @@ class Trading(ExchangeAPI):
         max_trading_fee_rate : decimal.Decimal
         good_until_time : datetime.datetime
         margin_account_id : str, optional
+        rounding : str, optional
+            A rounding mode of the `decimal` module or `None` for no rounding.
 
         Returns
         -------
@@ -85,7 +95,9 @@ class Trading(ExchangeAPI):
         intent_data = IntentData(
             trading_protocol_id=self._trading_protocol_id,
             product_id=product.id,
-            limit_price=limit_price,
+            limit_price=validators.validate_limit_price(
+                Decimal(limit_price), product.tick_size, rounding
+            ),
             quantity=quantity,
             max_trading_fee_rate=max_trading_fee_rate,
             side=getattr(OrderSide, side.upper()),
