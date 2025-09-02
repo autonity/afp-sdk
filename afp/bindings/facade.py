@@ -12,6 +12,7 @@ from . import (
     mark_price_tracker_facet,
     oracle_provider,
     product_registry,
+    system_viewer,
 )
 
 # In order to include a facet in the ClearingDiamond facade:
@@ -85,3 +86,15 @@ class ProductRegistry(product_registry.ProductRegistry):
 
     def __init__(self, w3: Web3):
         super().__init__(w3, config.PRODUCT_REGISTRY_ADDRESS)
+
+
+class SystemViewer(system_viewer.SystemViewer):
+    """SystemViewer contract binding.
+
+    Parameters
+    ----------
+    w3 : web3.Web3
+    """
+
+    def __init__(self, w3: Web3):
+        super().__init__(w3, config.SYSTEM_VIEWER_ADDRESS)

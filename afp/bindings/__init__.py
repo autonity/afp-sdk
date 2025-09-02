@@ -8,6 +8,7 @@ from .facade import (
     MarginAccountRegistry,
     OracleProvider,
     ProductRegistry,
+    SystemViewer,
 )
 from .margin_account import MarginAccount, PositionData, Settlement
 from .product_registry import (
@@ -16,6 +17,7 @@ from .product_registry import (
     ProductMetadata,
     ProductState,
 )
+from .system_viewer import UserMarginAccountData
 from .trading_protocol import TradingProtocol
 
 __all__ = (
@@ -25,6 +27,7 @@ __all__ = (
     "MarginAccountRegistry",
     "OracleProvider",
     "ProductRegistry",
+    "SystemViewer",
     "TradingProtocol",
     # Structures
     "AuctionConfig",
@@ -42,6 +45,7 @@ __all__ = (
     "ProductMetadata",
     "Settlement",
     "Trade",
+    "UserMarginAccountData",
     # Enumerations
     "ProductState",
     "Side",
