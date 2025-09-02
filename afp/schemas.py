@@ -109,7 +109,8 @@ class OrderSubmission(Model):
 
 
 class Trade(Model):
-    id: int
+    # Convert ID from int to str for backward compatibility
+    id: Annotated[str, BeforeValidator(str)]
     product_id: str
     price: Decimal
     timestamp: Timestamp
