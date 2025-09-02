@@ -1,3 +1,13 @@
+## [v0.2.2] - 2025-09-03
+
+### Added
+
+- Add public facade for SystemViewer contract binding ([#16](https://github.com/autonity/afp-sdk/pull/16))
+
+### Fixed
+
+- Remove duplicates of ports of Solidity data structures ([#16](https://github.com/autonity/afp-sdk/pull/16))
+
 ## [v0.2.1] - 2025-09-02
 
 ### Added
@@ -35,6 +45,7 @@
 
 _First release._
 
+[v0.2.2]: https://github.com/autonity/afp-sdk/releases/tag/v0.2.2
 [v0.2.1]: https://github.com/autonity/afp-sdk/releases/tag/v0.2.1
 [v0.2.0]: https://github.com/autonity/afp-sdk/releases/tag/v0.2.0
 [v0.1.2]: https://github.com/autonity/afp-sdk/releases/tag/v0.1.2
