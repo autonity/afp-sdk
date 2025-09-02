@@ -59,6 +59,24 @@ class Trade:
     intents: typing.List[Intent]
 
 
+@dataclass
+class Settlement:
+    """Port of `struct Settlement` on the IMarginAccount contract."""
+
+    position_id: hexbytes.HexBytes
+    quantity: int
+    price: int
+
+
+@dataclass
+class Order:
+    """Port of `struct Order` on the ITradingProtocol contract."""
+
+    margin_account_id: eth_typing.ChecksumAddress
+    margin_account_contract: eth_typing.ChecksumAddress
+    settlement: Settlement
+
+
 class TradingProtocol:
     """TradingProtocol contract binding.
 
@@ -100,6 +118,11 @@ class TradingProtocol:
     def RoleRevoked(self) -> contract.ContractEvent:
         """Binding for `event RoleRevoked` on the TradingProtocol contract."""
         return self._contract.events.RoleRevoked
+
+    @property
+    def SequenceExecuted(self) -> contract.ContractEvent:
+        """Binding for `event SequenceExecuted` on the TradingProtocol contract."""
+        return self._contract.events.SequenceExecuted
 
     @property
     def Upgraded(self) -> contract.ContractEvent:
@@ -450,6 +473,36 @@ class TradingProtocol:
             clearing_address,
         )
 
+    def order_mae_check(
+        self,
+        orders: typing.List[Order],
+    ) -> typing.List[bool]:
+        """Binding for `orderMAECheck` on the TradingProtocol contract.
+
+        Parameters
+        ----------
+        orders : typing.List[Order]
+
+        Returns
+        -------
+        typing.List[bool]
+        """
+        return_value = self._contract.functions.orderMAECheck(
+            [
+                (
+                    item.margin_account_id,
+                    item.margin_account_contract,
+                    (
+                        item.settlement.position_id,
+                        item.settlement.quantity,
+                        item.settlement.price,
+                    ),
+                )
+                for item in orders
+            ],
+        ).call()
+        return [bool(return_value_elem) for return_value_elem in return_value]
+
     def proxiable_uuid(
         self,
     ) -> hexbytes.HexBytes:
@@ -716,6 +769,25 @@ ABI = typing.cast(
                 },
             ],
             "name": "RoleRevoked",
+            "type": "event",
+        },
+        {
+            "anonymous": False,
+            "inputs": [
+                {
+                    "indexed": False,
+                    "internalType": "bool[]",
+                    "name": "results",
+                    "type": "bool[]",
+                },
+                {
+                    "indexed": False,
+                    "internalType": "bytes[]",
+                    "name": "errors",
+                    "type": "bytes[]",
+                },
+            ],
+            "name": "SequenceExecuted",
             "type": "event",
         },
         {
@@ -1098,6 +1170,55 @@ ABI = typing.cast(
             "name": "initialize",
             "outputs": [],
             "stateMutability": "nonpayable",
+            "type": "function",
+        },
+        {
+            "inputs": [
+                {
+                    "components": [
+                        {
+                            "internalType": "address",
+                            "name": "marginAccountID",
+                            "type": "address",
+                        },
+                        {
+                            "internalType": "address",
+                            "name": "marginAccountContract",
+                            "type": "address",
+                        },
+                        {
+                            "components": [
+                                {
+                                    "internalType": "bytes32",
+                                    "name": "positionId",
+                                    "type": "bytes32",
+                                },
+                                {
+                                    "internalType": "int256",
+                                    "name": "quantity",
+                                    "type": "int256",
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "price",
+                                    "type": "uint256",
+                                },
+                            ],
+                            "internalType": "struct IMarginAccount.Settlement",
+                            "name": "settlement",
+                            "type": "tuple",
+                        },
+                    ],
+                    "internalType": "struct ITradingProtocol.Order[]",
+                    "name": "orders",
+                    "type": "tuple[]",
+                }
+            ],
+            "name": "orderMAECheck",
+            "outputs": [
+                {"internalType": "bool[]", "name": "results", "type": "bool[]"}
+            ],
+            "stateMutability": "view",
             "type": "function",
         },
         {
