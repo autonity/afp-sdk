@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from decimal import Decimal
 
 from binascii import Error
 from eth_typing.evm import ChecksumAddress
@@ -41,3 +42,15 @@ def validate_address(value: str) -> ChecksumAddress:
         return Web3.to_checksum_address(value)
     except ValueError:
         raise ValueError(f"{value} is not a valid blockchain address")
+
+
+def validate_limit_price(
+    value: Decimal, tick_size: int, rounding: str | None = None
+) -> Decimal:
+    if rounding is None:
+        num_fractional_digits = abs(int(value.normalize().as_tuple().exponent))
+        if num_fractional_digits > tick_size:
+            raise ValueError(
+                f"Limit price {value} can have at most {tick_size} fractional digits"
+            )
+    return value.quantize(Decimal("10") ** -tick_size, rounding=rounding)
