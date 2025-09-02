@@ -2,61 +2,14 @@
 
 # This module has been generated using pyabigen v0.2.16
 
-import enum
 import typing
-from dataclasses import dataclass
 
 import eth_typing
 import hexbytes
 import web3
 from web3.contract import contract
 
-
-class Side(enum.IntEnum):
-    """Port of `enum Side` on the TradingProtocol contract."""
-
-    BID = 0
-    ASK = 1
-
-
-@dataclass
-class IntentData:
-    """Port of `struct IntentData` on the IClearing contract."""
-
-    nonce: int
-    trading_protocol_id: eth_typing.ChecksumAddress
-    product_id: hexbytes.HexBytes
-    limit_price: int
-    quantity: int
-    max_trading_fee_rate: int
-    good_until: int
-    side: Side
-
-
-@dataclass
-class Intent:
-    """Port of `struct Intent` on the IClearing contract."""
-
-    margin_account_id: eth_typing.ChecksumAddress
-    intent_account_id: eth_typing.ChecksumAddress
-    hash: hexbytes.HexBytes
-    data: IntentData
-    signature: hexbytes.HexBytes
-
-
-@dataclass
-class Trade:
-    """Port of `struct Trade` on the IClearing contract."""
-
-    product_id: hexbytes.HexBytes
-    protocol_id: eth_typing.ChecksumAddress
-    trade_id: int
-    price: int
-    timestamp: int
-    accounts: typing.List[eth_typing.ChecksumAddress]
-    quantities: typing.List[int]
-    fee_rates: typing.List[int]
-    intents: typing.List[Intent]
+from .clearing_facet import Trade
 
 
 class TradingProtocol:

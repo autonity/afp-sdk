@@ -2,7 +2,6 @@
 
 # This module has been generated using pyabigen v0.2.16
 
-import enum
 import typing
 from dataclasses import dataclass
 
@@ -11,76 +10,13 @@ import hexbytes
 import web3
 from web3.contract import contract
 
-
-class ProductState(enum.IntEnum):
-    """Port of `enum ProductState` on the SystemViewer contract."""
-
-    NOT_EXIST = 0
-    PENDING = 1
-    LIVE = 2
-    TRADEOUT = 3
-    FINAL_SETTLEMENT = 4
-    EXPIRED = 5
-
-
-@dataclass
-class Settlement:
-    """Port of `struct Settlement` on the IMarginAccount contract."""
-
-    position_id: hexbytes.HexBytes
-    quantity: int
-    price: int
-
-
-@dataclass
-class PositionData:
-    """Port of `struct PositionData` on the IMarginAccount contract."""
-
-    position_id: hexbytes.HexBytes
-    quantity: int
-    cost_basis: int
-    maintenance_margin: int
-    pnl: int
-
-
-@dataclass
-class ProductMetadata:
-    """Port of `struct ProductMetadata` on the IProductRegistry contract."""
-
-    builder: eth_typing.ChecksumAddress
-    symbol: str
-    description: str
-
-
-@dataclass
-class OracleSpecification:
-    """Port of `struct OracleSpecification` on the IProductRegistry contract."""
-
-    oracle_address: eth_typing.ChecksumAddress
-    fsv_decimals: int
-    fsp_alpha: int
-    fsp_beta: int
-    fsv_calldata: hexbytes.HexBytes
-
-
-@dataclass
-class Product:
-    """Port of `struct Product` on the IProductRegistry contract."""
-
-    metadata: ProductMetadata
-    oracle_spec: OracleSpecification
-    price_quotation: str
-    collateral_asset: eth_typing.ChecksumAddress
-    start_time: int
-    earliest_fsp_submission_time: int
-    unit_value: int
-    initial_margin_requirement: int
-    maintenance_margin_requirement: int
-    offer_price_buffer: int
-    auction_bounty: int
-    tradeout_interval: int
-    tick_size: int
-    extended_metadata: str
+from .margin_account import Settlement, PositionData
+from .product_registry import (
+    OracleSpecification,
+    Product,
+    ProductMetadata,
+    ProductState,
+)
 
 
 @dataclass
