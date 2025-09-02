@@ -11,20 +11,15 @@ import hexbytes
 import web3
 from web3.contract import contract
 
+if typing.TYPE_CHECKING:
+    from .auctioneer_facet import AuctionConfig
+
 
 class Side(enum.IntEnum):
     """Port of `enum Side` on the ClearingFacet contract."""
 
     BID = 0
     ASK = 1
-
-
-@dataclass
-class AuctionConfig:
-    """Port of `struct AuctionConfig` on the IAuctioneer contract."""
-
-    restoration_buffer: int
-    liquidation_duration: int
 
 
 @dataclass
@@ -38,7 +33,7 @@ class ClearingConfig:
 class Config:
     """Port of `struct Config` on the IClearing contract."""
 
-    auction_config: AuctionConfig
+    auction_config: "AuctionConfig"
     clearing_config: ClearingConfig
 
 

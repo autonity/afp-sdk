@@ -2,7 +2,6 @@
 
 # This module has been generated using pyabigen v0.2.16
 
-import enum
 import typing
 from dataclasses import dataclass
 
@@ -11,12 +10,7 @@ import hexbytes
 import web3
 from web3.contract import contract
 
-
-class Side(enum.IntEnum):
-    """Port of `enum Side` on the AuctioneerFacet contract."""
-
-    BID = 0
-    ASK = 1
+from .clearing_facet import Side
 
 
 @dataclass
