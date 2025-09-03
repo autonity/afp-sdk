@@ -116,7 +116,13 @@ class ExchangeClient:
             yield MarketDepthData.model_validate_json(line)
 
     def _send_request(
-        self, method: str, endpoint: str, stream: bool = False, **kwargs: Any
+        self,
+        method: str,
+        endpoint: str,
+        *,
+        stream: bool = False,
+        api_version: int = config.DEFAULT_EXCHANGE_API_VERSION,
+        **kwargs: Any,
     ) -> Response:
         kwargs["headers"] = {
             "Content-Type": "application/json",
@@ -126,7 +132,10 @@ class ExchangeClient:
 
         try:
             response = self._session.request(
-                method, f"{config.EXCHANGE_URL}{endpoint}", stream=stream, **kwargs
+                method,
+                f"{config.EXCHANGE_URL}/v{api_version}{endpoint}",
+                stream=stream,
+                **kwargs,
             )
         except requests.exceptions.RequestException as request_exception:
             raise ExchangeError(
