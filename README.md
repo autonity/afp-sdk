@@ -13,7 +13,7 @@ pip install afp-sdk
 
 The `afp` package consists of the following:
 
-- `afp` top-level module: High-level API for interacting with the Clearing
+- `afp` top-level module: High-level API for interacting with the AFP Clearing
   System and the AutEx exchange.
 - `afp.bindings` submodule: Low-level API that provides typed Python bindings
   for the Clearing System smart contracts.
@@ -22,7 +22,7 @@ The `afp` package consists of the following:
 
 ### Preparation
 
-In order to use the AFP system, traders need to prepare the following:
+In order to trade in the AFP system, traders need to prepare the following:
 
 - The ID of a product to be traded.
 - The address of the product's collateral token.
@@ -30,7 +30,7 @@ In order to use the AFP system, traders need to prepare the following:
   balance in ATN (for paying gas fee) and in the product's collateral token.
 - An Autonity account for signing intents. The two accounts can be the same.
 - The address of an Autonity RPC provider. They can be found on
-  [Chainlist](https://chainlist.org/?search=autonity&testnets=true).
+  [Chainlist](https://chainlist.org/?search=autonity).
 
 We can store those in the following constants (using random example IDs):
 
@@ -143,6 +143,22 @@ print(fills)
 ```
 
 See further code examples in the [examples](./examples/) directory.
+
+## Configuration
+
+By default the SDK communicates with the AFP Clearing System contracts on
+Autonity Mainnet, and the AutEx Exchange. Connection parameters can be
+overridden with the following environment variables:
+
+```sh
+AFP_EXCHANGE_URL=
+AFP_CHAIN_ID=
+AFP_CLEARING_DIAMOND_ADDRESS=
+AFP_MARGIN_ACCOUNT_REGISTRY_ADDRESS=
+AFP_ORACLE_PROVIDER_ADDRESS=
+AFP_PRODUCT_REGISTRY_ADDRESS=
+AFP_SYSTEM_VIEWER_ADDRESS=
+```
 
 ## Development
 
