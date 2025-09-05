@@ -1,3 +1,13 @@
+## [v0.3.0] - 2025-09-05
+
+_First public release for Forecastathon._
+
+### Changed
+
+- Update the interface with the AutEx exchange ([#17](https://github.com/autonity/afp-sdk/pull/17))
+- Update the contract bindings ([#18](https://github.com/autonity/afp-sdk/pull/18))
+- Update Clearing System parameters for Autonity Mainnet ([#19](https://github.com/autonity/afp-sdk/pull/19))
+
 ## [v0.2.2] - 2025-09-03
 
 ### Added
@@ -45,6 +55,7 @@
 
 _First release._
 
+[v0.3.0]: https://github.com/autonity/afp-sdk/releases/tag/v0.3.0
 [v0.2.2]: https://github.com/autonity/afp-sdk/releases/tag/v0.2.2
 [v0.2.1]: https://github.com/autonity/afp-sdk/releases/tag/v0.2.1
 [v0.2.0]: https://github.com/autonity/afp-sdk/releases/tag/v0.2.0
