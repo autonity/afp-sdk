@@ -32,6 +32,16 @@ class FinalSettlementFacet:
             abi=ABI,
         )
 
+    @property
+    def FSPFinalized(self) -> contract.ContractEvent:
+        """Binding for `event FSPFinalized` on the FinalSettlementFacet contract."""
+        return self._contract.events.FSPFinalized
+
+    @property
+    def FinalSettlementCloseout(self) -> contract.ContractEvent:
+        """Binding for `event FinalSettlementCloseout` on the FinalSettlementFacet contract."""
+        return self._contract.events.FinalSettlementCloseout
+
     def closeout_fee_rate(
         self,
     ) -> int:
@@ -209,6 +219,50 @@ ABI = typing.cast(
             ],
             "name": "ProductNotInFinalSettlement",
             "type": "error",
+        },
+        {
+            "anonymous": False,
+            "inputs": [
+                {
+                    "indexed": True,
+                    "internalType": "bytes32",
+                    "name": "productID",
+                    "type": "bytes32",
+                },
+                {
+                    "indexed": False,
+                    "internalType": "uint256",
+                    "name": "fsp",
+                    "type": "uint256",
+                },
+            ],
+            "name": "FSPFinalized",
+            "type": "event",
+        },
+        {
+            "anonymous": False,
+            "inputs": [
+                {
+                    "indexed": True,
+                    "internalType": "bytes32",
+                    "name": "productID",
+                    "type": "bytes32",
+                },
+                {
+                    "indexed": False,
+                    "internalType": "uint256",
+                    "name": "accountLength",
+                    "type": "uint256",
+                },
+                {
+                    "indexed": False,
+                    "internalType": "address",
+                    "name": "closedBy",
+                    "type": "address",
+                },
+            ],
+            "name": "FinalSettlementCloseout",
+            "type": "event",
         },
         {
             "inputs": [],
