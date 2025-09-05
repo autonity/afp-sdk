@@ -9,6 +9,7 @@ FEE_RATE_MULTIPLIER = 10**6
 FULL_PRECISION_MULTIPLIER = 10**18
 
 USER_AGENT = "afp-sdk"
+DEFAULT_EXCHANGE_API_VERSION = 1
 EXCHANGE_URL = os.getenv(
     "AFP_EXCHANGE_URL", "https://afp-exchange-staging.up.railway.app"
 )
