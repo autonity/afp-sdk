@@ -71,8 +71,10 @@ class ExchangeClient:
         return Order(**response.json())
 
     # GET /orders
-    def get_open_orders(self) -> list[Order]:
-        response = self._send_request("GET", "/orders")
+    def get_open_orders(self, product_id: str | None = None) -> list[Order]:
+        response = self._send_request(
+            "GET", "/orders", params=({"product_id": product_id} if product_id else {})
+        )
         return [Order(**item) for item in response.json()["orders"]]
 
     # GET /orders/{order_id}
