@@ -1,16 +1,16 @@
-class BaseException(Exception):
+class AFPException(Exception):
     pass
 
 
-class ConfigurationError(BaseException):
+class ConfigurationError(AFPException):
     pass
 
 
-class ClearingSystemError(BaseException):
+class ClearingSystemError(AFPException):
     pass
 
 
-class ExchangeError(BaseException):
+class ExchangeError(AFPException):
     pass
 
 
