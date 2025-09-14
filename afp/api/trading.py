@@ -226,15 +226,19 @@ class Trading(ExchangeAPI):
         return self._exchange.get_order_by_id(value)
 
     @refresh_token_on_expiry
-    def open_orders(self) -> list[Order]:
+    def open_orders(self, product_id: str | None = None) -> list[Order]:
         """Retrieves all open and partially filled limit orders that have been submitted
         by the authenticated account.
+
+        Parameters
+        ----------
+        product_id : str, optional
 
         Returns
         -------
         list of afp.schemas.Order
         """
-        return self._exchange.get_open_orders()
+        return self._exchange.get_open_orders(product_id)
 
     @refresh_token_on_expiry
     def order_fills(
