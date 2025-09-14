@@ -1,15 +1,19 @@
 import re
+from unittest.mock import Mock
 
 import eth_account
 
+import afp
 from afp.api.base import ExchangeAPI
 
 
-def test_generate_eip4361_message():
-    account = eth_account.Account.from_key(
-        "0x0cc549714a138639cbd51f79ff38f279e490afd2b2b98cc910af6e3d699d6049"
-    )
+def test_generate_eip4361_message(monkeypatch):
     nonce = "12345678"
+    account = eth_account.Account.from_key(
+        "0x32df57bd2cbdca044227974f6937d5722da13344218daa4286071e7850d28694"
+    )
+
+    monkeypatch.setattr(ExchangeAPI, "_login", Mock())
 
     expected_message_regex = re.compile(
         r"\S+ wants you to sign in with your Ethereum account:\n"
@@ -21,6 +25,7 @@ def test_generate_eip4361_message():
         r"Issued At: \S+"
     )
 
-    actual_message = ExchangeAPI._generate_eip4361_message(account, nonce)
+    app = afp.AFP(authenticator=afp.PrivateKeyAuthenticator(account.key))
+    actual_message = ExchangeAPI(app.config)._generate_eip4361_message(nonce)
 
     assert expected_message_regex.match(actual_message)

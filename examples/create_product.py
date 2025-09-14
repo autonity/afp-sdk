@@ -5,15 +5,13 @@ from pprint import pprint
 import afp
 
 
-BUILDER_ACCOUNT_PRIVATE_KEY = (
-    "0x926b0e772d87247fb08832e7fd55e528ae5997680713367a4786c92e7d909154"
-)
-
 AUTONITY_RPC_URL = "https://bakerloo.autonity-apis.com"
+PRIVATE_KEY = "0x926b0e772d87247fb08832e7fd55e528ae5997680713367a4786c92e7d909154"
 
 
 def main():
-    builder = afp.Builder(BUILDER_ACCOUNT_PRIVATE_KEY, AUTONITY_RPC_URL)
+    app = afp.AFP(AUTONITY_RPC_URL, afp.PrivateKeyAuthenticator(PRIVATE_KEY))
+    builder = app.Builder()
 
     product = builder.create_product(
         symbol="SDK-TEST-1",

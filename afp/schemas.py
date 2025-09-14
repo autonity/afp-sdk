@@ -152,6 +152,12 @@ class MarketDepthData(Model):
 # Clearing API
 
 
+class Transaction(Model):
+    hash: str
+    data: dict[str, Any]
+    receipt: dict[str, Any]
+
+
 class Position(Model):
     id: str
     quantity: int

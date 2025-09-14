@@ -4,12 +4,16 @@ from unittest.mock import Mock
 from web3.exceptions import ContractCustomError, ContractLogicError, Web3RPCError
 from web3.types import RPCResponse
 
+import afp
 from afp.api.base import ExchangeAPI
 from afp.decorators import convert_web3_error, refresh_token_on_expiry
 from afp.exceptions import AuthenticationError
 from afp.exchange import ExchangeClient
 from afp.exceptions import ClearingSystemError
 from afp.bindings.clearing_facet import ABI as CLEARING_ABI
+
+
+PRIVATE_KEY = "0x32df57bd2cbdca044227974f6937d5722da13344218daa4286071e7850d28694"
 
 
 class FakeExchangeAPI(ExchangeAPI):
@@ -27,9 +31,8 @@ def test_refresh_token_on_expiry__token_expired(monkeypatch):
     monkeypatch.setattr(FakeExchangeAPI, "_login", login_mock)
     monkeypatch.setattr(ExchangeClient, "_send_request", send_request_mock)
 
-    exchange_api = FakeExchangeAPI(
-        "0x772675e969238777d6caf1422e03bf920658bf74ef665807bdbbf57eb24873e3"
-    )
+    app = afp.AFP(authenticator=afp.PrivateKeyAuthenticator(PRIVATE_KEY))
+    exchange_api = FakeExchangeAPI(app.config)
     assert login_mock.call_count == 1
 
     exchange_api.get_data()
@@ -44,9 +47,8 @@ def test_refresh_token_on_expiry__token_did_not_expire(monkeypatch):
     monkeypatch.setattr(FakeExchangeAPI, "_login", login_mock)
     monkeypatch.setattr(ExchangeClient, "_send_request", send_request_mock)
 
-    exchange_api = FakeExchangeAPI(
-        "0x772675e969238777d6caf1422e03bf920658bf74ef665807bdbbf57eb24873e3"
-    )
+    app = afp.AFP(authenticator=afp.PrivateKeyAuthenticator(PRIVATE_KEY))
+    exchange_api = FakeExchangeAPI(app.config)
     assert login_mock.call_count == 1
 
     exchange_api.get_data()

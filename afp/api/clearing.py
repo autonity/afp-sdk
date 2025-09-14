@@ -20,26 +20,18 @@ from ..bindings.margin_account_registry import ABI as MARGIN_ACCOUNT_REGISTRY_AB
 from ..bindings.product_registry import ABI as PRODUCT_REGISTRY_ABI
 from ..decorators import convert_web3_error
 from ..exceptions import NotFoundError
-from ..schemas import Position
+from ..schemas import Position, Transaction
 from .base import ClearingSystemAPI
 from .builder import Builder
 
 
 class Clearing(ClearingSystemAPI):
-    """API for managing margin accounts.
-
-    Parameters
-    ----------
-    private_key : str
-        The private key of the blockchain account that manages the margin account.
-    autonity_rpc_url : str
-        The URL of a JSON-RPC provider for Autonity. (HTTPS only.)
-    """
+    """API for managing margin accounts."""
 
     ### Transactions ###
 
     @convert_web3_error(MARGIN_CONTRACT_ABI)
-    def authorize(self, collateral_asset: str, intent_account_id: str) -> str:
+    def authorize(self, collateral_asset: str, intent_account_id: str) -> Transaction:
         """Authorizes a blockchain account to submit intents to the clearing system
         using the margin account associated with the collateral asset.
 
@@ -52,24 +44,19 @@ class Clearing(ClearingSystemAPI):
 
         Returns
         -------
-        str
-            The hash of the transaction.
+        afp.schemas.Transaction
+            Transaction parameters.
         """
         collateral_asset = validators.validate_address(collateral_asset)
         intent_account_id = validators.validate_address(intent_account_id)
-
-        tx_hash = (
-            self._margin_contract(collateral_asset)
-            .authorize(intent_account_id)
-            .transact()
+        return self._transact(
+            self._margin_contract(collateral_asset).authorize(intent_account_id)
         )
-        self._w3.eth.wait_for_transaction_receipt(tx_hash)
-        return Web3.to_hex(tx_hash)
 
     @convert_web3_error(MARGIN_CONTRACT_ABI)
     def deposit_into_margin_account(
         self, collateral_asset: str, amount: Decimal
-    ) -> tuple[str, str]:
+    ) -> tuple[Transaction, Transaction]:
         """Deposits the specified amount of collateral tokens into the margin account
         associated with the collateral asset.
 
@@ -85,32 +72,30 @@ class Clearing(ClearingSystemAPI):
 
         Returns
         -------
-        str
-            The hash of the approval transaction.
-        str
-            The hash of the deposit transaction.
+        afp.schemas.Transaction
+            Parameters of the approval transaction.
+        afp.schemas.Transaction
+            Parameters of the deposit transaction.
         """
         collateral_asset = validators.validate_address(collateral_asset)
         token_amount = int(amount * 10 ** self._decimals(collateral_asset))
         token_contract = ERC20(self._w3, collateral_asset)
 
-        tx1_hash = token_contract.approve(
-            self._margin_contract(collateral_asset)._contract.address,  # type: ignore
-            token_amount,
-        ).transact()
-        self._w3.eth.wait_for_transaction_receipt(tx1_hash)
-
-        tx2_hash = (
-            self._margin_contract(collateral_asset).deposit(token_amount).transact()
+        tx1 = self._transact(
+            token_contract.approve(
+                self._margin_contract(collateral_asset)._contract.address,  # type: ignore
+                token_amount,
+            )
         )
-        self._w3.eth.wait_for_transaction_receipt(tx2_hash)
-
-        return (Web3.to_hex(tx1_hash), Web3.to_hex(tx2_hash))
+        tx2 = self._transact(
+            self._margin_contract(collateral_asset).deposit(token_amount)
+        )
+        return (tx1, tx2)
 
     @convert_web3_error(MARGIN_CONTRACT_ABI)
     def withdraw_from_margin_account(
         self, collateral_asset: str, amount: Decimal
-    ) -> str:
+    ) -> Transaction:
         """Withdraws the specified amount of collateral tokens from the margin account
         associated with the collateral asset.
 
@@ -123,19 +108,19 @@ class Clearing(ClearingSystemAPI):
 
         Returns
         -------
-        str
-            The hash of the transaction.
+        afp.schemas.Transaction
+            Transaction parameters.
         """
         collateral_asset = validators.validate_address(collateral_asset)
         token_amount = int(amount * 10 ** self._decimals(collateral_asset))
-        tx_hash = (
-            self._margin_contract(collateral_asset).withdraw(token_amount).transact()
+        return self._transact(
+            self._margin_contract(collateral_asset).withdraw(token_amount)
         )
-        self._w3.eth.wait_for_transaction_receipt(tx_hash)
-        return Web3.to_hex(tx_hash)
 
     @convert_web3_error(CLEARING_DIAMOND_ABI)
-    def initiate_final_settlement(self, product_id: str, accounts: list[str]) -> str:
+    def initiate_final_settlement(
+        self, product_id: str, accounts: list[str]
+    ) -> Transaction:
         """Initiate final settlement (closeout) process for the specified accounts.
 
         The product must be in Final Settlement state. The accounts must hold non-zero
@@ -151,18 +136,18 @@ class Clearing(ClearingSystemAPI):
 
         Returns
         -------
-        str
-            The hash of the transaction.
+        afp.schemas.Transaction
+            Transaction parameters.
         """
         product_id = validators.validate_hexstr32(product_id)
         addresses = [validators.validate_address(account) for account in accounts]
 
-        clearing_contract = ClearingDiamond(self._w3)
-        tx_hash = clearing_contract.initiate_final_settlement(
-            HexBytes(product_id), addresses
-        ).transact()
-        self._w3.eth.wait_for_transaction_receipt(tx_hash)
-        return Web3.to_hex(tx_hash)
+        clearing_contract = ClearingDiamond(
+            self._w3, self._config.clearing_diamond_address
+        )
+        return self._transact(
+            clearing_contract.initiate_final_settlement(HexBytes(product_id), addresses)
+        )
 
     ### Views ###
 
@@ -181,7 +166,9 @@ class Clearing(ClearingSystemAPI):
         Decimal
         """
         collateral_asset = validators.validate_address(collateral_asset)
-        amount = self._margin_contract(collateral_asset).capital(self._account.address)
+        amount = self._margin_contract(collateral_asset).capital(
+            self._authenticator.address
+        )
         return Decimal(amount) / 10 ** self._decimals(collateral_asset)
 
     @convert_web3_error(MARGIN_CONTRACT_ABI)
@@ -202,7 +189,7 @@ class Clearing(ClearingSystemAPI):
         """
         validators.validate_hexstr32(position_id)
         data = self._margin_contract(collateral_asset).position_data(
-            self._account.address, HexBytes(position_id)
+            self._authenticator.address, HexBytes(position_id)
         )
         decimals = self._decimals(collateral_asset)
         return Position(
@@ -229,7 +216,7 @@ class Clearing(ClearingSystemAPI):
         """
         collateral_asset = validators.validate_address(collateral_asset)
         position_ids = self._margin_contract(collateral_asset).positions(
-            self._account.address
+            self._authenticator.address
         )
         return [self.position(collateral_asset, Web3.to_hex(id)) for id in position_ids]
 
@@ -248,7 +235,9 @@ class Clearing(ClearingSystemAPI):
         Decimal
         """
         collateral_asset = validators.validate_address(collateral_asset)
-        amount = self._margin_contract(collateral_asset).mae(self._account.address)
+        amount = self._margin_contract(collateral_asset).mae(
+            self._authenticator.address
+        )
         return Decimal(amount) / 10 ** self._decimals(collateral_asset)
 
     @convert_web3_error(MARGIN_CONTRACT_ABI)
@@ -266,7 +255,9 @@ class Clearing(ClearingSystemAPI):
         Decimal
         """
         collateral_asset = validators.validate_address(collateral_asset)
-        amount = self._margin_contract(collateral_asset).mma(self._account.address)
+        amount = self._margin_contract(collateral_asset).mma(
+            self._authenticator.address
+        )
         return Decimal(amount) / 10 ** self._decimals(collateral_asset)
 
     @convert_web3_error(MARGIN_CONTRACT_ABI)
@@ -284,7 +275,9 @@ class Clearing(ClearingSystemAPI):
         Decimal
         """
         collateral_asset = validators.validate_address(collateral_asset)
-        amount = self._margin_contract(collateral_asset).mmu(self._account.address)
+        amount = self._margin_contract(collateral_asset).mmu(
+            self._authenticator.address
+        )
         return Decimal(amount) / 10 ** self._decimals(collateral_asset)
 
     @convert_web3_error(MARGIN_CONTRACT_ABI)
@@ -302,7 +295,9 @@ class Clearing(ClearingSystemAPI):
         Decimal
         """
         collateral_asset = validators.validate_address(collateral_asset)
-        amount = self._margin_contract(collateral_asset).pnl(self._account.address)
+        amount = self._margin_contract(collateral_asset).pnl(
+            self._authenticator.address
+        )
         return Decimal(amount) / 10 ** self._decimals(collateral_asset)
 
     @convert_web3_error(MARGIN_CONTRACT_ABI)
@@ -321,7 +316,7 @@ class Clearing(ClearingSystemAPI):
         """
         collateral_asset = validators.validate_address(collateral_asset)
         amount = self._margin_contract(collateral_asset).withdrawable(
-            self._account.address
+            self._authenticator.address
         )
         return Decimal(amount) / 10 ** self._decimals(collateral_asset)
 
@@ -338,7 +333,9 @@ class Clearing(ClearingSystemAPI):
         -------
         str
         """
-        product_registry_contract = ProductRegistry(self._w3)
+        product_registry_contract = ProductRegistry(
+            self._w3, self._config.product_registry_address
+        )
         collateral_asset = product_registry_contract.collateral_asset(
             HexBytes(product_id)
         )
@@ -365,7 +362,9 @@ class Clearing(ClearingSystemAPI):
     @cache
     @convert_web3_error(MARGIN_ACCOUNT_REGISTRY_ABI)
     def _margin_contract(self, collateral_asset: ChecksumAddress) -> MarginAccount:
-        margin_account_registry_contract = MarginAccountRegistry(self._w3)
+        margin_account_registry_contract = MarginAccountRegistry(
+            self._w3, self._config.margin_account_registry_address
+        )
         try:
             margin_contract_address = (
                 margin_account_registry_contract.get_margin_account(

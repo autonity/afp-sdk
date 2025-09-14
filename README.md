@@ -28,7 +28,8 @@ In order to trade in the AFP system, traders need to prepare the following:
 - The address of the product's collateral token.
 - An Autonity account for managing the margin account. It needs to hold a
   balance in ATN (for paying gas fee) and in the product's collateral token.
-- An Autonity account for signing intents. The two accounts can be the same.
+- An Autonity account for signing intents and submitting trades to the
+  exchange. The two accounts can be the same.
 - The address of an Autonity RPC provider. They can be found on
   [Chainlist](https://chainlist.org/?search=autonity).
 
@@ -39,30 +40,40 @@ import os
 
 PRODUCT_ID = "0x38d502bb683f53ec7c3d7a14b4aa47ac717659e121426131c0189c15bf4b9460"
 COLLATERAL_ASSET = "0xD1A1e4035a164cF42228A8aAaBC2c0Ac9e49687B"
-MARGIN_ACCOUNT_PRIVATE_KEY = os.environ["MARGIN_ACCOUNT_PRIVATE_KEY"]
-INTENT_ACCOUNT_PRIVATE_KEY = os.environ["INTENT_ACCOUNT_PRIVATE_KEY"]
+PRIVATE_KEY = os.environ["PRIVATE_KEY"]
 AUTONITY_RPC_URL = "https://bakerloo.autonity-apis.com"
 ```
 
-Account IDs (addresses) may be retrieved from the private keys with `eth_account`:
+### Configuration
 
-```py
-from eth_account import Account
+An application instance can be created with the `afp.AFP()` constructor. An instance
+is associated with a trading venue and a margin account.
 
-MARGIN_ACCOUNT_ID = Account.from_key(MARGIN_ACCOUNT_PRIVATE_KEY).address
-INTENT_ACCOUNT_ID = Account.from_key(INTENT_ACCOUNT_PRIVATE_KEY).address
-```
+The required constructor arguments are the RPC provider URL and the authenticator of
+the blockchain account that manages the margin account.
 
-### Clearing API
-
-Functions of the Clearing API can be accessed via the `afp.Clearing`
-session object. It connects to the specified Autonity RPC provider and
-communicates with the Clearing System smart contracts.
+An "authenticator" is a service that implements the `afp.Authenticator` protocol.
+Available options are `afp.PrivateKeyAuthenticator` that reads the private key
+from a constructor argument, and `afp.KeyfileAuthenticator` that reads the private
+key from an encrypted keyfile.
 
 ```py
 import afp
 
-clearing = afp.Clearing(MARGIN_ACCOUNT_PRIVATE_KEY, AUTONITY_RPC_URL)
+app = afp.AFP(
+    rpc_url=AUTONITY_RPC_URL,
+    authenticator=afp.PrivateKeyAuthenticator(PRIVATE_KEY),
+)
+```
+
+### Clearing API
+
+Functions of the Clearing API can be accessed via the `Clearing` session
+object. It connects to the specified Autonity RPC provider and communicates
+with the Clearing System smart contracts.
+
+```py
+clearing = app.Clearing()
 ```
 
 Collateral can be deposited into the margin account with
@@ -75,21 +86,15 @@ clearing.deposit_into_margin_account(COLLATERAL_ASSET, Decimal("100.00"))
 print(clearing.capital(COLLATERAL_ASSET))
 ```
 
-The intent account should be authorized to submit orders. This is only required
-if the intent account and the margin account are different.
-
-```py
-clearing.authorize(COLLATERAL_ASSET, INTENT_ACCOUNT_ID)
-```
-
 ### Trading API
 
-The functions of the trading API can be accessed via the `afp.Trading` session
-object. It communicates with the AutEx exchange and authenticates on creation with
-the intent account's private key.
+Functions of the trading API can be accessed via the `Trading` session object.
+It communicates with the AutEx exchange and authenticates on creation with the
+intent account's private key. The intent account authenticator is optional, it
+defaults to the authenticator set in the `AFP` constructor.
 
 ```py
-trading = afp.Trading(INTENT_ACCOUNT_PRIVATE_KEY)
+trading = app.Trading()
 ```
 
 To start trading a product, its parameters shall be retrieved from the server.
@@ -148,7 +153,8 @@ See further code examples in the [examples](./examples/) directory.
 
 By default the SDK communicates with the AFP Clearing System contracts on
 Autonity Mainnet, and the AutEx Exchange. Connection parameters can be
-overridden with the following environment variables:
+specified via `AFP` constructor arguments; defaults values can also be
+overridden in the following environment variables:
 
 ```sh
 AFP_EXCHANGE_URL=

@@ -2,6 +2,10 @@ class BaseException(Exception):
     pass
 
 
+class ConfigurationError(BaseException):
+    pass
+
+
 class ClearingSystemError(BaseException):
     pass
 

@@ -4,7 +4,7 @@ from typing import Any, Generator
 import requests
 from requests import Response, Session
 
-from . import config
+from . import constants
 from .exceptions import (
     AuthenticationError,
     AuthorizationError,
@@ -26,10 +26,15 @@ from .schemas import (
 
 
 class ExchangeClient:
+    _base_url: str
     _session: Session
 
-    def __init__(self):
+    def __init__(self, base_url: str):
+        self._base_url = base_url
         self._session = Session()
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(base_url={self._base_url})"
 
     # POST /nonce
     def generate_login_nonce(self) -> str:
@@ -123,19 +128,19 @@ class ExchangeClient:
         endpoint: str,
         *,
         stream: bool = False,
-        api_version: int = config.DEFAULT_EXCHANGE_API_VERSION,
+        api_version: int = constants.DEFAULT_EXCHANGE_API_VERSION,
         **kwargs: Any,
     ) -> Response:
         kwargs["headers"] = {
             "Content-Type": "application/json",
             "Accept": "application/x-ndjson" if stream else "application/json",
-            "User-Agent": config.USER_AGENT,
+            "User-Agent": constants.USER_AGENT,
         }
 
         try:
             response = self._session.request(
                 method,
-                f"{config.EXCHANGE_URL}/v{api_version}{endpoint}",
+                f"{self._base_url}/v{api_version}{endpoint}",
                 stream=stream,
                 **kwargs,
             )

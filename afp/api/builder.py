@@ -6,7 +6,7 @@ from eth_typing.evm import ChecksumAddress
 from hexbytes import HexBytes
 from web3 import Web3
 
-from .. import config, signing, validators
+from .. import constants, hashing, validators
 from ..bindings import (
     OracleSpecification,
     Product,
@@ -17,20 +17,12 @@ from ..bindings.erc20 import ERC20
 from ..bindings.product_registry import ABI as PRODUCT_REGISTRY_ABI
 from ..decorators import convert_web3_error
 from ..exceptions import NotFoundError
-from ..schemas import ProductSpecification
+from ..schemas import ProductSpecification, Transaction
 from .base import ClearingSystemAPI
 
 
 class Builder(ClearingSystemAPI):
-    """API for building and submitting new products.
-
-    Parameters
-    ----------
-    private_key : str
-        The private key of the blockchain account that submits the product.
-    autonity_rpc_url : str
-        The URL of a JSON-RPC provider for Autonity. (HTTPS only.)
-    """
+    """API for building and submitting new products."""
 
     @convert_web3_error()
     def create_product(
@@ -38,7 +30,6 @@ class Builder(ClearingSystemAPI):
         *,
         symbol: str,
         description: str,
-        oracle_address: str,
         fsv_decimals: int,
         fsp_alpha: Decimal,
         fsp_beta: Decimal,
@@ -53,6 +44,7 @@ class Builder(ClearingSystemAPI):
         auction_bounty: Decimal,
         tradeout_interval: int,
         extended_metadata: str,
+        oracle_address: str | None = None,
     ) -> ProductSpecification:
         """Creates a product specification with the given product data.
 
@@ -63,7 +55,6 @@ class Builder(ClearingSystemAPI):
         ----------
         symbol : str
         description : str
-        oracle_address: str
         fsv_decimals: int
         fsp_alpha: Decimal
         fsp_beta: int
@@ -78,12 +69,18 @@ class Builder(ClearingSystemAPI):
         auction_bounty : Decimal
         tradeout_interval : int
         extended_metadata : str
+        oracle_address: str, optional
 
         Returns
         -------
         afp.schemas.ProductSpecification
         """
-        product_id = Web3.to_hex(signing.generate_product_id(self._account, symbol))
+        if oracle_address is None:
+            oracle_address = self._config.oracle_provider_address
+
+        product_id = Web3.to_hex(
+            hashing.generate_product_id(self._authenticator.address, symbol)
+        )
 
         erc20_contract = ERC20(self._w3, Web3.to_checksum_address(collateral_asset))
         price_quotation = erc20_contract.symbol()
@@ -96,7 +93,7 @@ class Builder(ClearingSystemAPI):
 
         return ProductSpecification(
             id=product_id,
-            builder_id=self._account.address,
+            builder_id=self._authenticator.address,
             symbol=symbol,
             description=description,
             oracle_address=oracle_address,
@@ -118,7 +115,7 @@ class Builder(ClearingSystemAPI):
         )
 
     @convert_web3_error(PRODUCT_REGISTRY_ABI)
-    def register_product(self, product: ProductSpecification) -> str:
+    def register_product(self, product: ProductSpecification) -> Transaction:
         """Submits a product specification to the clearing system.
 
         Parameters
@@ -127,20 +124,22 @@ class Builder(ClearingSystemAPI):
 
         Returns
         -------
-        str
-            The hash of the transaction.
+        afp.schemas.Transaction
+            Transaction parameters.
         """
         erc20_contract = ERC20(
             self._w3, cast(ChecksumAddress, product.collateral_asset)
         )
         decimals = erc20_contract.decimals()
 
-        product_registry_contract = ProductRegistry(self._w3)
-        tx_hash = product_registry_contract.register(
-            self._convert_product_specification(product, decimals)
-        ).transact()
-        self._w3.eth.wait_for_transaction_receipt(tx_hash)
-        return Web3.to_hex(tx_hash)
+        product_registry_contract = ProductRegistry(
+            self._w3, self._config.product_registry_address
+        )
+        return self._transact(
+            product_registry_contract.register(
+                self._convert_product_specification(product, decimals)
+            )
+        )
 
     @convert_web3_error(PRODUCT_REGISTRY_ABI)
     def product_state(self, product_id: str) -> str:
@@ -156,7 +155,9 @@ class Builder(ClearingSystemAPI):
         str
         """
         product_id = validators.validate_hexstr32(product_id)
-        product_registry_contract = ProductRegistry(self._w3)
+        product_registry_contract = ProductRegistry(
+            self._w3, self._config.product_registry_address
+        )
         state = product_registry_contract.state(HexBytes(product_id))
         return state.name
 
@@ -173,7 +174,7 @@ class Builder(ClearingSystemAPI):
             oracle_spec=OracleSpecification(
                 oracle_address=cast(ChecksumAddress, product.oracle_address),
                 fsv_decimals=product.fsv_decimals,
-                fsp_alpha=int(product.fsp_alpha * config.FULL_PRECISION_MULTIPLIER),
+                fsp_alpha=int(product.fsp_alpha * constants.FULL_PRECISION_MULTIPLIER),
                 fsp_beta=int(product.fsp_beta * 10**product.fsv_decimals),
                 fsv_calldata=HexBytes(product.fsv_calldata),
             ),
@@ -186,12 +187,12 @@ class Builder(ClearingSystemAPI):
             tick_size=product.tick_size,
             unit_value=int(product.unit_value * 10**decimals),
             initial_margin_requirement=int(
-                product.initial_margin_requirement * config.RATE_MULTIPLIER
+                product.initial_margin_requirement * constants.RATE_MULTIPLIER
             ),
             maintenance_margin_requirement=int(
-                product.maintenance_margin_requirement * config.RATE_MULTIPLIER
+                product.maintenance_margin_requirement * constants.RATE_MULTIPLIER
             ),
-            auction_bounty=int(product.auction_bounty * config.RATE_MULTIPLIER),
+            auction_bounty=int(product.auction_bounty * constants.RATE_MULTIPLIER),
             tradeout_interval=product.tradeout_interval,
             extended_metadata=product.extended_metadata,
         )

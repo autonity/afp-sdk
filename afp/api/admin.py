@@ -5,20 +5,7 @@ from .base import ExchangeAPI
 
 
 class Admin(ExchangeAPI):
-    """API for AutEx administration, restricted to AutEx admins.
-
-    Authenticates with the exchange on creation.
-
-    Parameters
-    ----------
-    private_key : str
-        The private key of the exchange adminstrator account.
-
-    Raises
-    ------
-    afp.exceptions.AuthenticationError
-        If the exchange rejects the login attempt.
-    """
+    """API for AutEx administration, restricted to AutEx admins."""
 
     @refresh_token_on_expiry
     def approve_product(self, product_id: str) -> None:

@@ -1,13 +1,11 @@
 from typing import Any, cast
 
 from eth_abi.packed import encode_packed
-from eth_account import messages
 from eth_typing.evm import ChecksumAddress
-from eth_account.signers.local import LocalAccount
 from hexbytes import HexBytes
 from web3 import Web3
 
-from . import config
+from . import constants
 from .bindings import clearing_facet
 from .schemas import IntentData, OrderSide
 
@@ -44,7 +42,7 @@ def generate_intent_hash(
         HexBytes(intent_data.product_id),
         int(intent_data.limit_price * 10**tick_size),
         intent_data.quantity,
-        int(intent_data.max_trading_fee_rate * config.FEE_RATE_MULTIPLIER),
+        int(intent_data.max_trading_fee_rate * constants.FEE_RATE_MULTIPLIER),
         int(intent_data.good_until_time.timestamp()),
         ORDER_SIDE_MAPPING[intent_data.side],
     ]
@@ -57,13 +55,7 @@ def generate_order_cancellation_hash(nonce: int, intent_hash: str) -> HexBytes:
     return Web3.keccak(encode_packed(types, values))
 
 
-def generate_product_id(builder: LocalAccount, symbol: str) -> HexBytes:
+def generate_product_id(builder_address: ChecksumAddress, symbol: str) -> HexBytes:
     types = ["address", "string"]
-    values: list[Any] = [builder.address, symbol]
+    values: list[Any] = [builder_address, symbol]
     return Web3.keccak(encode_packed(types, values))
-
-
-def sign_message(account: LocalAccount, message: bytes) -> HexBytes:
-    eip191_message = messages.encode_defunct(message)
-    signed_message = account.sign_message(eip191_message)
-    return signed_message.signature

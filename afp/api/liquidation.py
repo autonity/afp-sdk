@@ -3,7 +3,6 @@ from functools import cache
 from typing import Iterable
 
 from hexbytes import HexBytes
-from web3 import Web3
 
 from .. import validators
 from ..bindings import (
@@ -16,21 +15,12 @@ from ..bindings.facade import CLEARING_DIAMOND_ABI
 from ..bindings.product_registry import ABI as PRODUCT_REGISTRY_ABI
 from ..decorators import convert_web3_error
 from ..enums import OrderSide
-from ..schemas import AuctionData, Bid
+from ..schemas import AuctionData, Bid, Transaction
 from .base import ClearingSystemAPI
 
 
 class Liquidation(ClearingSystemAPI):
-    """API for participating in liquidation auctions.
-
-    Parameters
-    ----------
-    private_key : str
-        The private key of the blockchain account that participates in a liquidation
-        auction.
-    autonity_rpc_url : str
-        The URL of a JSON-RPC provider for Autonity. (HTTPS only.)
-    """
+    """API for participating in liquidation auctions."""
 
     @staticmethod
     def create_bid(product_id: str, price: Decimal, quantity: int, side: str) -> Bid:
@@ -57,7 +47,9 @@ class Liquidation(ClearingSystemAPI):
     ### Transactions ###
 
     @convert_web3_error(CLEARING_DIAMOND_ABI)
-    def request_liquidation(self, margin_account_id: str, collateral_asset: str) -> str:
+    def request_liquidation(
+        self, margin_account_id: str, collateral_asset: str
+    ) -> Transaction:
         """Request a liquidation auction to be started.
 
         Parameters
@@ -69,23 +61,23 @@ class Liquidation(ClearingSystemAPI):
 
         Returns
         -------
-        str
-            The hash of the transaction.
+        afp.schemas.Transaction
+            Transaction parameters.
         """
         margin_account_id = validators.validate_address(margin_account_id)
         collateral_asset = validators.validate_address(collateral_asset)
 
-        clearing_contract = ClearingDiamond(self._w3)
-        tx_hash = clearing_contract.request_liquidation(
-            margin_account_id, collateral_asset
-        ).transact()
-        self._w3.eth.wait_for_transaction_receipt(tx_hash)
-        return Web3.to_hex(tx_hash)
+        clearing_contract = ClearingDiamond(
+            self._w3, self._config.clearing_diamond_address
+        )
+        return self._transact(
+            clearing_contract.request_liquidation(margin_account_id, collateral_asset)
+        )
 
     @convert_web3_error(CLEARING_DIAMOND_ABI, PRODUCT_REGISTRY_ABI)
     def submit_bids(
         self, margin_account_id: str, collateral_asset: str, bids: Iterable[Bid]
-    ) -> str:
+    ) -> Transaction:
         """Submit bids to a liquidation auction.
 
         Parameters
@@ -98,8 +90,8 @@ class Liquidation(ClearingSystemAPI):
 
         Returns
         -------
-        str
-            The hash of the transaction.
+        afp.schemas.Transaction
+            Transaction parameters.
         """
         margin_account_id = validators.validate_address(margin_account_id)
         collateral_asset = validators.validate_address(collateral_asset)
@@ -114,12 +106,14 @@ class Liquidation(ClearingSystemAPI):
             for bid in bids
         ]
 
-        clearing_contract = ClearingDiamond(self._w3)
-        tx_hash = clearing_contract.bid_auction(
-            margin_account_id, collateral_asset, converted_bids
-        ).transact()
-        self._w3.eth.wait_for_transaction_receipt(tx_hash)
-        return Web3.to_hex(tx_hash)
+        clearing_contract = ClearingDiamond(
+            self._w3, self._config.clearing_diamond_address
+        )
+        return self._transact(
+            clearing_contract.bid_auction(
+                margin_account_id, collateral_asset, converted_bids
+            )
+        )
 
     ### Views ###
 
@@ -144,7 +138,9 @@ class Liquidation(ClearingSystemAPI):
         margin_account_id = validators.validate_address(margin_account_id)
         collateral_asset = validators.validate_address(collateral_asset)
 
-        clearing_contract = ClearingDiamond(self._w3)
+        clearing_contract = ClearingDiamond(
+            self._w3, self._config.clearing_diamond_address
+        )
         data = clearing_contract.auction_data(margin_account_id, collateral_asset)
         divisor = 10 ** self._decimals(collateral_asset)
         return AuctionData(
@@ -163,5 +159,7 @@ class Liquidation(ClearingSystemAPI):
 
     @cache
     def _tick_size(self, product_id: str) -> int:
-        product_registry_contract = ProductRegistry(self._w3)
+        product_registry_contract = ProductRegistry(
+            self._w3, self._config.product_registry_address
+        )
         return product_registry_contract.tick_size(HexBytes(product_id))
