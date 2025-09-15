@@ -1,4 +1,4 @@
-from .auth import Authenticator
+from .auth import Authenticator, KeyfileAuthenticator, PrivateKeyAuthenticator
 from .config import Config
 from .api.admin import Admin
 from .api.builder import Builder
@@ -6,6 +6,7 @@ from .api.clearing import Clearing
 from .api.liquidation import Liquidation
 from .api.trading import Trading
 from .constants import defaults
+from .exceptions import ConfigurationError
 from .validators import validate_address
 
 
@@ -49,7 +50,7 @@ class AFP:
 
     def __init__(
         self,
-        rpc_url: str | None = None,
+        rpc_url: str | None = defaults.RPC_URL,
         authenticator: Authenticator | None = None,
         *,
         exchange_url: str = defaults.EXCHANGE_URL,
@@ -64,6 +65,9 @@ class AFP:
         product_registry_address: str = defaults.PRODUCT_REGISTRY_ADDRESS,
         system_viewer_address: str = defaults.SYSTEM_VIEWER_ADDRESS,
     ) -> None:
+        if authenticator is None:
+            authenticator = _default_authenticator()
+
         self.config = Config(
             rpc_url=rpc_url,
             authenticator=authenticator,
@@ -157,3 +161,16 @@ class AFP:
             If the exchange rejects the login attempt.
         """
         return Trading(self.config, authenticator)
+
+
+def _default_authenticator() -> Authenticator | None:
+    if defaults.PRIVATE_KEY is not None and defaults.KEYFILE is not None:
+        raise ConfigurationError(
+            "Only one of AFP_PRIVATE_KEY and AFP_KEYFILE environment "
+            "variables should be specified"
+        )
+    if defaults.PRIVATE_KEY is not None:
+        return PrivateKeyAuthenticator(defaults.PRIVATE_KEY)
+    if defaults.KEYFILE is not None:
+        return KeyfileAuthenticator(defaults.KEYFILE, defaults.KEYFILE_PASSWORD)
+    return None

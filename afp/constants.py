@@ -15,11 +15,16 @@ FEE_RATE_MULTIPLIER = 10**6
 FULL_PRECISION_MULTIPLIER = 10**18
 
 defaults = SimpleNamespace(
+    # Authentication parameters
+    KEYFILE=os.getenv("AFP_KEYFILE", None),
+    KEYFILE_PASSWORD=os.getenv("AFP_KEYFILE_PASSWORD", ""),
+    PRIVATE_KEY=os.getenv("AFP_PRIVATE_KEY", None),
     # Venue parameters
     EXCHANGE_URL=os.getenv(
         "AFP_EXCHANGE_URL", "https://afp-exchange-stable.up.railway.app"
     ),
     # Blockchain parameters
+    RPC_URL=os.getenv("AFP_RPC_URL", None),
     CHAIN_ID=int(os.getenv("AFP_CHAIN_ID", 65000000)),
     GAS_LIMIT=_int_or_none(os.getenv("AFP_GAS_LIMIT", None)),
     MAX_FEE_PER_GAS=_int_or_none(os.getenv("AFP_MAX_FEE_PER_GAS", None)),

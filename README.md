@@ -157,7 +157,11 @@ specified via `AFP` constructor arguments; defaults values can also be
 overridden in the following environment variables:
 
 ```sh
+AFP_PRIVATE_KEY=
+AFP_KEYFILE=
+AFP_KEYFILE_PASSWORD=
 AFP_EXCHANGE_URL=
+AFP_RPC_URL=
 AFP_CHAIN_ID=
 AFP_GAS_LIMIT=
 AFP_MAX_FEE_PER_GAS=
