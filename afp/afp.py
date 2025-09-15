@@ -23,6 +23,16 @@ class AFP:
         The base REST API URL of the AutEx exchange.
     chain_id : str, optional
         The chain ID of the Autonity network.
+    gas_limit : int, optional
+        The `gasLimit` parameter of blockchain transactions. Estimated with
+        the `eth_estimateGas` JSON-RPC method if not specified.
+    max_fee_per_gas : int, optional
+        The `maxFeePerGas` parameter of blockchain transactions in ton (wei) units.
+    max_priority_fee_per_gas : int, optional
+        The `maxPriorityFeePerGas` parameter of blockchain transactions in ton (wei)
+        units.
+    timeout_seconds: int, optional
+        The number of seconds to wait for a blockchain transaction to be mined.
     clearing_diamond_address : str, optional
         The address of the ClearingDiamond contract.
     margin_account_registry_address : str, optional
@@ -44,6 +54,10 @@ class AFP:
         *,
         exchange_url: str = defaults.EXCHANGE_URL,
         chain_id: int = defaults.CHAIN_ID,
+        gas_limit: int | None = defaults.GAS_LIMIT,
+        max_fee_per_gas: int | None = defaults.MAX_FEE_PER_GAS,
+        max_priority_fee_per_gas: int | None = defaults.MAX_PRIORITY_FEE_PER_GAS,
+        timeout_seconds: int = defaults.TIMEOUT_SECONDS,
         clearing_diamond_address: str = defaults.CLEARING_DIAMOND_ADDRESS,
         margin_account_registry_address: str = defaults.MARGIN_ACCOUNT_REGISTRY_ADDRESS,
         oracle_provider_address: str = defaults.ORACLE_PROVIDER_ADDRESS,
@@ -55,6 +69,10 @@ class AFP:
             authenticator=authenticator,
             exchange_url=exchange_url,
             chain_id=chain_id,
+            gas_limit=gas_limit,
+            max_fee_per_gas=max_fee_per_gas,
+            max_priority_fee_per_gas=max_priority_fee_per_gas,
+            timeout_seconds=timeout_seconds,
             clearing_diamond_address=validate_address(clearing_diamond_address),
             margin_account_registry_address=validate_address(
                 margin_account_registry_address

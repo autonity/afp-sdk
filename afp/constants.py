@@ -1,6 +1,11 @@
 import os
 from types import SimpleNamespace
 
+
+def _int_or_none(value: str | None) -> int | None:
+    return int(value) if value is not None else None
+
+
 USER_AGENT = "afp-sdk"
 DEFAULT_EXCHANGE_API_VERSION = 1
 
@@ -10,10 +15,19 @@ FEE_RATE_MULTIPLIER = 10**6
 FULL_PRECISION_MULTIPLIER = 10**18
 
 defaults = SimpleNamespace(
+    # Venue parameters
     EXCHANGE_URL=os.getenv(
         "AFP_EXCHANGE_URL", "https://afp-exchange-stable.up.railway.app"
     ),
+    # Blockchain parameters
     CHAIN_ID=int(os.getenv("AFP_CHAIN_ID", 65000000)),
+    GAS_LIMIT=_int_or_none(os.getenv("AFP_GAS_LIMIT", None)),
+    MAX_FEE_PER_GAS=_int_or_none(os.getenv("AFP_MAX_FEE_PER_GAS", None)),
+    MAX_PRIORITY_FEE_PER_GAS=_int_or_none(
+        os.getenv("AFP_MAX_PRIORITY_FEE_PER_GAS", None)
+    ),
+    TIMEOUT_SECONDS=int(os.getenv("AFP_TIMEOUT_SECONDS", 10)),
+    # Clearing System parameters
     CLEARING_DIAMOND_ADDRESS=os.getenv(
         "AFP_CLEARING_DIAMOND_ADDRESS", "0x5B5411F1548254d25360d71FE40cFc1cC983B2A2"
     ),

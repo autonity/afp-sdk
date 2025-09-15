@@ -2,11 +2,13 @@ from abc import ABC
 from datetime import datetime
 from functools import cache
 from urllib.parse import urlparse
+from typing import cast
 
 from eth_typing.evm import ChecksumAddress
 from siwe import ISO8601Datetime, SiweMessage, siwe  # type: ignore (untyped library)
 from web3 import Web3, HTTPProvider
 from web3.contract.contract import ContractFunction
+from web3.types import TxParams
 
 from ..auth import Authenticator
 from ..config import Config
@@ -49,16 +51,26 @@ class ClearingSystemAPI(BaseAPI, ABC):
 
     def _transact(self, func: ContractFunction) -> Transaction:
         tx_count = self._w3.eth.get_transaction_count(self._authenticator.address)
-        tx_params = func.build_transaction(
-            {"from": self._authenticator.address, "nonce": tx_count}
+        tx_params = {
+            "from": self._authenticator.address,
+            "nonce": tx_count,
+            "gasLimit": self._config.gas_limit,
+            "maxFeePerGas": self._config.max_fee_per_gas,
+            "maxPriorityFeePerGas": self._config.max_priority_fee_per_gas,
+        }
+
+        prepared_tx = func.build_transaction(
+            cast(TxParams, {k: v for k, v in tx_params.items() if v is not None})
         )
-        signed_tx = self._authenticator.sign_transaction(tx_params)
+        signed_tx = self._authenticator.sign_transaction(prepared_tx)
         tx_hash = self._w3.eth.send_raw_transaction(signed_tx.raw_transaction)
-        tx_receipt = self._w3.eth.wait_for_transaction_receipt(tx_hash)
+        tx_receipt = self._w3.eth.wait_for_transaction_receipt(
+            tx_hash, timeout=self._config.timeout_seconds
+        )
 
         return Transaction(
             hash=tx_hash.to_0x_hex(),
-            data=dict(tx_params),
+            data=dict(prepared_tx),
             receipt=dict(tx_receipt),
         )
 
