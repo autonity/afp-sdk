@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta
 from decimal import Decimal
 from pprint import pprint
@@ -6,7 +7,7 @@ from time import sleep
 import afp
 
 
-PRIVATE_KEY = "0xdbacc0d8d0b5dc20a7a68f9ceb2daa3d5dc7ab43b06d2eda4b9a41a08be60024"
+PRIVATE_KEY = os.environ["TRADER_PRIVATE_KEY"]
 PRODUCT_ID = "0xf82118deb932a8649d519d8d34e7f7b278a44bdb3f2663f6049aaea6ee33b211"
 
 

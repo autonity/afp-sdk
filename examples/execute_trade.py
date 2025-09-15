@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta
 from decimal import Decimal
 from pprint import pprint
@@ -7,18 +8,19 @@ import afp
 
 
 AUTONITY_RPC_URL = "https://bakerloo.autonity-apis.com"
+TRADER1_PRIVATE_KEY = os.environ["TRADER1_PRIVATE_KEY"]
+TRADER2_PRIVATE_KEY = os.environ["TRADER2_PRIVATE_KEY"]
 
-TRADER1_PRIVATE_KEY = (
-    "0xdbacc0d8d0b5dc20a7a68f9ceb2daa3d5dc7ab43b06d2eda4b9a41a08be60024"
-)
-TRADER2_PRIVATE_KEY = (
-    "0xa2a0a317ac7204542b2a3dc25ba9785e42dad5c7a6df3a3fcf57f277c5b89730"
-)
 PRODUCT_ID = "0xf82118deb932a8649d519d8d34e7f7b278a44bdb3f2663f6049aaea6ee33b211"
+COLLATERAL_ASSET = "0x15d7B75e16162C36d86c971508c0d6eF2D7F131D"
 
 
 def main():
-    app = afp.AFP()
+    app = afp.AFP(rpc_url=AUTONITY_RPC_URL)
+
+    # Trader #1 adds collateral to their margin account
+    margin_account = app.MarginAccount(afp.PrivateKeyAuthenticator(TRADER1_PRIVATE_KEY))
+    margin_account.deposit(COLLATERAL_ASSET, Decimal("100"))
 
     # Trader #1 submits bid
     trading = app.Trading(afp.PrivateKeyAuthenticator(TRADER1_PRIVATE_KEY))
