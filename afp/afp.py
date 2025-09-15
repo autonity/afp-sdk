@@ -15,12 +15,12 @@ class AFP:
 
     Parameters
     ----------
-    rpc_url : str, optional
-        The URL of an Autonity RPC provider.
     authenticator : afp.Authenticator, optional
         The default authenticator for signing transactions & messages.
     exchange_url: str, optional
-        The base REST API URL of the AutEx exchange.
+        The default REST API base URL of the exchange.
+    rpc_url : str, optional
+        The URL of an Autonity RPC provider.
     chain_id : str, optional
         The chain ID of the Autonity network.
     gas_limit : int, optional
@@ -49,10 +49,10 @@ class AFP:
 
     def __init__(
         self,
-        rpc_url: str | None = defaults.RPC_URL,
-        authenticator: Authenticator | None = None,
         *,
+        authenticator: Authenticator | None = None,
         exchange_url: str = defaults.EXCHANGE_URL,
+        rpc_url: str | None = defaults.RPC_URL,
         chain_id: int = defaults.CHAIN_ID,
         gas_limit: int | None = defaults.GAS_LIMIT,
         max_fee_per_gas: int | None = defaults.MAX_FEE_PER_GAS,
@@ -68,9 +68,9 @@ class AFP:
             authenticator = _default_authenticator()
 
         self.config = Config(
-            rpc_url=rpc_url,
             authenticator=authenticator,
             exchange_url=exchange_url,
+            rpc_url=rpc_url,
             chain_id=chain_id,
             gas_limit=gas_limit,
             max_fee_per_gas=max_fee_per_gas,
@@ -101,7 +101,7 @@ class AFP:
             Authenticator for signing transactions sent to the Clearing System.
             Defaults to the authenticator specified in the `AFP` constructor.
         """
-        return MarginAccount(self.config, authenticator)
+        return MarginAccount(self.config, authenticator=authenticator)
 
     def Product(self, authenticator: Authenticator | None = None) -> Product:
         """API for managing products.
@@ -112,11 +112,15 @@ class AFP:
             Authenticator for signing transactions sent to the Clearing System.
             Defaults to the authenticator specified in the `AFP` constructor.
         """
-        return Product(self.config, authenticator)
+        return Product(self.config, authenticator=authenticator)
 
     # Exchange APIs
 
-    def Admin(self, authenticator: Authenticator | None = None) -> Admin:
+    def Admin(
+        self,
+        authenticator: Authenticator | None = None,
+        exchange_url: str | None = None,
+    ) -> Admin:
         """API for AutEx administration, restricted to AutEx admins.
 
         Authenticates with the exchange on creation.
@@ -126,15 +130,24 @@ class AFP:
         authenticator : afp.Authenticator, optional
             Authenticator for authenticating with the AutEx exchange. Defaults to the
             authenticator specified in the `AFP` constructor.
+        exchange_url: str, optional
+            The REST API base URL of the exchange. Defaults to the value specified in
+            the `AFP` constructor.
 
         Raises
         ------
         afp.exceptions.AuthenticationError
             If the exchange rejects the login attempt.
         """
-        return Admin(self.config, authenticator)
+        return Admin(
+            self.config, authenticator=authenticator, exchange_url=exchange_url
+        )
 
-    def Trading(self, authenticator: Authenticator | None = None) -> Trading:
+    def Trading(
+        self,
+        authenticator: Authenticator | None = None,
+        exchange_url: str | None = None,
+    ) -> Trading:
         """API for trading in the AutEx exchange.
 
         Authenticates with the exchange on creation.
@@ -144,13 +157,18 @@ class AFP:
         authenticator : afp.Authenticator, optional
             Authenticator for signing intents and authenticating with the AutEx
             exchange. Defaults to the authenticator specified in the `AFP` constructor.
+        exchange_url: str, optional
+            The REST API base URL of the exchange. Defaults to the value specified in
+            the `AFP` constructor.
 
         Raises
         ------
         afp.exceptions.AuthenticationError
             If the exchange rejects the login attempt.
         """
-        return Trading(self.config, authenticator)
+        return Trading(
+            self.config, authenticator=authenticator, exchange_url=exchange_url
+        )
 
 
 def _default_authenticator() -> Authenticator | None:

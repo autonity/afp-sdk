@@ -84,9 +84,17 @@ class ExchangeAPI(BaseAPI, ABC):
     _exchange: ExchangeClient
     _trading_protocol_id: str
 
-    def __init__(self, config: Config, authenticator: Authenticator | None = None):
+    def __init__(
+        self,
+        config: Config,
+        authenticator: Authenticator | None = None,
+        exchange_url: str | None = None,
+    ):
+        if exchange_url is None:
+            exchange_url = config.exchange_url
+
         super().__init__(config, authenticator)
-        self._exchange = ExchangeClient(config.exchange_url)
+        self._exchange = ExchangeClient(exchange_url)
         self._login()
 
     def __repr__(self) -> str:

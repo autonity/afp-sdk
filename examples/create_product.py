@@ -10,7 +10,9 @@ PRIVATE_KEY = "0x926b0e772d87247fb08832e7fd55e528ae5997680713367a4786c92e7d90915
 
 
 def main():
-    app = afp.AFP(AUTONITY_RPC_URL, afp.PrivateKeyAuthenticator(PRIVATE_KEY))
+    app = afp.AFP(
+        rpc_url=AUTONITY_RPC_URL, authenticator=afp.PrivateKeyAuthenticator(PRIVATE_KEY)
+    )
     product_api = app.Product()
 
     product = product_api.create_product(
