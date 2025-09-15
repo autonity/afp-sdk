@@ -1,9 +1,8 @@
 from .auth import Authenticator, KeyfileAuthenticator, PrivateKeyAuthenticator
 from .config import Config
 from .api.admin import Admin
-from .api.builder import Builder
-from .api.clearing import Clearing
-from .api.liquidation import Liquidation
+from .api.margin_account import MarginAccount
+from .api.product import Product
 from .api.trading import Trading
 from .constants import defaults
 from .exceptions import ConfigurationError
@@ -91,18 +90,9 @@ class AFP:
 
     # Clearing APIs
 
-    def Builder(self, authenticator: Authenticator | None = None) -> Builder:
-        """API for building and submitting new products.
-
-        Parameters
-        ----------
-        authenticator : afp.Authenticator, optional
-            Authenticator for signing transactions sent to the Clearing System.
-            Defaults to the authenticator specified in the `AFP` constructor.
-        """
-        return Builder(self.config, authenticator)
-
-    def Clearing(self, authenticator: Authenticator | None = None) -> Clearing:
+    def MarginAccount(
+        self, authenticator: Authenticator | None = None
+    ) -> MarginAccount:
         """API for managing margin accounts.
 
         Parameters
@@ -111,10 +101,10 @@ class AFP:
             Authenticator for signing transactions sent to the Clearing System.
             Defaults to the authenticator specified in the `AFP` constructor.
         """
-        return Clearing(self.config, authenticator)
+        return MarginAccount(self.config, authenticator)
 
-    def Liquidation(self, authenticator: Authenticator | None = None) -> Liquidation:
-        """API for participating in liquidation auctions.
+    def Product(self, authenticator: Authenticator | None = None) -> Product:
+        """API for managing products.
 
         Parameters
         ----------
@@ -122,7 +112,7 @@ class AFP:
             Authenticator for signing transactions sent to the Clearing System.
             Defaults to the authenticator specified in the `AFP` constructor.
         """
-        return Liquidation(self.config, authenticator)
+        return Product(self.config, authenticator)
 
     # Exchange APIs
 

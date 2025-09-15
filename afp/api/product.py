@@ -8,12 +8,14 @@ from web3 import Web3
 
 from .. import constants, hashing, validators
 from ..bindings import (
+    ClearingDiamond,
     OracleSpecification,
-    Product,
+    Product as OnChainProduct,
     ProductMetadata,
     ProductRegistry,
 )
 from ..bindings.erc20 import ERC20
+from ..bindings.facade import CLEARING_DIAMOND_ABI
 from ..bindings.product_registry import ABI as PRODUCT_REGISTRY_ABI
 from ..decorators import convert_web3_error
 from ..exceptions import NotFoundError
@@ -21,8 +23,10 @@ from ..schemas import ProductSpecification, Transaction
 from .base import ClearingSystemAPI
 
 
-class Builder(ClearingSystemAPI):
-    """API for building and submitting new products."""
+class Product(ClearingSystemAPI):
+    """API for managing products."""
+
+    ### Factories ###
 
     @convert_web3_error()
     def create_product(
@@ -114,6 +118,8 @@ class Builder(ClearingSystemAPI):
             extended_metadata=extended_metadata,
         )
 
+    ### Transactions ###
+
     @convert_web3_error(PRODUCT_REGISTRY_ABI)
     def register_product(self, product: ProductSpecification) -> Transaction:
         """Submits a product specification to the clearing system.
@@ -141,6 +147,40 @@ class Builder(ClearingSystemAPI):
             )
         )
 
+    @convert_web3_error(CLEARING_DIAMOND_ABI)
+    def initiate_final_settlement(
+        self, product_id: str, accounts: list[str]
+    ) -> Transaction:
+        """Initiate final settlement (closeout) process for the specified accounts.
+
+        The product must be in Final Settlement state. The accounts must hold non-zero
+        positions in the product that offset each other (i.e. the sum of their position
+        sizes is 0.)
+
+        Parameters
+        ----------
+        product_id : str
+            The ID of the product.
+        accounts : list of str
+            List of margin account IDs to initiate settlement for.
+
+        Returns
+        -------
+        afp.schemas.Transaction
+            Transaction parameters.
+        """
+        product_id = validators.validate_hexstr32(product_id)
+        addresses = [validators.validate_address(account) for account in accounts]
+
+        clearing_contract = ClearingDiamond(
+            self._w3, self._config.clearing_diamond_address
+        )
+        return self._transact(
+            clearing_contract.initiate_final_settlement(HexBytes(product_id), addresses)
+        )
+
+    ### Views ###
+
     @convert_web3_error(PRODUCT_REGISTRY_ABI)
     def product_state(self, product_id: str) -> str:
         """Returns the current state of a product.
@@ -161,11 +201,36 @@ class Builder(ClearingSystemAPI):
         state = product_registry_contract.state(HexBytes(product_id))
         return state.name
 
+    @convert_web3_error(PRODUCT_REGISTRY_ABI)
+    def collateral_asset(self, product_id: str) -> str:
+        """Returns the collateral asset of a product.
+
+        Parameters
+        ----------
+        product_id : str
+            The ID of the product.
+
+        Returns
+        -------
+        str
+        """
+        product_registry_contract = ProductRegistry(
+            self._w3, self._config.product_registry_address
+        )
+        collateral_asset = product_registry_contract.collateral_asset(
+            HexBytes(product_id)
+        )
+        if Web3.to_int(hexstr=collateral_asset) == 0:
+            raise NotFoundError("Product not found in the product registry")
+        return collateral_asset
+
+    ### Internal helpers ###
+
     @staticmethod
     def _convert_product_specification(
         product: ProductSpecification, decimals: int
-    ) -> Product:
-        return Product(
+    ) -> OnChainProduct:
+        return OnChainProduct(
             metadata=ProductMetadata(
                 builder=cast(ChecksumAddress, product.builder_id),
                 symbol=product.symbol,

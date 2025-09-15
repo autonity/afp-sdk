@@ -66,24 +66,23 @@ app = afp.AFP(
 )
 ```
 
-### Clearing API
+### Margin Account API
 
-Functions of the Clearing API can be accessed via the `Clearing` session
-object. It connects to the specified Autonity RPC provider and communicates
-with the Clearing System smart contracts.
+Margin accounts can be managed via the `MarginAccount` session object. It
+connects to the specified Autonity RPC provider and communicates with the
+Clearing System smart contracts.
 
 ```py
-clearing = app.Clearing()
+margin_account = app.MarginAccount()
 ```
 
-Collateral can be deposited into the margin account with
-`clearing.deposit_into_margin_account()`.
+Collateral can be deposited into the margin account with `margin_account.deposit()`.
 
 ```py
 from decimal import Decimal
 
-clearing.deposit_into_margin_account(COLLATERAL_ASSET, Decimal("100.00"))
-print(clearing.capital(COLLATERAL_ASSET))
+margin_account.deposit(COLLATERAL_ASSET, Decimal("100.00"))
+print(margin_account.capital(COLLATERAL_ASSET))
 ```
 
 ### Trading API

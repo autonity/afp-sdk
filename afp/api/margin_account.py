@@ -1,5 +1,6 @@
 from decimal import Decimal
 from functools import cache
+from typing import Iterable
 
 from eth_typing.evm import ChecksumAddress
 from hexbytes import HexBytes
@@ -8,10 +9,12 @@ from web3.exceptions import ContractCustomError
 
 from .. import validators
 from ..bindings import (
+    BidData,
     ClearingDiamond,
-    MarginAccount,
+    MarginAccount as MarginContract,
     MarginAccountRegistry,
     ProductRegistry,
+    Side as OnChainOrderSide,
 )
 from ..bindings.erc20 import ERC20
 from ..bindings.facade import CLEARING_DIAMOND_ABI
@@ -20,13 +23,36 @@ from ..bindings.margin_account_registry import ABI as MARGIN_ACCOUNT_REGISTRY_AB
 from ..bindings.product_registry import ABI as PRODUCT_REGISTRY_ABI
 from ..decorators import convert_web3_error
 from ..exceptions import NotFoundError
-from ..schemas import Position, Transaction
+from ..schemas import AuctionData, Bid, OrderSide, Position, Transaction
 from .base import ClearingSystemAPI
-from .builder import Builder
 
 
-class Clearing(ClearingSystemAPI):
+class MarginAccount(ClearingSystemAPI):
     """API for managing margin accounts."""
+
+    ### Factories ###
+
+    @staticmethod
+    def create_bid(product_id: str, price: Decimal, quantity: int, side: str) -> Bid:
+        """Create a bid to be submitted to a liquidation auction.
+
+        Parameters
+        ----------
+        product_id : str
+        price: Decimal
+        quantity: int
+        side: str
+
+        Returns
+        -------
+        afp.schemas.Bid
+        """
+        return Bid(
+            product_id=product_id,
+            price=price,
+            quantity=quantity,
+            side=getattr(OrderSide, side.upper()),
+        )
 
     ### Transactions ###
 
@@ -54,7 +80,7 @@ class Clearing(ClearingSystemAPI):
         )
 
     @convert_web3_error(MARGIN_CONTRACT_ABI)
-    def deposit_into_margin_account(
+    def deposit(
         self, collateral_asset: str, amount: Decimal
     ) -> tuple[Transaction, Transaction]:
         """Deposits the specified amount of collateral tokens into the margin account
@@ -93,9 +119,7 @@ class Clearing(ClearingSystemAPI):
         return (tx1, tx2)
 
     @convert_web3_error(MARGIN_CONTRACT_ABI)
-    def withdraw_from_margin_account(
-        self, collateral_asset: str, amount: Decimal
-    ) -> Transaction:
+    def withdraw(self, collateral_asset: str, amount: Decimal) -> Transaction:
         """Withdraws the specified amount of collateral tokens from the margin account
         associated with the collateral asset.
 
@@ -118,35 +142,72 @@ class Clearing(ClearingSystemAPI):
         )
 
     @convert_web3_error(CLEARING_DIAMOND_ABI)
-    def initiate_final_settlement(
-        self, product_id: str, accounts: list[str]
+    def request_liquidation(
+        self, margin_account_id: str, collateral_asset: str
     ) -> Transaction:
-        """Initiate final settlement (closeout) process for the specified accounts.
-
-        The product must be in Final Settlement state. The accounts must hold non-zero
-        positions in the product that offset each other (i.e. the sum of their position
-        sizes is 0.)
+        """Request a liquidation auction to be started.
 
         Parameters
         ----------
-        product_id : str
-            The ID of the product.
-        accounts : list of str
-            List of margin account IDs to initiate settlement for.
+        margin_account_id : str
+            The ID of the margin account to be liquidated.
+        collateral_asset : str
+            The address of the collateral token that the margin account is trading with.
 
         Returns
         -------
         afp.schemas.Transaction
             Transaction parameters.
         """
-        product_id = validators.validate_hexstr32(product_id)
-        addresses = [validators.validate_address(account) for account in accounts]
+        margin_account_id = validators.validate_address(margin_account_id)
+        collateral_asset = validators.validate_address(collateral_asset)
 
         clearing_contract = ClearingDiamond(
             self._w3, self._config.clearing_diamond_address
         )
         return self._transact(
-            clearing_contract.initiate_final_settlement(HexBytes(product_id), addresses)
+            clearing_contract.request_liquidation(margin_account_id, collateral_asset)
+        )
+
+    @convert_web3_error(CLEARING_DIAMOND_ABI, PRODUCT_REGISTRY_ABI)
+    def submit_bids(
+        self, margin_account_id: str, collateral_asset: str, bids: Iterable[Bid]
+    ) -> Transaction:
+        """Submit bids to a liquidation auction.
+
+        Parameters
+        ----------
+        margin_account_id : str
+            The ID of the margin account that is being liquidated.
+        collateral_asset : str
+            The address of the collateral token that the margin account is trading with.
+        bids: list of afp.schemas.Bid
+
+        Returns
+        -------
+        afp.schemas.Transaction
+            Transaction parameters.
+        """
+        margin_account_id = validators.validate_address(margin_account_id)
+        collateral_asset = validators.validate_address(collateral_asset)
+
+        converted_bids = [
+            BidData(
+                product_id=HexBytes(bid.product_id),
+                price=int(bid.price * 10 ** self._tick_size(bid.product_id)),
+                quantity=bid.quantity,
+                side=getattr(OnChainOrderSide, bid.side.name),
+            )
+            for bid in bids
+        ]
+
+        clearing_contract = ClearingDiamond(
+            self._w3, self._config.clearing_diamond_address
+        )
+        return self._transact(
+            clearing_contract.bid_auction(
+                margin_account_id, collateral_asset, converted_bids
+            )
         )
 
     ### Views ###
@@ -221,7 +282,7 @@ class Clearing(ClearingSystemAPI):
         return [self.position(collateral_asset, Web3.to_hex(id)) for id in position_ids]
 
     @convert_web3_error(MARGIN_CONTRACT_ABI)
-    def margin_account_equity(self, collateral_asset: str) -> Decimal:
+    def equity(self, collateral_asset: str) -> Decimal:
         """Returns the margin account equity in the margin account associated with the
         collateral asset.
 
@@ -320,48 +381,49 @@ class Clearing(ClearingSystemAPI):
         )
         return Decimal(amount) / 10 ** self._decimals(collateral_asset)
 
-    @convert_web3_error(PRODUCT_REGISTRY_ABI)
-    def collateral_asset(self, product_id: str) -> str:
-        """Returns the collateral asset of a product.
+    @convert_web3_error(CLEARING_DIAMOND_ABI)
+    def auction_data(
+        self, margin_account_id: str, collateral_asset: str
+    ) -> AuctionData:
+        """Returns information on a liquidation auction.
 
         Parameters
         ----------
-        product_id : str
-            The ID of the product.
+        margin_account_id : str
+            The ID of the margin account to be liquidated.
+        collateral_asset : str
+            The address of the collateral token that the margin account is trading with.
 
         Returns
         -------
         str
+            The hash of the transaction.
         """
-        product_registry_contract = ProductRegistry(
-            self._w3, self._config.product_registry_address
+        margin_account_id = validators.validate_address(margin_account_id)
+        collateral_asset = validators.validate_address(collateral_asset)
+
+        clearing_contract = ClearingDiamond(
+            self._w3, self._config.clearing_diamond_address
         )
-        collateral_asset = product_registry_contract.collateral_asset(
-            HexBytes(product_id)
+        data = clearing_contract.auction_data(margin_account_id, collateral_asset)
+        divisor = 10 ** self._decimals(collateral_asset)
+        return AuctionData(
+            start_block=data.start_block,
+            margin_account_equity_at_initiation=(
+                Decimal(data.mae_at_initiation) / divisor
+            ),
+            maintenance_margin_used_at_initiation=(
+                Decimal(data.mmu_at_initiation) / divisor
+            ),
+            margin_account_equity_now=(Decimal(data.mae_now) / divisor),
+            maintenance_margin_used_now=(Decimal(data.mmu_now) / divisor),
         )
-        if Web3.to_int(hexstr=collateral_asset) == 0:
-            raise NotFoundError("Product not found in the product registry")
-        return collateral_asset
-
-    def product_state(self, product_id: str) -> str:
-        """Returns the current state of a product.
-
-        Parameters
-        ----------
-        product_id : str
-            The ID of the product.
-
-        Returns
-        -------
-        str
-        """
-        return Builder.product_state(self, product_id)
 
     ### Internal getters ###
 
     @cache
     @convert_web3_error(MARGIN_ACCOUNT_REGISTRY_ABI)
-    def _margin_contract(self, collateral_asset: ChecksumAddress) -> MarginAccount:
+    def _margin_contract(self, collateral_asset: ChecksumAddress) -> MarginContract:
         margin_account_registry_contract = MarginAccountRegistry(
             self._w3, self._config.margin_account_registry_address
         )
@@ -373,4 +435,11 @@ class Clearing(ClearingSystemAPI):
             )
         except ContractCustomError:
             raise NotFoundError("No margin account found for collateral asset")
-        return MarginAccount(self._w3, margin_contract_address)
+        return MarginContract(self._w3, margin_contract_address)
+
+    @cache
+    def _tick_size(self, product_id: str) -> int:
+        product_registry_contract = ProductRegistry(
+            self._w3, self._config.product_registry_address
+        )
+        return product_registry_contract.tick_size(HexBytes(product_id))
