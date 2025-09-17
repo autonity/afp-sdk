@@ -56,6 +56,11 @@ class BankruptcyFacet:
             abi=ABI,
         )
 
+    @property
+    def LossMutualized(self) -> contract.ContractEvent:
+        """Binding for `event LossMutualized` on the BankruptcyFacet contract."""
+        return self._contract.events.LossMutualized
+
     def last_traded_timestamp(
         self,
         product_id: hexbytes.HexBytes,
@@ -219,6 +224,37 @@ ABI = typing.cast(
             "type": "error",
         },
         {"inputs": [], "name": "QueueIsEmpty", "type": "error"},
+        {
+            "anonymous": False,
+            "inputs": [
+                {
+                    "indexed": True,
+                    "internalType": "address",
+                    "name": "bankruptAccount",
+                    "type": "address",
+                },
+                {
+                    "indexed": True,
+                    "internalType": "address",
+                    "name": "collateralToken",
+                    "type": "address",
+                },
+                {
+                    "indexed": False,
+                    "internalType": "address",
+                    "name": "caller",
+                    "type": "address",
+                },
+                {
+                    "indexed": False,
+                    "internalType": "int256",
+                    "name": "lossAmount",
+                    "type": "int256",
+                },
+            ],
+            "name": "LossMutualized",
+            "type": "event",
+        },
         {
             "inputs": [
                 {"internalType": "bytes32", "name": "productId", "type": "bytes32"},

@@ -423,6 +423,25 @@ class ClearingFacet:
             ),
         )
 
+    def set_treasury(
+        self,
+        new_treasury: eth_typing.ChecksumAddress,
+    ) -> contract.ContractFunction:
+        """Binding for `setTreasury` on the ClearingFacet contract.
+
+        Parameters
+        ----------
+        new_treasury : eth_typing.ChecksumAddress
+
+        Returns
+        -------
+        web3.contract.contract.ContractFunction
+            A contract function instance to be sent in a transaction.
+        """
+        return self._contract.functions.setTreasury(
+            new_treasury,
+        )
+
     def version(
         self,
     ) -> str:
@@ -999,6 +1018,15 @@ ABI = typing.cast(
                 }
             ],
             "name": "setConfig",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function",
+        },
+        {
+            "inputs": [
+                {"internalType": "address", "name": "newTreasury", "type": "address"}
+            ],
+            "name": "setTreasury",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function",
