@@ -324,8 +324,7 @@ class SystemViewer:
                 int(return_value_elem[9]),
                 int(return_value_elem[10]),
                 int(return_value_elem[11]),
-                int(return_value_elem[12]),
-                str(return_value_elem[13]),
+                str(return_value_elem[12]),
             )
             for return_value_elem in return_value
         ]
@@ -928,11 +927,6 @@ ABI = typing.cast(
                             "internalType": "uint16",
                             "name": "maintenanceMarginRequirement",
                             "type": "uint16",
-                        },
-                        {
-                            "internalType": "uint64",
-                            "name": "offerPriceBuffer",
-                            "type": "uint64",
                         },
                         {
                             "internalType": "uint64",

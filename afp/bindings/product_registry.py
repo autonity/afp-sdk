@@ -56,7 +56,6 @@ class Product:
     unit_value: int
     initial_margin_requirement: int
     maintenance_margin_requirement: int
-    offer_price_buffer: int
     auction_bounty: int
     tradeout_interval: int
     tick_size: int
@@ -221,7 +220,6 @@ class ProductRegistry:
                 product.unit_value,
                 product.initial_margin_requirement,
                 product.maintenance_margin_requirement,
-                product.offer_price_buffer,
                 product.auction_bounty,
                 product.tradeout_interval,
                 product.tick_size,
@@ -276,25 +274,6 @@ class ProductRegistry:
         int
         """
         return_value = self._contract.functions.mmr(
-            product_id,
-        ).call()
-        return int(return_value)
-
-    def offer_price_buffer(
-        self,
-        product_id: hexbytes.HexBytes,
-    ) -> int:
-        """Binding for `offerPriceBuffer` on the ProductRegistry contract.
-
-        Parameters
-        ----------
-        product_id : hexbytes.HexBytes
-
-        Returns
-        -------
-        int
-        """
-        return_value = self._contract.functions.offerPriceBuffer(
             product_id,
         ).call()
         return int(return_value)
@@ -395,8 +374,7 @@ class ProductRegistry:
             int(return_value[9]),
             int(return_value[10]),
             int(return_value[11]),
-            int(return_value[12]),
-            str(return_value[13]),
+            str(return_value[12]),
         )
 
     def proxiable_uuid(
@@ -447,7 +425,6 @@ class ProductRegistry:
                 product.unit_value,
                 product.initial_margin_requirement,
                 product.maintenance_margin_requirement,
-                product.offer_price_buffer,
                 product.auction_bounty,
                 product.tradeout_interval,
                 product.tick_size,
@@ -858,11 +835,6 @@ ABI = typing.cast(
                         },
                         {
                             "internalType": "uint64",
-                            "name": "offerPriceBuffer",
-                            "type": "uint64",
-                        },
-                        {
-                            "internalType": "uint64",
                             "name": "auctionBounty",
                             "type": "uint64",
                         },
@@ -909,15 +881,6 @@ ABI = typing.cast(
                 {"internalType": "bytes32", "name": "productId", "type": "bytes32"}
             ],
             "name": "mmr",
-            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-            "stateMutability": "view",
-            "type": "function",
-        },
-        {
-            "inputs": [
-                {"internalType": "bytes32", "name": "productId", "type": "bytes32"}
-            ],
-            "name": "offerPriceBuffer",
             "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
             "stateMutability": "view",
             "type": "function",
@@ -1075,11 +1038,6 @@ ABI = typing.cast(
                         },
                         {
                             "internalType": "uint64",
-                            "name": "offerPriceBuffer",
-                            "type": "uint64",
-                        },
-                        {
-                            "internalType": "uint64",
                             "name": "auctionBounty",
                             "type": "uint64",
                         },
@@ -1202,11 +1160,6 @@ ABI = typing.cast(
                             "internalType": "uint16",
                             "name": "maintenanceMarginRequirement",
                             "type": "uint16",
-                        },
-                        {
-                            "internalType": "uint64",
-                            "name": "offerPriceBuffer",
-                            "type": "uint64",
                         },
                         {
                             "internalType": "uint64",

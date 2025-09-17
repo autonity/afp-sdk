@@ -54,6 +54,11 @@ class MarginAccount:
         )
 
     @property
+    def Deposit(self) -> contract.ContractEvent:
+        """Binding for `event Deposit` on the MarginAccount contract."""
+        return self._contract.events.Deposit
+
+    @property
     def FeeCollected(self) -> contract.ContractEvent:
         """Binding for `event FeeCollected` on the MarginAccount contract."""
         return self._contract.events.FeeCollected
@@ -69,9 +74,24 @@ class MarginAccount:
         return self._contract.events.Initialized
 
     @property
+    def IntentAuthorized(self) -> contract.ContractEvent:
+        """Binding for `event IntentAuthorized` on the MarginAccount contract."""
+        return self._contract.events.IntentAuthorized
+
+    @property
+    def IntentRevoked(self) -> contract.ContractEvent:
+        """Binding for `event IntentRevoked` on the MarginAccount contract."""
+        return self._contract.events.IntentRevoked
+
+    @property
     def PositionUpdated(self) -> contract.ContractEvent:
         """Binding for `event PositionUpdated` on the MarginAccount contract."""
         return self._contract.events.PositionUpdated
+
+    @property
+    def Withdraw(self) -> contract.ContractEvent:
+        """Binding for `event Withdraw` on the MarginAccount contract."""
+        return self._contract.events.Withdraw
 
     def authorize(
         self,
@@ -795,6 +815,25 @@ ABI = typing.cast(
                 {
                     "indexed": True,
                     "internalType": "address",
+                    "name": "user",
+                    "type": "address",
+                },
+                {
+                    "indexed": False,
+                    "internalType": "uint256",
+                    "name": "amount",
+                    "type": "uint256",
+                },
+            ],
+            "name": "Deposit",
+            "type": "event",
+        },
+        {
+            "anonymous": False,
+            "inputs": [
+                {
+                    "indexed": True,
+                    "internalType": "address",
                     "name": "marginAccountID",
                     "type": "address",
                 },
@@ -851,6 +890,44 @@ ABI = typing.cast(
                 },
                 {
                     "indexed": True,
+                    "internalType": "address",
+                    "name": "intentAccount",
+                    "type": "address",
+                },
+            ],
+            "name": "IntentAuthorized",
+            "type": "event",
+        },
+        {
+            "anonymous": False,
+            "inputs": [
+                {
+                    "indexed": True,
+                    "internalType": "address",
+                    "name": "marginAccountID",
+                    "type": "address",
+                },
+                {
+                    "indexed": True,
+                    "internalType": "address",
+                    "name": "intentAccount",
+                    "type": "address",
+                },
+            ],
+            "name": "IntentRevoked",
+            "type": "event",
+        },
+        {
+            "anonymous": False,
+            "inputs": [
+                {
+                    "indexed": True,
+                    "internalType": "address",
+                    "name": "marginAccountID",
+                    "type": "address",
+                },
+                {
+                    "indexed": True,
                     "internalType": "bytes32",
                     "name": "positionId",
                     "type": "bytes32",
@@ -867,8 +944,39 @@ ABI = typing.cast(
                     "name": "costBasis",
                     "type": "int256",
                 },
+                {
+                    "indexed": False,
+                    "internalType": "uint256",
+                    "name": "price",
+                    "type": "uint256",
+                },
+                {
+                    "indexed": False,
+                    "internalType": "int256",
+                    "name": "quantity",
+                    "type": "int256",
+                },
             ],
             "name": "PositionUpdated",
+            "type": "event",
+        },
+        {
+            "anonymous": False,
+            "inputs": [
+                {
+                    "indexed": True,
+                    "internalType": "address",
+                    "name": "user",
+                    "type": "address",
+                },
+                {
+                    "indexed": False,
+                    "internalType": "uint256",
+                    "name": "amount",
+                    "type": "uint256",
+                },
+            ],
+            "name": "Withdraw",
             "type": "event",
         },
         {
