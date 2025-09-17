@@ -184,7 +184,6 @@ class ProductSpecification(Model):
     unit_value: Annotated[Decimal, Field(gt=0)]
     initial_margin_requirement: Annotated[Decimal, Field(gt=0)]
     maintenance_margin_requirement: Annotated[Decimal, Field(gt=0)]
-    offer_price_buffer: Annotated[Decimal, Field(ge=0, lt=1)]
     auction_bounty: Annotated[Decimal, Field(ge=0, le=1)]
     tradeout_interval: Annotated[int, Field(ge=0)]
     extended_metadata: str

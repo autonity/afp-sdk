@@ -50,7 +50,6 @@ class Builder(ClearingSystemAPI):
         unit_value: Decimal,
         initial_margin_requirement: Decimal,
         maintenance_margin_requirement: Decimal,
-        offer_price_buffer: Decimal,
         auction_bounty: Decimal,
         tradeout_interval: int,
         extended_metadata: str,
@@ -76,7 +75,6 @@ class Builder(ClearingSystemAPI):
         unit_value : Decimal
         initial_margin_requirement : Decimal
         maintenance_margin_requirement : Decimal
-        offer_price_buffer : Decimal
         auction_bounty : Decimal
         tradeout_interval : int
         extended_metadata : str
@@ -114,7 +112,6 @@ class Builder(ClearingSystemAPI):
             unit_value=unit_value,
             initial_margin_requirement=initial_margin_requirement,
             maintenance_margin_requirement=maintenance_margin_requirement,
-            offer_price_buffer=offer_price_buffer,
             auction_bounty=auction_bounty,
             tradeout_interval=tradeout_interval,
             extended_metadata=extended_metadata,
@@ -194,7 +191,6 @@ class Builder(ClearingSystemAPI):
             maintenance_margin_requirement=int(
                 product.maintenance_margin_requirement * config.RATE_MULTIPLIER
             ),
-            offer_price_buffer=int(product.offer_price_buffer * config.RATE_MULTIPLIER),
             auction_bounty=int(product.auction_bounty * config.RATE_MULTIPLIER),
             tradeout_interval=product.tradeout_interval,
             extended_metadata=product.extended_metadata,
