@@ -30,7 +30,6 @@ def main():
         unit_value=Decimal("1"),
         initial_margin_requirement=Decimal("0.2"),
         maintenance_margin_requirement=Decimal("0.1"),
-        offer_price_buffer=Decimal("0.1"),
         auction_bounty=Decimal("0.1"),
         tradeout_interval=3600,
         extended_metadata="QmPK1s3pNYLi9ERiq3BDxKa4XosgWwFRQUydHUtz4YgpqB",
