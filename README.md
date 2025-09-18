@@ -1,5 +1,9 @@
 # Autonomous Futures Protocol Python SDK
 
+Decentralized clearing and creation of Forecast Futures on any timeseries.
+
+![CI](https://github.com/autonity/afp-sdk/actions/workflows/ci.yml/badge.svg)
+
 ## Installation
 
 This library is published on PyPI as the [afp-sdk](https://pypi.org/project/afp-sdk/)
@@ -9,6 +13,11 @@ package. It can be installed in a virtualenv with:
 pip install afp-sdk
 ```
 
+## Documentation
+
+See [afp.autonity.org](https://afp.autonity.org/) for the Autonomous Futures Protocol
+documentation, including the Python SDK reference.
+
 ## Overview
 
 The `afp` package consists of the following:
@@ -17,6 +26,13 @@ The `afp` package consists of the following:
   System and the AutEx exchange.
 - `afp.bindings` submodule: Low-level API that provides typed Python bindings
   for the Clearing System smart contracts.
+
+## Configuration
+
+By default the SDK communicates with the AFP Clearing System contracts on
+Autonity Mainnet, and the AutEx Exchange. Connection parameters can be
+overridden via the `afp.AFP` constructor and environment variables; see the
+documentation of the `afp.AFP` class for the available parameters.
 
 ## Usage
 
@@ -148,19 +164,12 @@ print(fills)
 
 See further code examples in the [examples](./examples/) directory.
 
-## Configuration
-
-By default the SDK communicates with the AFP Clearing System contracts on
-Autonity Mainnet, and the AutEx Exchange. Connection parameters can be
-specified via the `afp.AFP` constructor and environment variables; see the
-documentation of the `afp.AFP` class for the available parameters.
-
 ## Development
 
 The package uses [`uv`](https://docs.astral.sh/uv/) as project manager.
 
-- Dependecies can be installed with the `uv sync` command.
-- Linters can be executed with the `uv run poe lint` command.
-- Tests can be executed with the `uv run poe test` command.
-- Distributions can be checked before release with the `uv run poe check-dist` command.
-- Markdown API documentation can be generated with the `uv run poe doc-gen` command.
+- Install dependencies with the `uv sync` command.
+- Execute linters with the `uv run poe lint` command.
+- Run tests with the `uv run poe test` command.
+- Check distributions before release with the `uv run poe check-dist` command.
+- Generate markdown API documentation with the `uv run poe doc-gen` command.
