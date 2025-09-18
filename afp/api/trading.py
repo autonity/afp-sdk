@@ -161,7 +161,6 @@ class Trading(ExchangeAPI):
         )
         return self._exchange.submit_order(submission)
 
-    @refresh_token_on_expiry
     def products(self) -> list[ExchangeProduct]:
         """Retrieves the products approved for trading on the exchange.
 
@@ -171,7 +170,6 @@ class Trading(ExchangeAPI):
         """
         return self._exchange.get_approved_products()
 
-    @refresh_token_on_expiry
     def product(self, product_id: str) -> ExchangeProduct:
         """Retrieves a product for trading by its ID.
 
@@ -299,7 +297,6 @@ class Trading(ExchangeAPI):
         )
         yield from self._exchange.iter_order_fills(filter)
 
-    @refresh_token_on_expiry
     def market_depth(self, product_id: str) -> MarketDepthData:
         """Retrieves the depth of market for the given product.
 
@@ -319,7 +316,6 @@ class Trading(ExchangeAPI):
         value = validators.validate_hexstr32(product_id)
         return self._exchange.get_market_depth_data(value)
 
-    @refresh_token_on_expiry
     def iter_market_depth(
         self, product_id: str
     ) -> Generator[MarketDepthData, None, None]:
