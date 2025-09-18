@@ -52,7 +52,7 @@ class KeyfileAuthenticator(PrivateKeyAuthenticator):
 
     Parameters
     ----------
-    keyfile : str
+    key_file : str
         The path to the keyfile.
     password : str
         The password for decrypting the keyfile.
