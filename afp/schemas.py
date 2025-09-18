@@ -66,6 +66,9 @@ class ExchangeProduct(Model):
     tick_size: int
     collateral_asset: str
 
+    def __str__(self) -> str:
+        return self.id
+
 
 class IntentData(Model):
     trading_protocol_id: str
@@ -150,6 +153,12 @@ class MarketDepthData(Model):
 
 
 # Clearing API
+
+
+class Transaction(Model):
+    hash: str
+    data: dict[str, Any]
+    receipt: dict[str, Any]
 
 
 class Position(Model):

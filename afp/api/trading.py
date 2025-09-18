@@ -5,7 +5,7 @@ from typing import Generator
 
 from web3 import Web3
 
-from .. import signing, validators
+from .. import hashing, validators
 from ..decorators import refresh_token_on_expiry
 from ..enums import OrderType
 from ..schemas import (
@@ -25,20 +25,7 @@ from .base import ExchangeAPI
 
 
 class Trading(ExchangeAPI):
-    """API for trading in the AutEx exchange.
-
-    Authenticates with the exchange on creation.
-
-    Parameters
-    ----------
-    private_key : str
-        The private key of the account that submits intents to the exchange.
-
-    Raises
-    ------
-    afp.exceptions.AuthenticationError
-        If the exchange rejects the login attempt.
-    """
+    """API for trading in the AutEx exchange."""
 
     @staticmethod
     def _generate_nonce() -> int:
@@ -89,7 +76,7 @@ class Trading(ExchangeAPI):
         margin_account_id = (
             validators.validate_address(margin_account_id)
             if margin_account_id is not None
-            else self._account.address
+            else self._authenticator.address
         )
 
         intent_data = IntentData(
@@ -104,17 +91,17 @@ class Trading(ExchangeAPI):
             good_until_time=good_until_time,
             nonce=self._generate_nonce(),
         )
-        intent_hash = signing.generate_intent_hash(
+        intent_hash = hashing.generate_intent_hash(
             intent_data=intent_data,
             margin_account_id=margin_account_id,
-            intent_account_id=self._account.address,
+            intent_account_id=self._authenticator.address,
             tick_size=product.tick_size,
         )
-        signature = signing.sign_message(self._account, intent_hash)
+        signature = self._authenticator.sign_message(intent_hash)
         return Intent(
             hash=Web3.to_hex(intent_hash),
             margin_account_id=margin_account_id,
-            intent_account_id=self._account.address,
+            intent_account_id=self._authenticator.address,
             signature=Web3.to_hex(signature),
             data=intent_data,
         )
@@ -160,12 +147,12 @@ class Trading(ExchangeAPI):
             If the exchange rejects the cancellation.
         """
         nonce = self._generate_nonce()
-        cancellation_hash = signing.generate_order_cancellation_hash(nonce, intent_hash)
-        signature = signing.sign_message(self._account, cancellation_hash)
+        cancellation_hash = hashing.generate_order_cancellation_hash(nonce, intent_hash)
+        signature = self._authenticator.sign_message(cancellation_hash)
         cancellation_data = OrderCancellationData(
             intent_hash=intent_hash,
             nonce=nonce,
-            intent_account_id=self._account.address,
+            intent_account_id=self._authenticator.address,
             signature=Web3.to_hex(signature),
         )
         submission = OrderSubmission(
@@ -174,7 +161,6 @@ class Trading(ExchangeAPI):
         )
         return self._exchange.submit_order(submission)
 
-    @refresh_token_on_expiry
     def products(self) -> list[ExchangeProduct]:
         """Retrieves the products approved for trading on the exchange.
 
@@ -184,7 +170,6 @@ class Trading(ExchangeAPI):
         """
         return self._exchange.get_approved_products()
 
-    @refresh_token_on_expiry
     def product(self, product_id: str) -> ExchangeProduct:
         """Retrieves a product for trading by its ID.
 
@@ -266,7 +251,7 @@ class Trading(ExchangeAPI):
         list of afp.schemas.OrderFill
         """
         filter = OrderFillFilter(
-            intent_account_id=self._account.address,
+            intent_account_id=self._authenticator.address,
             product_id=product_id,
             margin_account_id=margin_account_id,
             intent_hash=intent_hash,
@@ -302,7 +287,7 @@ class Trading(ExchangeAPI):
         afp.schemas.OrderFill
         """
         filter = OrderFillFilter(
-            intent_account_id=self._account.address,
+            intent_account_id=self._authenticator.address,
             product_id=product_id,
             margin_account_id=margin_account_id,
             intent_hash=intent_hash,
@@ -312,7 +297,6 @@ class Trading(ExchangeAPI):
         )
         yield from self._exchange.iter_order_fills(filter)
 
-    @refresh_token_on_expiry
     def market_depth(self, product_id: str) -> MarketDepthData:
         """Retrieves the depth of market for the given product.
 
@@ -332,7 +316,6 @@ class Trading(ExchangeAPI):
         value = validators.validate_hexstr32(product_id)
         return self._exchange.get_market_depth_data(value)
 
-    @refresh_token_on_expiry
     def iter_market_depth(
         self, product_id: str
     ) -> Generator[MarketDepthData, None, None]:

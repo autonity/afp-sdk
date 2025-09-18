@@ -22,6 +22,7 @@ def validate_timedelta(value: timedelta) -> timedelta:
 
 
 def validate_hexstr(value: str, length: int | None = None) -> str:
+    value = str(value)
     if not value.startswith("0x"):
         raise ValueError(f"{value} should start with '0x'")
     try:

@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta
 from decimal import Decimal
 from pprint import pprint
@@ -5,17 +6,17 @@ from pprint import pprint
 import afp
 
 
-BUILDER_ACCOUNT_PRIVATE_KEY = (
-    "0x926b0e772d87247fb08832e7fd55e528ae5997680713367a4786c92e7d909154"
-)
-
 AUTONITY_RPC_URL = "https://bakerloo.autonity-apis.com"
+PRIVATE_KEY = os.environ["BUILDER_PRIVATE_KEY"]
 
 
 def main():
-    builder = afp.Builder(BUILDER_ACCOUNT_PRIVATE_KEY, AUTONITY_RPC_URL)
+    app = afp.AFP(
+        rpc_url=AUTONITY_RPC_URL, authenticator=afp.PrivateKeyAuthenticator(PRIVATE_KEY)
+    )
+    product_api = app.Product()
 
-    product = builder.create_product(
+    product = product_api.create_product(
         symbol="SDK-TEST-1",
         description="Test Product 1",
         oracle_address="0xd8A8C5A492Fc2448cFcF980218c0F7D2De4d6FB3",
@@ -36,8 +37,8 @@ def main():
     )
     pprint(product.model_dump())
 
-    builder.register_product(product)
-    print(builder.product_state(product.id))
+    product_api.register_product(product)
+    print(product_api.product_state(product.id))
 
 
 if __name__ == "__main__":
