@@ -16,33 +16,59 @@ class AFP:
     Parameters
     ----------
     authenticator : afp.Authenticator, optional
-        The default authenticator for signing transactions & messages.
-    exchange_url: str, optional
-        The default REST API base URL of the exchange.
+        The default authenticator for signing transactions & messages. Can also be set
+        with environment variables; use `AFP_PRIVATE_KEY` for private key
+        authentication, `AFP_KEYFILE` and `AFP_KEYFILE_PASSWORD` for keyfile
+        authentication.
     rpc_url : str, optional
-        The URL of an Autonity RPC provider.
+        The URL of an Autonity RPC provider. Can also be set with the `AFP_RPC_URL`
+        environment variable.
+    exchange_url : str, optional
+        The REST API base URL of the exchange. Defaults to the URL of the AutEx
+        exchange. Its default value can be overridden with the `AFP_EXCHANGE_URL`
+        environment variable.
     chain_id : str, optional
-        The chain ID of the Autonity network.
+        The chain ID of the Autonity network. Defauls to the chain ID of Autonity
+        Mainnet. Its default value can be overridden with the `AFP_CHAIN_ID` environment
+        variable.
     gas_limit : int, optional
-        The `gasLimit` parameter of blockchain transactions. Estimated with
-        the `eth_estimateGas` JSON-RPC method if not specified.
+        The `gasLimit` parameter of blockchain transactions. Estimated with the
+        `eth_estimateGas` JSON-RPC call if not specified. Its default value can be
+        overridden with the `AFP_GAS_LIMIT` environment variable.
     max_fee_per_gas : int, optional
         The `maxFeePerGas` parameter of blockchain transactions in ton (wei) units.
+        Defaults to `baseFeePerGas` from the return value of the `eth_getBlock` JSON-RPC
+        call. Its default value can be overridden with the `AFP_MAX_FEE_PER_GAS`
+        environment variable.
     max_priority_fee_per_gas : int, optional
         The `maxPriorityFeePerGas` parameter of blockchain transactions in ton (wei)
-        units.
+        units. Defaults to the return value of the `eth_maxPriorityFeePerGas` JSON-RPC
+        call. Its default value can be overridden with the
+        `AFP_MAX_PRIORITY_FEE_PER_GAS` environment variable.
     timeout_seconds: int, optional
         The number of seconds to wait for a blockchain transaction to be mined.
+        Defaults to 10 seconds. Its default value can be overridden with the
+        `AFP_TIMEOUT_SECONDS` environment variable.
     clearing_diamond_address : str, optional
-        The address of the ClearingDiamond contract.
+        The address of the ClearingDiamond contract. Defaults to the Autonity Mainnet
+        deployment address. Its default value can be overridden with the
+        `AFP_CLEARING_DIAMOND_ADDRESS` environment variable.
     margin_account_registry_address : str, optional
-        The address of the MarginAccountRegistry contract.
+        The address of the MarginAccountRegistry contract. Defaults to the Autonity
+        Mainnet deployment address. Its default value can be overridden with the
+        `AFP_MARGIN_ACCOUNT_REGISTRY_ADDRESS` environment variable.
     oracle_provider_address : str, optional
-        The address of the OracleProvider contract.
+        The address of the OracleProvider contract. Defaults to the Autonity Mainnet
+        deployment address. Its default value can be overridden with the
+        `AFP_ORACLE_PROVIDER_ADDRESS` environment variable.
     product_registry_address: str, optional
-        The address of the ProductRegistry contract.
+        The address of the ProductRegistry contract. Defaults to the Autonity Mainnet
+        deployment address. Its default value can be overridden with the
+        `AFP_PRODUCT_REGISTRY_ADDRESS` environment variable.
     system_viewer_address: str, optional
-        The address of the SystemViewer contract.
+        The address of the SystemViewer contract. Defaults to the Autonity Mainnet
+        deployment address. Its default value can be overridden with the
+        `AFP_SYSTEM_VIEWER_ADDRESS` environment variable.
     """
 
     config: Config
@@ -51,8 +77,8 @@ class AFP:
         self,
         *,
         authenticator: Authenticator | None = None,
-        exchange_url: str = defaults.EXCHANGE_URL,
         rpc_url: str | None = defaults.RPC_URL,
+        exchange_url: str = defaults.EXCHANGE_URL,
         chain_id: int = defaults.CHAIN_ID,
         gas_limit: int | None = defaults.GAS_LIMIT,
         max_fee_per_gas: int | None = defaults.MAX_FEE_PER_GAS,

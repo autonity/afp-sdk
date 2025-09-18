@@ -152,26 +152,8 @@ See further code examples in the [examples](./examples/) directory.
 
 By default the SDK communicates with the AFP Clearing System contracts on
 Autonity Mainnet, and the AutEx Exchange. Connection parameters can be
-specified via `AFP` constructor arguments; defaults values can also be
-overridden in the following environment variables:
-
-```sh
-AFP_PRIVATE_KEY=
-AFP_KEYFILE=
-AFP_KEYFILE_PASSWORD=
-AFP_EXCHANGE_URL=
-AFP_RPC_URL=
-AFP_CHAIN_ID=
-AFP_GAS_LIMIT=
-AFP_MAX_FEE_PER_GAS=
-AFP_MAX_PRIORITY_FEE_PER_GAS=
-AFP_TIMEOUT_SECONDS=
-AFP_CLEARING_DIAMOND_ADDRESS=
-AFP_MARGIN_ACCOUNT_REGISTRY_ADDRESS=
-AFP_ORACLE_PROVIDER_ADDRESS=
-AFP_PRODUCT_REGISTRY_ADDRESS=
-AFP_SYSTEM_VIEWER_ADDRESS=
-```
+specified via the `afp.AFP` constructor and environment variables; see the
+documentation of the `afp.AFP` class for the available parameters.
 
 ## Development
 
