@@ -92,6 +92,9 @@ source-include = [
     "devenv.*",
     "uv.lock",
 ]
+source-exclude = [
+    "**/.ruff_cache"
+]
 
 [tool.griffe2md]
 docstring_style = "numpy"

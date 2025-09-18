@@ -12,6 +12,7 @@ dist/
 *.egg-info/
 .venv
 .coverage
+.ruff_cache/
 
 # secrets
 .env
