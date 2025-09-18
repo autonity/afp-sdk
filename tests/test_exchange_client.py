@@ -13,7 +13,7 @@ def test_send_request(monkeypatch):
 
     monkeypatch.setattr(HTTPAdapter, "send", mock_send)
 
-    client = ExchangeClient("http://bar")
+    client = ExchangeClient("http://bar/")
     client._send_request("POST", "/orders", api_version=2, data="hello")
 
     mock_send.assert_called_once()

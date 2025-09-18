@@ -1,4 +1,5 @@
 import json
+import re
 from typing import Any, Generator
 
 import requests
@@ -30,7 +31,7 @@ class ExchangeClient:
     _session: Session
 
     def __init__(self, base_url: str):
-        self._base_url = base_url
+        self._base_url = re.sub(r"/$", "", base_url)
         self._session = Session()
 
     def __repr__(self) -> str:
