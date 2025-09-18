@@ -214,6 +214,7 @@ class Product(ClearingSystemAPI):
         -------
         str
         """
+        product_id = validators.validate_hexstr32(product_id)
         product_registry_contract = ProductRegistry(
             self._w3, self._config.product_registry_address
         )
