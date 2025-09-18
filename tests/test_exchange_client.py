@@ -10,6 +10,7 @@ def test_send_request(monkeypatch):
     fake_response = Response()
     fake_response.status_code = 200
     mock_send = Mock(return_value=fake_response)
+
     monkeypatch.setattr(HTTPAdapter, "send", mock_send)
 
     client = ExchangeClient("http://bar")
