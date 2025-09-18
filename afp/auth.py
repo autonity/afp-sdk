@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Protocol, cast
 
 from eth_account.account import Account
@@ -58,7 +59,7 @@ class KeyfileAuthenticator(PrivateKeyAuthenticator):
     """
 
     def __init__(self, key_file: str, password: str) -> None:
-        with open(key_file, encoding="utf8") as f:
+        with open(os.path.expanduser(key_file), encoding="utf8") as f:
             key_data = json.load(f)
 
         private_key = Account.decrypt(key_data, password=password)
