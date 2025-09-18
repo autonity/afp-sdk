@@ -45,8 +45,10 @@ def convert_web3_error(*contract_abis: ABI) -> Callable[..., Any]:
                     )
                 if reason == "no data":
                     reason = "Unspecified reason"
+                if reason is None:
+                    reason = "Unknown error"
             raise ClearingSystemError(
-                "Contract call reverted" + f": {reason}" if reason else ""
+                "Contract call reverted" + (f": {reason}" if reason else "")
             ) from contract_error
         except Web3RPCError as rpc_error:
             reason = None
