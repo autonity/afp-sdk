@@ -82,18 +82,17 @@ class Product(ClearingSystemAPI):
         if oracle_address is None:
             oracle_address = self._config.oracle_provider_address
 
-        product_id = Web3.to_hex(
-            hashing.generate_product_id(self._authenticator.address, symbol)
-        )
+        if len(self._w3.eth.get_code(Web3.to_checksum_address(collateral_asset))) == 0:
+            raise NotFoundError(f"No ERC20 token found at address {collateral_asset}")
+        if len(self._w3.eth.get_code(Web3.to_checksum_address(oracle_address))) == 0:
+            raise NotFoundError(f"No contract found at oracle address {oracle_address}")
 
         erc20_contract = ERC20(self._w3, Web3.to_checksum_address(collateral_asset))
         price_quotation = erc20_contract.symbol()
 
-        if not price_quotation:
-            raise NotFoundError(f"No ERC20 token found at address {collateral_asset}")
-
-        if len(self._w3.eth.get_code(Web3.to_checksum_address(oracle_address))) == 0:
-            raise NotFoundError(f"No contract found at oracle address {oracle_address}")
+        product_id = Web3.to_hex(
+            hashing.generate_product_id(self._authenticator.address, symbol)
+        )
 
         return ProductSpecification(
             id=product_id,
