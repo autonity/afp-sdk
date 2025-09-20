@@ -1,4 +1,5 @@
 import os
+from importlib import metadata
 from types import SimpleNamespace
 
 
@@ -6,7 +7,7 @@ def _int_or_none(value: str | None) -> int | None:
     return int(value) if value is not None else None
 
 
-USER_AGENT = "afp-sdk"
+USER_AGENT = "afp-sdk/{}".format(metadata.version("afp-sdk"))
 DEFAULT_EXCHANGE_API_VERSION = 1
 
 # Constants from clearing/contracts/lib/constants.sol
