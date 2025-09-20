@@ -14,9 +14,9 @@ def main():
     app = afp.AFP(
         rpc_url=AUTONITY_RPC_URL, authenticator=afp.PrivateKeyAuthenticator(PRIVATE_KEY)
     )
-    product_api = app.Product()
+    product = app.Product()
 
-    product = product_api.create_product(
+    specification = product.create(
         symbol="SDK-TEST-1",
         description="Test Product 1",
         oracle_address="0xd8A8C5A492Fc2448cFcF980218c0F7D2De4d6FB3",
@@ -35,10 +35,10 @@ def main():
         tradeout_interval=3600,
         extended_metadata="QmPK1s3pNYLi9ERiq3BDxKa4XosgWwFRQUydHUtz4YgpqB",
     )
-    pprint(product.model_dump())
+    pprint(specification.model_dump())
 
-    product_api.register_product(product)
-    print(product_api.product_state(product.id))
+    product.register(specification)
+    print(product.state(specification.id))
 
 
 if __name__ == "__main__":

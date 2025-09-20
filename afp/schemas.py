@@ -197,6 +197,9 @@ class ProductSpecification(Model):
     tradeout_interval: Annotated[int, Field(ge=0)]
     extended_metadata: str
 
+    def __str__(self) -> str:
+        return self.id
+
 
 # Liquidation API
 
