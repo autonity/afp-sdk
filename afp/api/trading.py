@@ -88,7 +88,7 @@ class Trading(ExchangeAPI):
             ),
             quantity=quantity,
             max_trading_fee_rate=max_trading_fee_rate,
-            side=getattr(OrderSide, side.upper()),
+            side=OrderSide(side.upper()),
             good_until_time=good_until_time,
             nonce=self._generate_nonce(),
         )
@@ -269,7 +269,6 @@ class Trading(ExchangeAPI):
         self,
         *,
         product_id: str | None = None,
-        margin_account_id: str | None = None,
         intent_hash: str | None = None,
         start: datetime | None = None,
         end: datetime | None = None,
@@ -280,7 +279,6 @@ class Trading(ExchangeAPI):
         Parameters
         ----------
         product_id : str, optional
-        margin_account_id : str, optional
         intent_hash : str, optional
         start : datetime.datetime, optional
         end : datetime.datetime, optional
@@ -292,7 +290,6 @@ class Trading(ExchangeAPI):
         filter = OrderFillFilter(
             intent_account_id=self._authenticator.address,
             product_id=product_id,
-            margin_account_id=margin_account_id,
             intent_hash=intent_hash,
             start=start,
             end=end,
@@ -305,7 +302,6 @@ class Trading(ExchangeAPI):
         self,
         *,
         product_id: str | None = None,
-        margin_account_id: str | None = None,
         intent_hash: str | None = None,
     ) -> Generator[OrderFill, None, None]:
         """Subscribes to the authenticated account's new order fills that match the
@@ -318,7 +314,6 @@ class Trading(ExchangeAPI):
         Parameters
         ----------
         product_id : str, optional
-        margin_account_id : str, optional
         intent_hash : str, optional
 
         Yields
@@ -328,7 +323,6 @@ class Trading(ExchangeAPI):
         filter = OrderFillFilter(
             intent_account_id=self._authenticator.address,
             product_id=product_id,
-            margin_account_id=margin_account_id,
             intent_hash=intent_hash,
             start=None,
             end=None,

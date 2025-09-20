@@ -156,9 +156,6 @@ class OrderFill(Model):
 class OrderFillFilter(Model):
     intent_account_id: str
     product_id: None | Annotated[str, AfterValidator(validators.validate_hexstr32)]
-    margin_account_id: (
-        None | Annotated[str, AfterValidator(validators.validate_address)]
-    )
     intent_hash: None | Annotated[str, AfterValidator(validators.validate_hexstr32)]
     start: None | Timestamp
     end: None | Timestamp
