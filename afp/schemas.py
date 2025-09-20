@@ -159,7 +159,12 @@ class OrderFillFilter(Model):
     intent_hash: None | Annotated[str, AfterValidator(validators.validate_hexstr32)]
     start: None | Timestamp
     end: None | Timestamp
-    trade_state: None | TradeState
+    trade_states: list[TradeState] = Field(exclude=True)
+
+    @computed_field
+    @property
+    def trade_state(self) -> str | None:
+        return ",".join(self.trade_states) if self.trade_states else None
 
 
 class MarketDepthItem(Model):

@@ -5,7 +5,11 @@ from decimal import Decimal
 import pytest
 
 from afp import validators
-from afp.schemas import OrderFillFilter
+from afp.schemas import Model, Timestamp
+
+
+class TestModel(Model):
+    timestamp: Timestamp
 
 
 def test_timestamp_conversion():
@@ -13,20 +17,12 @@ def test_timestamp_conversion():
     ts_time = 1893499200
 
     # timestamp -> datetime
-    filter = OrderFillFilter(
-        intent_account_id="",
-        product_id=None,
-        margin_account_id=None,
-        intent_hash=None,
-        start=None,
-        end=ts_time,  # type: ignore
-        trade_state=None,
-    )
-    assert filter.end is not None
-    assert filter.end.astimezone(UTC) == dt_time
+    instance = TestModel(timestamp=ts_time)  # type: ignore
+    assert instance.timestamp is not None
+    assert instance.timestamp.astimezone(UTC) == dt_time
 
     # datetime -> timestamp
-    assert '"end":%d' % ts_time in filter.model_dump_json(exclude_none=True)
+    assert '"timestamp":%d' % ts_time in instance.model_dump_json()
 
 
 def test_validate_hexstr32__pass():

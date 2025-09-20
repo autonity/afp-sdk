@@ -272,6 +272,7 @@ class Trading(ExchangeAPI):
         intent_hash: str | None = None,
         start: datetime | None = None,
         end: datetime | None = None,
+        trade_states: Iterable[str] = (),
     ) -> list[OrderFill]:
         """Retrieves the authenticated account's order fills that match the given
         parameters.
@@ -282,6 +283,8 @@ class Trading(ExchangeAPI):
         intent_hash : str, optional
         start : datetime.datetime, optional
         end : datetime.datetime, optional
+        trade_states : iterable of str
+            Any of `PENDING`, `CLEARED` and `REJECTED`.
 
         Returns
         -------
@@ -293,7 +296,7 @@ class Trading(ExchangeAPI):
             intent_hash=intent_hash,
             start=start,
             end=end,
-            trade_state=None,
+            trade_states=[TradeState(state.upper()) for state in trade_states],
         )
         return self._exchange.get_order_fills(filter)
 
@@ -303,18 +306,27 @@ class Trading(ExchangeAPI):
         *,
         product_id: str | None = None,
         intent_hash: str | None = None,
+        trade_states: Iterable[str] = ("PENDING",),
     ) -> Generator[OrderFill, None, None]:
         """Subscribes to the authenticated account's new order fills that match the
         given parameters.
 
-        Returns a generator that yields new order fills as they are published by the
-        exchange. A new order fill gets publised as soon as there is a match in the
-        order book, before the trade is submitted to clearing.
+        Returns a generator that yields order fills as they are published by the
+        exchange.
+
+        If `trade_states` includes `PENDING` (the default value) then a new order fill
+        is yielded as soon as there is a match in the order book, before the trade is
+        submitted to clearing.
+
+        If `trade_states` is empty or more than one trade state is specified then
+        updates to order fills are yielded at every state transition.
 
         Parameters
         ----------
         product_id : str, optional
         intent_hash : str, optional
+        trade_states: iterable of str
+            Any of `PENDING`, `CLEARED` and `REJECTED`.
 
         Yields
         -------
@@ -326,7 +338,7 @@ class Trading(ExchangeAPI):
             intent_hash=intent_hash,
             start=None,
             end=None,
-            trade_state=TradeState.PENDING,
+            trade_states=[TradeState(state.upper()) for state in trade_states],
         )
         yield from self._exchange.iter_order_fills(filter)
 
