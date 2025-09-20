@@ -1,25 +1,25 @@
 import secrets
+import warnings
 from datetime import datetime
 from decimal import Decimal
-from typing import Generator
+from typing import Generator, Iterable
 
 from web3 import Web3
 
 from .. import hashing, validators
 from ..decorators import refresh_token_on_expiry
-from ..enums import OrderType
+from ..enums import OrderSide, OrderState, OrderType, TradeState
 from ..schemas import (
     ExchangeProduct,
     Intent,
     IntentData,
     MarketDepthData,
     Order,
+    OrderFilter,
     OrderCancellationData,
     OrderFill,
     OrderFillFilter,
-    OrderSide,
     OrderSubmission,
-    TradeState,
 )
 from .base import ExchangeAPI
 
@@ -61,6 +61,7 @@ class Trading(ExchangeAPI):
         ----------
         product : afp.schemas.ExchangeProduct
         side : str
+            One of `BID` and `ASK`.
         limit_price : decimal.Decimal
         quantity : decimal.Decimal
         max_trading_fee_rate : decimal.Decimal
@@ -211,19 +212,57 @@ class Trading(ExchangeAPI):
         return self._exchange.get_order_by_id(value)
 
     @refresh_token_on_expiry
-    def open_orders(self, product_id: str | None = None) -> list[Order]:
-        """Retrieves all open and partially filled limit orders that have been submitted
-        by the authenticated account.
+    def orders(
+        self,
+        *,
+        product_id: str | None = None,
+        type_: str | None = None,
+        states: Iterable[str] = (),
+        side: str | None = None,
+        start: datetime | None = None,
+        end: datetime | None = None,
+    ) -> list[Order]:
+        """Retrieves the authenticated account's orders that match the given parameters.
 
         Parameters
         ----------
         product_id : str, optional
+        type_ : str, optional
+            One of `LIMIT_ORDER` and `CANCEL_ORDER`.
+        states : iterable of str
+            Any of `RECEIVED`, `PENDING`, `OPEN`, `COMPLETED` and `REJECTED`.
+        side : str, optional
+            One of `BID` and `ASK`.
+        start : datetime.datetime, optional
+        end : datetime.datetime, optional
 
         Returns
         -------
-        list of afp.schemas.Order
+        list of afp.schemas.OrderFill
         """
-        return self._exchange.get_open_orders(product_id)
+        filter = OrderFilter(
+            intent_account_id=self._authenticator.address,
+            product_id=product_id,
+            type=None if type_ is None else OrderType(type_.upper()),
+            states=[OrderState(state.upper()) for state in states],
+            side=None if side is None else OrderSide(side.upper()),
+            start=start,
+            end=end,
+        )
+        return self._exchange.get_orders(filter)
+
+    @refresh_token_on_expiry
+    def open_orders(self, product_id: str | None = None) -> list[Order]:
+        """Deprecated alias of Trading.orders(type_="LIMIT_ORDER", states=("OPEN", "PARTIAL"))."""
+        warnings.warn(
+            "Trading.open_orders() is deprecated. Use "
+            'Trading.orders(type_="LIMIT_ORDER", states=("OPEN", "PARTIAL")) instead.',
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.orders(
+            type_="limit_order", states=("open", "partial"), product_id=product_id
+        )
 
     @refresh_token_on_expiry
     def order_fills(

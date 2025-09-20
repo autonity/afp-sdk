@@ -12,6 +12,7 @@ from pydantic import (
     ConfigDict,
     Field,
     PlainSerializer,
+    computed_field,
 )
 
 from . import validators
@@ -104,6 +105,21 @@ class Order(Model):
     state: OrderState
     fill_quantity: int
     intent: Intent
+
+
+class OrderFilter(Model):
+    intent_account_id: str
+    product_id: None | Annotated[str, AfterValidator(validators.validate_hexstr32)]
+    type: None | OrderType
+    states: list[OrderState] = Field(exclude=True)
+    side: None | OrderSide
+    start: None | Timestamp
+    end: None | Timestamp
+
+    @computed_field
+    @property
+    def state(self) -> str | None:
+        return ",".join(self.states) if self.states else None
 
 
 class OrderCancellationData(Model):

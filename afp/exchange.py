@@ -21,6 +21,7 @@ from .schemas import (
     LoginSubmission,
     MarketDepthData,
     Order,
+    OrderFilter,
     OrderFill,
     OrderFillFilter,
     OrderSubmission,
@@ -86,9 +87,9 @@ class ExchangeClient:
         return Order(**response.json())
 
     # GET /orders
-    def get_open_orders(self, product_id: str | None = None) -> list[Order]:
+    def get_orders(self, filter: OrderFilter) -> list[Order]:
         response = self._send_request(
-            "GET", "/orders", params=({"product_id": product_id} if product_id else {})
+            "GET", "/orders", params=filter.model_dump(exclude_none=True)
         )
         return [Order(**item) for item in response.json()["orders"]]
 
