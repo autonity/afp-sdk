@@ -15,7 +15,7 @@ from pydantic import (
 )
 
 from . import validators
-from .enums import OrderSide, OrderState, OrderType, TradeState
+from .enums import ListingState, OrderSide, OrderState, OrderType, TradeState
 
 
 # Use datetime internally but UNIX timestamp in client-server communication
@@ -53,11 +53,18 @@ class ExchangeParameters(Model):
     trading_fee_rate: Decimal
 
 
-# Trading API
+# Admin API
 
 
-class ExchangeProductSubmission(Model):
+class ExchangeProductListingSubmission(Model):
     id: Annotated[str, AfterValidator(validators.validate_hexstr32)]
+
+
+class ExchangeProductUpdateSubmission(Model):
+    listing_state: ListingState
+
+
+# Trading API
 
 
 class ExchangeProduct(Model):
@@ -65,6 +72,7 @@ class ExchangeProduct(Model):
     symbol: str
     tick_size: int
     collateral_asset: str
+    listing_state: ListingState
 
     def __str__(self) -> str:
         return self.id

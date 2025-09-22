@@ -1,6 +1,12 @@
 from enum import StrEnum
 
 
+class ListingState(StrEnum):
+    PRIVATE = "PRIVATE"
+    PUBLIC = "PUBLIC"
+    DELISTED = "DELISTED"
+
+
 class OrderType(StrEnum):
     LIMIT_ORDER = "LIMIT_ORDER"
     CANCEL_ORDER = "CANCEL_ORDER"

@@ -16,7 +16,8 @@ from .exceptions import (
 from .schemas import (
     ExchangeParameters,
     ExchangeProduct,
-    ExchangeProductSubmission,
+    ExchangeProductListingSubmission,
+    ExchangeProductUpdateSubmission,
     LoginSubmission,
     MarketDepthData,
     Order,
@@ -60,14 +61,22 @@ class ExchangeClient:
         return ExchangeProduct(**response.json())
 
     # POST /products
-    def approve_product(self, product_submission: ExchangeProductSubmission) -> None:
+    def list_product(
+        self, listing_submission: ExchangeProductListingSubmission
+    ) -> None:
         self._send_request(
-            "POST", "/products", data=product_submission.model_dump_json()
+            "POST", "/products", data=listing_submission.model_dump_json()
         )
 
-    # DELETE /products
-    def delist_product(self, product_id: str) -> None:
-        self._send_request("DELETE", f"/products/{product_id}")
+    # PATCH /products
+    def update_product_listing(
+        self, product_id: str, update_submission: ExchangeProductUpdateSubmission
+    ) -> None:
+        self._send_request(
+            "PATCH",
+            f"/products/{product_id}",
+            data=update_submission.model_dump_json(),
+        )
 
     # POST /orders
     def submit_order(self, order_submission: OrderSubmission) -> Order:
