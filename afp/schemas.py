@@ -12,6 +12,7 @@ from pydantic import (
     ConfigDict,
     Field,
     PlainSerializer,
+    computed_field,
 )
 
 from . import validators
@@ -106,6 +107,21 @@ class Order(Model):
     intent: Intent
 
 
+class OrderFilter(Model):
+    intent_account_id: str
+    product_id: None | Annotated[str, AfterValidator(validators.validate_hexstr32)]
+    type: None | OrderType
+    states: list[OrderState] = Field(exclude=True)
+    side: None | OrderSide
+    start: None | Timestamp
+    end: None | Timestamp
+
+    @computed_field
+    @property
+    def state(self) -> str | None:
+        return ",".join(self.states) if self.states else None
+
+
 class OrderCancellationData(Model):
     intent_hash: Annotated[str, AfterValidator(validators.validate_hexstr32)]
     nonce: int
@@ -140,13 +156,15 @@ class OrderFill(Model):
 class OrderFillFilter(Model):
     intent_account_id: str
     product_id: None | Annotated[str, AfterValidator(validators.validate_hexstr32)]
-    margin_account_id: (
-        None | Annotated[str, AfterValidator(validators.validate_address)]
-    )
     intent_hash: None | Annotated[str, AfterValidator(validators.validate_hexstr32)]
     start: None | Timestamp
     end: None | Timestamp
-    trade_state: None | TradeState
+    trade_states: list[TradeState] = Field(exclude=True)
+
+    @computed_field
+    @property
+    def trade_state(self) -> str | None:
+        return ",".join(self.trade_states) if self.trade_states else None
 
 
 class MarketDepthItem(Model):
