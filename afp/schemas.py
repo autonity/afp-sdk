@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 from functools import partial
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 import inflection
 from pydantic import (
@@ -39,6 +39,33 @@ class Model(BaseModel):
     # Change the default value of by_alias to True
     def model_dump_json(self, by_alias: bool = True, **kwargs: Any) -> str:
         return super().model_dump_json(by_alias=by_alias, **kwargs)
+
+
+class PaginationFilter(Model):
+    batch: Annotated[None | int, Field(gt=0, exclude=True)]
+    batch_size: Annotated[None | int, Field(gt=0, exclude=True)]
+    newest_first: Annotated[None | bool, Field(exclude=True)]
+
+    @computed_field
+    @property
+    def page(self) -> None | int:
+        return self.batch
+
+    @computed_field
+    @property
+    def page_size(self) -> None | int:
+        return self.batch_size
+
+    @computed_field
+    @property
+    def sort(self) -> None | Literal["ASC", "DESC"]:
+        match self.newest_first:
+            case None:
+                return None
+            case True:
+                return "DESC"
+            case False:
+                return "ASC"
 
 
 # Authentication
@@ -79,6 +106,10 @@ class ExchangeProduct(Model):
         return self.id
 
 
+class ExchangeProductFilter(PaginationFilter):
+    pass
+
+
 class IntentData(Model):
     trading_protocol_id: str
     product_id: str
@@ -107,11 +138,11 @@ class Order(Model):
     intent: Intent
 
 
-class OrderFilter(Model):
+class OrderFilter(PaginationFilter):
     intent_account_id: str
     product_id: None | Annotated[str, AfterValidator(validators.validate_hexstr32)]
     type: None | OrderType
-    states: list[OrderState] = Field(exclude=True)
+    states: Annotated[list[OrderState], Field(exclude=True)]
     side: None | OrderSide
     start: None | Timestamp
     end: None | Timestamp
@@ -153,13 +184,13 @@ class OrderFill(Model):
     price: Decimal
 
 
-class OrderFillFilter(Model):
+class OrderFillFilter(PaginationFilter):
     intent_account_id: str
     product_id: None | Annotated[str, AfterValidator(validators.validate_hexstr32)]
     intent_hash: None | Annotated[str, AfterValidator(validators.validate_hexstr32)]
     start: None | Timestamp
     end: None | Timestamp
-    trade_states: list[TradeState] = Field(exclude=True)
+    trade_states: Annotated[list[TradeState], Field(exclude=True)]
 
     @computed_field
     @property

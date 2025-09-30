@@ -16,6 +16,7 @@ from .exceptions import (
 from .schemas import (
     ExchangeParameters,
     ExchangeProduct,
+    ExchangeProductFilter,
     ExchangeProductListingSubmission,
     ExchangeProductUpdateSubmission,
     LoginSubmission,
@@ -52,8 +53,12 @@ class ExchangeClient:
         return ExchangeParameters(**response.json())
 
     # GET /products
-    def get_approved_products(self) -> list[ExchangeProduct]:
-        response = self._send_request("GET", "/products")
+    def get_approved_products(
+        self, filter: ExchangeProductFilter
+    ) -> list[ExchangeProduct]:
+        response = self._send_request(
+            "GET", "/products", params=filter.model_dump(exclude_none=True)
+        )
         return [ExchangeProduct(**item) for item in response.json()["products"]]
 
     # GET /products/{product_id}

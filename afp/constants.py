@@ -8,6 +8,7 @@ def _int_or_none(value: str | None) -> int | None:
 
 
 USER_AGENT = "afp-sdk/{}".format(metadata.version("afp-sdk"))
+DEFAULT_BATCH_SIZE = 50
 DEFAULT_EXCHANGE_API_VERSION = 1
 
 # Constants from clearing/contracts/lib/constants.sol
