@@ -7,10 +7,12 @@ from typing import Generator, Iterable
 from web3 import Web3
 
 from .. import hashing, validators
+from ..constants import DEFAULT_BATCH_SIZE
 from ..decorators import refresh_token_on_expiry
 from ..enums import OrderSide, OrderState, OrderType, TradeState
 from ..schemas import (
     ExchangeProduct,
+    ExchangeProductFilter,
     Intent,
     IntentData,
     MarketDepthData,
@@ -162,14 +164,34 @@ class Trading(ExchangeAPI):
         )
         return self._exchange.submit_order(submission)
 
-    def products(self) -> list[ExchangeProduct]:
+    def products(
+        self,
+        batch: int = 1,
+        batch_size: int = DEFAULT_BATCH_SIZE,
+        newest_first: bool = True,
+    ) -> list[ExchangeProduct]:
         """Retrieves the products approved for trading on the exchange.
+
+        If there are more than `batch_size` number of products then they can be queried
+        in batches.
+
+        Parameters
+        ----------
+        batch : int, optional
+            1-based index of the batch of products.
+        batch_size : int, optional
+            The maximum number of products in one batch.
+        newest_first : bool, optional
+            Whether to sort products in descending or ascending order by creation time.
 
         Returns
         -------
         list of afp.schemas.ExchangeProduct
         """
-        return self._exchange.get_approved_products()
+        filter = ExchangeProductFilter(
+            batch=batch, batch_size=batch_size, newest_first=newest_first
+        )
+        return self._exchange.get_approved_products(filter)
 
     def product(self, product_id: str) -> ExchangeProduct:
         """Retrieves a product for trading by its ID.
@@ -221,8 +243,14 @@ class Trading(ExchangeAPI):
         side: str | None = None,
         start: datetime | None = None,
         end: datetime | None = None,
+        batch: int = 1,
+        batch_size: int = DEFAULT_BATCH_SIZE,
+        newest_first: bool = True,
     ) -> list[Order]:
         """Retrieves the authenticated account's orders that match the given parameters.
+
+        If there are more than `batch_size` number of orders then they can be queried
+        in batches.
 
         Parameters
         ----------
@@ -235,6 +263,12 @@ class Trading(ExchangeAPI):
             One of `BID` and `ASK`.
         start : datetime.datetime, optional
         end : datetime.datetime, optional
+        batch : int, optional
+            1-based index of the batch of orders.
+        batch_size : int, optional
+            The maximum number of orders in one batch.
+        newest_first : bool, optional
+            Whether to sort orders in descending or ascending order by creation time.
 
         Returns
         -------
@@ -248,6 +282,9 @@ class Trading(ExchangeAPI):
             side=None if side is None else OrderSide(side.upper()),
             start=start,
             end=end,
+            batch=batch,
+            batch_size=batch_size,
+            newest_first=newest_first,
         )
         return self._exchange.get_orders(filter)
 
@@ -273,9 +310,15 @@ class Trading(ExchangeAPI):
         start: datetime | None = None,
         end: datetime | None = None,
         trade_states: Iterable[str] = (),
+        batch: int = 1,
+        batch_size: int = DEFAULT_BATCH_SIZE,
+        newest_first: bool = True,
     ) -> list[OrderFill]:
         """Retrieves the authenticated account's order fills that match the given
         parameters.
+
+        If there are more than `batch_size` number of order fills then they can be
+        queried in batches.
 
         Parameters
         ----------
@@ -285,6 +328,12 @@ class Trading(ExchangeAPI):
         end : datetime.datetime, optional
         trade_states : iterable of str
             Any of `PENDING`, `CLEARED` and `REJECTED`.
+        batch : int, optional
+            1-based index of the batch of order fills.
+        batch_size : int, optional
+            The maximum number of order fills in one batch.
+        newest_first : bool, optional
+            Whether to sort order fills in descending or ascending order by creation time.
 
         Returns
         -------
@@ -297,6 +346,9 @@ class Trading(ExchangeAPI):
             start=start,
             end=end,
             trade_states=[TradeState(state.upper()) for state in trade_states],
+            batch=batch,
+            batch_size=batch_size,
+            newest_first=newest_first,
         )
         return self._exchange.get_order_fills(filter)
 
@@ -339,6 +391,9 @@ class Trading(ExchangeAPI):
             start=None,
             end=None,
             trade_states=[TradeState(state.upper()) for state in trade_states],
+            batch=None,
+            batch_size=None,
+            newest_first=None,
         )
         yield from self._exchange.iter_order_fills(filter)
 
