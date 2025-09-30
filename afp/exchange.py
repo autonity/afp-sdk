@@ -173,11 +173,19 @@ class ExchangeClient:
                 raise AuthorizationError(http_error) from http_error
             if http_error.response.status_code == requests.codes.NOT_FOUND:
                 raise NotFoundError(http_error) from http_error
+            if http_error.response.status_code == requests.codes.BAD_REQUEST:
+                try:
+                    reason = response.json()["detail"]
+                except (json.JSONDecodeError, KeyError):
+                    reason = http_error
+                raise ValidationError(reason) from http_error
+            if http_error.response.status_code == requests.codes.UNPROCESSABLE:
+                try:
+                    reason = ", ".join(err["msg"] for err in response.json()["detail"])
+                except (json.JSONDecodeError, KeyError, TypeError):
+                    reason = http_error
+                raise ValidationError(reason) from http_error
 
-            try:
-                reason = response.json()["detail"]
-            except (json.JSONDecodeError, KeyError):
-                reason = response.text
-            raise ValidationError(reason) from http_error
+            raise ExchangeError(http_error) from http_error
 
         return response
