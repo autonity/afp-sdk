@@ -4,6 +4,7 @@ from enum import StrEnum
 class ListingState(StrEnum):
     PRIVATE = "PRIVATE"
     PUBLIC = "PUBLIC"
+    READ_ONLY = "READ_ONLY"
     DELISTED = "DELISTED"
 
 
