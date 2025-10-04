@@ -1,3 +1,22 @@
+## [v0.5.2] - 2025-10-04
+
+### Added
+
+- Add `Trading.orders()` method for filtering orders based on multiple criteria ([#26](https://github.com/autonity/afp-sdk/pull/26))
+- Add `trade_states` argument to `Trading.order_fills()` ([#26](https://github.com/autonity/afp-sdk/pull/26))
+
+### Changed
+
+- Change `Trading.products()`, `Trading.orders()` and `Trading.order_fills()` to retrieve items in batches ([#31](https://github.com/autonity/afp-sdk/pull/31))
+
+### Fixed
+
+- Raise `afp.exceptions.ExchangeError` for AutEx internal server errors instead of `afp.exceptions.ValidationError` ([#32](https://github.com/autonity/afp-sdk/pull/32))
+
+### Removed
+
+- Flag `Trading.open_orders()` method for deprecation. ([#26](https://github.com/autonity/afp-sdk/pull/26))
+
 ## [v0.5.1] - 2025-09-23
 
 ### Added
@@ -38,6 +57,7 @@
 
 _First public release for Forecastathon._
 
+[v0.5.2]: https://github.com/autonity/afp-sdk/releases/tag/v0.5.2
 [v0.5.1]: https://github.com/autonity/afp-sdk/releases/tag/v0.5.1
 [v0.5.0]: https://github.com/autonity/afp-sdk/releases/tag/v0.5.0
 [v0.4.0]: https://github.com/autonity/afp-sdk/releases/tag/v0.4.0
