@@ -8,7 +8,7 @@ from afp import validators
 from afp.schemas import Model, Timestamp
 
 
-class TestModel(Model):
+class DummyModel(Model):
     timestamp: Timestamp
 
 
@@ -17,7 +17,7 @@ def test_timestamp_conversion():
     ts_time = 1893499200
 
     # timestamp -> datetime
-    instance = TestModel(timestamp=ts_time)  # type: ignore
+    instance = DummyModel(timestamp=ts_time)  # type: ignore
     assert instance.timestamp is not None
     assert instance.timestamp.astimezone(UTC) == dt_time
 
