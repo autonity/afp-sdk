@@ -209,6 +209,15 @@ class MarketDepthData(Model):
     asks: list[MarketDepthItem]
 
 
+class OHLCVItem(Model):
+    timestamp: Timestamp
+    open: Decimal
+    high: Decimal
+    low: Decimal
+    close: Decimal
+    volume: int
+
+
 # Clearing API
 
 

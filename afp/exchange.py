@@ -21,6 +21,7 @@ from .schemas import (
     ExchangeProductUpdateSubmission,
     LoginSubmission,
     MarketDepthData,
+    OHLCVItem,
     Order,
     OrderFilter,
     OrderFill,
@@ -137,6 +138,30 @@ class ExchangeClient:
         )
         for line in response.iter_lines():
             yield MarketDepthData.model_validate_json(line)
+
+    # GET /time-series/{product_id}
+    def get_time_series_data(
+        self, product_id: str, start: int, interval: int
+    ) -> list[OHLCVItem]:
+        response = self._send_request(
+            "GET",
+            f"/time-series/{product_id}",
+            params=dict(start=start, interval=interval),
+        )
+        return [OHLCVItem(**item) for item in response.json()["data"]]
+
+    # GET /stream/time-series/{product_id}
+    def iter_time_series_data(
+        self, product_id: str, start: int, interval: int
+    ) -> Generator[OHLCVItem, None, None]:
+        response = self._send_request(
+            "GET",
+            f"/stream/time-series/{product_id}",
+            params=dict(start=start, interval=interval),
+            stream=True,
+        )
+        for line in response.iter_lines():
+            yield OHLCVItem.model_validate_json(line)
 
     def _send_request(
         self,
