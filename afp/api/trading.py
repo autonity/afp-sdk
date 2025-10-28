@@ -1,6 +1,6 @@
 import secrets
 import warnings
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Generator, Iterable
 
@@ -16,6 +16,7 @@ from ..schemas import (
     Intent,
     IntentData,
     MarketDepthData,
+    OHLCVItem,
     Order,
     OrderFilter,
     OrderCancellationData,
@@ -457,3 +458,71 @@ class Trading(ExchangeAPI):
         """
         value = validators.validate_hexstr32(product_id)
         yield from self._exchange.iter_market_depth_data(value)
+
+    def ohlcv(
+        self,
+        product_id: str,
+        start: datetime | None = None,
+        interval: timedelta = timedelta(minutes=5),
+    ) -> list[OHLCVItem]:
+        """Retrieves Open-High-Low-Close-Volume time series data for the given product.
+
+        Parameters
+        ----------
+        product_id : str
+        start : datetime
+            Defaults to 1 day ago.
+        interval : timedelta
+            The distance between 2 data points. Gets rounded to a multiple of 5 seconds.
+            Defaults to 5 minutes.
+
+        Returns
+        -------
+        list of afp.schemas.OHLCVItem
+
+        Raises
+        ------
+        afp.exceptions.NotFoundError
+            If no such product exists.
+        """
+        if start is None:
+            start = datetime.now() - timedelta(days=1)
+
+        product_id = validators.validate_hexstr32(product_id)
+        start_timestamp = int(start.timestamp())
+        interval_secs = int(validators.validate_timedelta(interval).total_seconds())
+        return self._exchange.get_time_series_data(
+            product_id, start_timestamp, interval_secs
+        )
+
+    def iter_ohlcv(
+        self, product_id: str, interval: timedelta = timedelta(seconds=5)
+    ) -> Generator[OHLCVItem, None, None]:
+        """Subscribes to Open-High-Low-Close-Volume time series data updates for the
+        given product.
+
+        Returns a generator that yields OHLCV data points as they are published
+        by the exhange.
+
+        Parameters
+        ----------
+        product_id : str
+        interval : timedelta
+            The distance between 2 data points. Gets rounded to a multiple of 5 seconds.
+            Defaults to 5 seconds.
+
+        Yields
+        -------
+        afp.schemas.OHLCVItem
+
+        Raises
+        ------
+        afp.exceptions.NotFoundError
+            If no such product exists.
+        """
+        product_id = validators.validate_hexstr32(product_id)
+        start_timestamp = int(datetime.now().timestamp())
+        interval_secs = int(validators.validate_timedelta(interval).total_seconds())
+        yield from self._exchange.iter_time_series_data(
+            product_id, start_timestamp, interval_secs
+        )
