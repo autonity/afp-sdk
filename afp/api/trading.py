@@ -238,6 +238,7 @@ class Trading(ExchangeAPI):
         self,
         *,
         product_id: str | None = None,
+        intent_account_id: str | None = None,
         type_: str | None = None,
         states: Iterable[str] = (),
         side: str | None = None,
@@ -255,6 +256,8 @@ class Trading(ExchangeAPI):
         Parameters
         ----------
         product_id : str, optional
+        intent_account_id : str, optional
+            Defaults to the address of the authenticated account.
         type_ : str, optional
             One of `LIMIT_ORDER` and `CANCEL_ORDER`.
         states : iterable of str
@@ -274,8 +277,11 @@ class Trading(ExchangeAPI):
         -------
         list of afp.schemas.OrderFill
         """
+        if intent_account_id is None:
+            intent_account_id = self._authenticator.address
+
         filter = OrderFilter(
-            intent_account_id=self._authenticator.address,
+            intent_account_id=intent_account_id,
             product_id=product_id,
             type=None if type_ is None else OrderType(type_.upper()),
             states=[OrderState(state.upper()) for state in states],
@@ -306,6 +312,7 @@ class Trading(ExchangeAPI):
         self,
         *,
         product_id: str | None = None,
+        intent_account_id: str | None = None,
         intent_hash: str | None = None,
         start: datetime | None = None,
         end: datetime | None = None,
@@ -323,6 +330,8 @@ class Trading(ExchangeAPI):
         Parameters
         ----------
         product_id : str, optional
+        intent_account_id : str, optional
+            Defaults to the address of the authenticated account.
         intent_hash : str, optional
         start : datetime.datetime, optional
         end : datetime.datetime, optional
@@ -339,8 +348,11 @@ class Trading(ExchangeAPI):
         -------
         list of afp.schemas.OrderFill
         """
+        if intent_account_id is None:
+            intent_account_id = self._authenticator.address
+
         filter = OrderFillFilter(
-            intent_account_id=self._authenticator.address,
+            intent_account_id=intent_account_id,
             product_id=product_id,
             intent_hash=intent_hash,
             start=start,
@@ -357,6 +369,7 @@ class Trading(ExchangeAPI):
         self,
         *,
         product_id: str | None = None,
+        intent_account_id: str | None = None,
         intent_hash: str | None = None,
         trade_states: Iterable[str] = ("PENDING",),
     ) -> Generator[OrderFill, None, None]:
@@ -376,6 +389,8 @@ class Trading(ExchangeAPI):
         Parameters
         ----------
         product_id : str, optional
+        intent_account_id : str, optional
+            Defaults to the address of the authenticated account.
         intent_hash : str, optional
         trade_states: iterable of str
             Any of `PENDING`, `CLEARED` and `REJECTED`.
@@ -384,8 +399,11 @@ class Trading(ExchangeAPI):
         -------
         afp.schemas.OrderFill
         """
+        if intent_account_id is None:
+            intent_account_id = self._authenticator.address
+
         filter = OrderFillFilter(
-            intent_account_id=self._authenticator.address,
+            intent_account_id=intent_account_id,
             product_id=product_id,
             intent_hash=intent_hash,
             start=None,
