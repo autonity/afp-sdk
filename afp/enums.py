@@ -11,6 +11,7 @@ class ListingState(StrEnum):
 class OrderType(StrEnum):
     LIMIT_ORDER = "LIMIT_ORDER"
     CANCEL_ORDER = "CANCEL_ORDER"
+    EXCHANGE_INITIATED_CANCELLATION = "EXCHANGE_INITIATED_CANCELLATION"
 
 
 class OrderState(StrEnum):
