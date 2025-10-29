@@ -1,3 +1,13 @@
+## [v0.5.3] - 2025-10-29
+
+### Added
+
+- Add `Trading.ohlcv()` and `Trading.iter_ohlcv()` methods for querying OHLCV time series data ([#34](https://github.com/autonity/afp-sdk/pull/34))
+
+### Changed
+
+- Change `Trading.orders()`, `Trading.order_fills()` and `Trading.iter_order_fills()` to allow filtering items by intent account ID ([#33](https://github.com/autonity/afp-sdk/pull/33))
+
 ## [v0.5.2] - 2025-10-04
 
 ### Added
@@ -57,6 +67,7 @@
 
 _First public release for Forecastathon._
 
+[v0.5.3]: https://github.com/autonity/afp-sdk/releases/tag/v0.5.3
 [v0.5.2]: https://github.com/autonity/afp-sdk/releases/tag/v0.5.2
 [v0.5.1]: https://github.com/autonity/afp-sdk/releases/tag/v0.5.1
 [v0.5.0]: https://github.com/autonity/afp-sdk/releases/tag/v0.5.0
