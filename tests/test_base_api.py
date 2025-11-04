@@ -81,7 +81,9 @@ def test_ClearingSystemAPI__applies_transaction_parameters(monkeypatch):
 
 def test_ExchangeAPI__applies_exchange_parameters(monkeypatch):
     fake_exchange_params = ExchangeParameters(
-        trading_protocol_id="baz", trading_fee_rate=Decimal("0")
+        trading_protocol_id="baz",
+        maker_trading_fee_rate=Decimal("0"),
+        taker_trading_fee_rate=Decimal("0"),
     )
     mock_login = Mock(return_value=fake_exchange_params)
     mock_generate_login_nonce = Mock(return_value="12345678")
