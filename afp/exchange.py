@@ -11,6 +11,7 @@ from .exceptions import (
     AuthorizationError,
     ExchangeError,
     NotFoundError,
+    RateLimitExceeded,
     ValidationError,
 )
 from .schemas import (
@@ -198,6 +199,8 @@ class ExchangeClient:
                 raise AuthorizationError(http_error) from http_error
             if http_error.response.status_code == requests.codes.NOT_FOUND:
                 raise NotFoundError(http_error) from http_error
+            if http_error.response.status_code == requests.codes.TOO_MANY_REQUESTS:
+                raise RateLimitExceeded(http_error) from http_error
             if http_error.response.status_code == requests.codes.BAD_REQUEST:
                 try:
                     reason = response.json()["detail"]

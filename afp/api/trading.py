@@ -124,8 +124,9 @@ class Trading(ExchangeAPI):
 
         Raises
         ------
-        afp.exceptions.ValidationError
-            If the exchange rejects the intent.
+        afp.exceptions.RateLimitExceeded
+            If the exchange rejects the order because of too many requests from the
+            authenticated account.
         """
         submission = OrderSubmission(
             type=OrderType.LIMIT_ORDER,
@@ -147,8 +148,13 @@ class Trading(ExchangeAPI):
 
         Raises
         ------
+        afp.exceptions.NotFoundError
+            If the exchange rejects the cancellation because the intent does not exist.
+        afp.exceptions.RateLimitExceeded
+            If the exchange rejects the cancellation because of too many requests from
+            the authenticated account.
         afp.exceptions.ValidationError
-            If the exchange rejects the cancellation.
+            If the exchange rejects the cancellation because it is invalid.
         """
         nonce = self._generate_nonce()
         cancellation_hash = hashing.generate_order_cancellation_hash(nonce, intent_hash)
