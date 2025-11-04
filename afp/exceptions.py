@@ -26,5 +26,9 @@ class NotFoundError(ExchangeError):
     pass
 
 
+class RateLimitExceeded(ExchangeError):
+    pass
+
+
 class ValidationError(ExchangeError):
     pass
