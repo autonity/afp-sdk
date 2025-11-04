@@ -1,3 +1,14 @@
+## [v0.5.4] - 2025-11-05
+
+### Added
+
+- Add `afp.exceptions.RateLimitExceeded` exception type ([#37](https://github.com/autonity/afp-sdk/pull/37))
+- Add trading fee rate to `afp.schemas.OrderFill` structure ([#39](https://github.com/autonity/afp-sdk/pull/39))
+
+### Changed
+
+- Update for interface changes in the AutEx exchange ([#36](https://github.com/autonity/afp-sdk/pull/36))
+
 ## [v0.5.3] - 2025-10-29
 
 ### Added
@@ -67,6 +78,7 @@
 
 _First public release for Forecastathon._
 
+[v0.5.4]: https://github.com/autonity/afp-sdk/releases/tag/v0.5.4
 [v0.5.3]: https://github.com/autonity/afp-sdk/releases/tag/v0.5.3
 [v0.5.2]: https://github.com/autonity/afp-sdk/releases/tag/v0.5.2
 [v0.5.1]: https://github.com/autonity/afp-sdk/releases/tag/v0.5.1
