@@ -1,4 +1,3 @@
-import warnings
 from datetime import datetime
 from decimal import Decimal
 from functools import partial
@@ -81,17 +80,6 @@ class ExchangeParameters(Model):
     trading_protocol_id: str
     maker_trading_fee_rate: Decimal
     taker_trading_fee_rate: Decimal
-
-    @property
-    def trading_fee_rate(self) -> Decimal:
-        warnings.warn(
-            "ExchangeParameters.trading_fee_rate is deprecated, superseded by "
-            "ExchangeParameters.maker_trading_fee_rate and "
-            "ExchangeParameters.taker_trading_fee_rate.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return max(self.maker_trading_fee_rate, self.taker_trading_fee_rate)
 
 
 # Admin API
