@@ -183,6 +183,7 @@ class OrderFill(Model):
     trade: Trade
     quantity: int
     price: Decimal
+    trading_fee_rate: Decimal
 
 
 class OrderFillFilter(PaginationFilter):
