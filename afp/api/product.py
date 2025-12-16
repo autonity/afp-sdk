@@ -1,6 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import cast
+from typing import Any, cast
 
 from eth_typing.evm import ChecksumAddress
 from hexbytes import HexBytes
@@ -82,13 +82,14 @@ class Product(ClearingSystemAPI):
         if oracle_address is None:
             oracle_address = self._config.oracle_provider_address
 
-        if len(self._w3.eth.get_code(Web3.to_checksum_address(collateral_asset))) == 0:
-            raise NotFoundError(f"No ERC20 token found at address {collateral_asset}")
-        if len(self._w3.eth.get_code(Web3.to_checksum_address(oracle_address))) == 0:
-            raise NotFoundError(f"No contract found at oracle address {oracle_address}")
-
         erc20_contract = ERC20(self._w3, Web3.to_checksum_address(collateral_asset))
         price_quotation = erc20_contract.symbol()
+
+        # Verify contracts
+        collateral_asset = validators.verify_collateral_asset(
+            self._w3, collateral_asset
+        )
+        oracle_address = validators.verify_oracle(self._w3, oracle_address)
 
         product_id = Web3.to_hex(
             hashing.generate_product_id(self._authenticator.address, symbol)
@@ -120,6 +121,47 @@ class Product(ClearingSystemAPI):
             tradeout_interval=tradeout_interval,
             extended_metadata=extended_metadata,
         )
+
+    @convert_web3_error()
+    def parse(self, spec: dict[str, Any]) -> ProductSpec:
+        """Creates a product specification from a dictionary.
+
+        The dictionary must follow the schema of the afp.schemas.ProductSpec model.
+
+        Parameters
+        ----------
+        spec : dict
+            A dictionary that follows the schema of the afp.schemas.ProductSpec model.
+
+        Returns
+        -------
+        afp.schemas.ProductSpec
+        """
+        # Set default values
+        if spec["oracle_spec"].get("oracle_address") is None:
+            spec["oracle_spec"]["oracle_address"] = self._config.oracle_provider_address
+        if spec["metadata"].get("builder_id") is None:
+            spec["metadata"]["builder_id"] = self._authenticator.address
+        if spec.get("price_quotation") is None:
+            erc20_contract = ERC20(self._w3, spec["collateral_asset"])
+            spec["price_quotation"] = erc20_contract.symbol()
+
+        # Verify contracts
+        spec["collateral_asset"] = validators.verify_collateral_asset(
+            self._w3, spec["collateral_asset"]
+        )
+        spec["oracle_spec"]["oracle_address"] = validators.verify_oracle(
+            self._w3, spec["oracle_spec"]["oracle_address"]
+        )
+
+        # Generate ID
+        spec["id"] = Web3.to_hex(
+            hashing.generate_product_id(
+                spec["metadata"]["builder_id"], spec["metadata"]["symbol"]
+            )
+        )
+
+        return ProductSpec.model_validate(spec)
 
     ### Transactions ###
 
