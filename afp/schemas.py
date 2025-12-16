@@ -240,19 +240,24 @@ class Position(Model):
 # Builder API
 
 
-class ProductSpecification(Model):
-    id: str
-    # Product Metadata
-    builder_id: str
-    symbol: str
-    description: str
-    # Orace Specification
+class OracleSpec(Model):
     oracle_address: Annotated[str, AfterValidator(validators.validate_address)]
     fsv_decimals: Annotated[int, Field(ge=0, lt=256)]  # uint8
     fsp_alpha: Decimal
     fsp_beta: Decimal
     fsv_calldata: Annotated[str, AfterValidator(validators.validate_hexstr)]
-    # Product
+
+
+class ProductMetadata(Model):
+    builder_id: Annotated[str, AfterValidator(validators.validate_address)]
+    symbol: str
+    description: str
+
+
+class ProductSpec(Model):
+    id: str
+    metadata: ProductMetadata
+    oracle_spec: OracleSpec
     start_time: Timestamp
     earliest_fsp_submission_time: Timestamp
     collateral_asset: Annotated[str, AfterValidator(validators.validate_address)]
@@ -263,7 +268,7 @@ class ProductSpecification(Model):
     maintenance_margin_requirement: Annotated[Decimal, Field(gt=0)]
     auction_bounty: Annotated[Decimal, Field(ge=0, le=1)]
     tradeout_interval: Annotated[int, Field(ge=0)]
-    extended_metadata: str
+    extended_metadata: str = ""
 
     def __str__(self) -> str:
         return self.id
