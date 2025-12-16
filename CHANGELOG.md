@@ -1,3 +1,17 @@
+## [v0.6.0] - 2025-12-17
+
+### Added
+
+- Add `Product.parse` method that creates an `afp.schemas.ProductSpec` model from a dictionary ([#40](https://github.com/autonity/afp-sdk/pull/40))
+
+### Changed
+
+- Replace `afp.schemas.ProductSpecification` model with `afp.schemas.ProductSpec` with a different schema ([#40](https://github.com/autonity/afp-sdk/pull/40))
+
+### Removed
+
+- Remove the deprecated `Product.create_product()`, `Product.product_state()`, `Product.register_product()` and `Trading.open_orders()` methods ([#41](https://github.com/autonity/afp-sdk/pull/41))
+
 ## [v0.5.4] - 2025-11-05
 
 ### Added
@@ -78,6 +92,7 @@
 
 _First public release for Forecastathon._
 
+[v0.6.0]: https://github.com/autonity/afp-sdk/releases/tag/v0.6.0
 [v0.5.4]: https://github.com/autonity/afp-sdk/releases/tag/v0.5.4
 [v0.5.3]: https://github.com/autonity/afp-sdk/releases/tag/v0.5.3
 [v0.5.2]: https://github.com/autonity/afp-sdk/releases/tag/v0.5.2
