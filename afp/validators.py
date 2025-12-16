@@ -6,13 +6,19 @@ from eth_typing.evm import ChecksumAddress
 from hexbytes import HexBytes
 from web3 import Web3
 
-
-def ensure_timestamp(value: int | datetime) -> int:
-    return int(value.timestamp()) if isinstance(value, datetime) else value
+from .exceptions import NotFoundError
 
 
-def ensure_datetime(value: datetime | int) -> datetime:
-    return value if isinstance(value, datetime) else datetime.fromtimestamp(value)
+def ensure_timestamp(value: int | float | datetime) -> int:
+    return int(value.timestamp()) if isinstance(value, datetime) else int(value)
+
+
+def ensure_datetime(value: int | float | str) -> datetime:
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, int) or isinstance(value, float):
+        return datetime.fromtimestamp(value)
+    return datetime.fromisoformat(value)
 
 
 def validate_timedelta(value: timedelta) -> timedelta:
@@ -55,3 +61,17 @@ def validate_limit_price(
                 f"Limit price {value} can have at most {tick_size} fractional digits"
             )
     return value.quantize(Decimal("10") ** -tick_size, rounding=rounding)
+
+
+def verify_collateral_asset(w3: Web3, address: str) -> ChecksumAddress:
+    address = validate_address(address)
+    if len(w3.eth.get_code(address)) == 0:
+        raise NotFoundError(f"No ERC20 token found at address {address}")
+    return address
+
+
+def verify_oracle(w3: Web3, address: str) -> ChecksumAddress:
+    address = validate_address(address)
+    if len(w3.eth.get_code(address)) == 0:
+        raise ValueError(f"No contract found at oracle address {address}")
+    return address

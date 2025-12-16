@@ -1,6 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import cast
+from typing import Any, cast
 
 from eth_typing.evm import ChecksumAddress
 from hexbytes import HexBytes
@@ -11,7 +11,7 @@ from ..bindings import (
     ClearingDiamond,
     OracleSpecification,
     Product as OnChainProduct,
-    ProductMetadata,
+    ProductMetadata as OnChainProductMetadata,
     ProductRegistry,
 )
 from ..bindings.erc20 import ERC20
@@ -19,7 +19,7 @@ from ..bindings.facade import CLEARING_DIAMOND_ABI
 from ..bindings.product_registry import ABI as PRODUCT_REGISTRY_ABI
 from ..decorators import convert_web3_error
 from ..exceptions import NotFoundError
-from ..schemas import ProductSpecification, Transaction
+from ..schemas import OracleSpec, ProductMetadata, ProductSpec, Transaction
 from .base import ClearingSystemAPI
 
 
@@ -47,9 +47,9 @@ class Product(ClearingSystemAPI):
         maintenance_margin_requirement: Decimal,
         auction_bounty: Decimal,
         tradeout_interval: int,
-        extended_metadata: str,
+        extended_metadata: str = "",
         oracle_address: str | None = None,
-    ) -> ProductSpecification:
+    ) -> ProductSpec:
         """Creates a product specification with the given product data.
 
         The builder account's address is derived from the private key; the price
@@ -72,38 +72,43 @@ class Product(ClearingSystemAPI):
         maintenance_margin_requirement : Decimal
         auction_bounty : Decimal
         tradeout_interval : int
-        extended_metadata : str
+        extended_metadata : str, optional
         oracle_address: str, optional
 
         Returns
         -------
-        afp.schemas.ProductSpecification
+        afp.schemas.ProductSpec
         """
         if oracle_address is None:
             oracle_address = self._config.oracle_provider_address
 
-        if len(self._w3.eth.get_code(Web3.to_checksum_address(collateral_asset))) == 0:
-            raise NotFoundError(f"No ERC20 token found at address {collateral_asset}")
-        if len(self._w3.eth.get_code(Web3.to_checksum_address(oracle_address))) == 0:
-            raise NotFoundError(f"No contract found at oracle address {oracle_address}")
-
         erc20_contract = ERC20(self._w3, Web3.to_checksum_address(collateral_asset))
         price_quotation = erc20_contract.symbol()
+
+        # Verify contracts
+        collateral_asset = validators.verify_collateral_asset(
+            self._w3, collateral_asset
+        )
+        oracle_address = validators.verify_oracle(self._w3, oracle_address)
 
         product_id = Web3.to_hex(
             hashing.generate_product_id(self._authenticator.address, symbol)
         )
 
-        return ProductSpecification(
+        return ProductSpec(
             id=product_id,
-            builder_id=self._authenticator.address,
-            symbol=symbol,
-            description=description,
-            oracle_address=oracle_address,
-            fsv_decimals=fsv_decimals,
-            fsp_alpha=fsp_alpha,
-            fsp_beta=fsp_beta,
-            fsv_calldata=fsv_calldata,
+            metadata=ProductMetadata(
+                builder_id=self._authenticator.address,
+                symbol=symbol,
+                description=description,
+            ),
+            oracle_spec=OracleSpec(
+                oracle_address=oracle_address,
+                fsv_decimals=fsv_decimals,
+                fsp_alpha=fsp_alpha,
+                fsp_beta=fsp_beta,
+                fsv_calldata=fsv_calldata,
+            ),
             price_quotation=price_quotation,
             collateral_asset=collateral_asset,
             start_time=start_time,
@@ -117,15 +122,56 @@ class Product(ClearingSystemAPI):
             extended_metadata=extended_metadata,
         )
 
+    @convert_web3_error()
+    def parse(self, spec: dict[str, Any]) -> ProductSpec:
+        """Creates a product specification from a dictionary.
+
+        The dictionary must follow the schema of the afp.schemas.ProductSpec model.
+
+        Parameters
+        ----------
+        spec : dict
+            A dictionary that follows the schema of the afp.schemas.ProductSpec model.
+
+        Returns
+        -------
+        afp.schemas.ProductSpec
+        """
+        # Set default values
+        if spec["oracle_spec"].get("oracle_address") is None:
+            spec["oracle_spec"]["oracle_address"] = self._config.oracle_provider_address
+        if spec["metadata"].get("builder_id") is None:
+            spec["metadata"]["builder_id"] = self._authenticator.address
+        if spec.get("price_quotation") is None:
+            erc20_contract = ERC20(self._w3, spec["collateral_asset"])
+            spec["price_quotation"] = erc20_contract.symbol()
+
+        # Verify contracts
+        spec["collateral_asset"] = validators.verify_collateral_asset(
+            self._w3, spec["collateral_asset"]
+        )
+        spec["oracle_spec"]["oracle_address"] = validators.verify_oracle(
+            self._w3, spec["oracle_spec"]["oracle_address"]
+        )
+
+        # Generate ID
+        spec["id"] = Web3.to_hex(
+            hashing.generate_product_id(
+                spec["metadata"]["builder_id"], spec["metadata"]["symbol"]
+            )
+        )
+
+        return ProductSpec.model_validate(spec)
+
     ### Transactions ###
 
     @convert_web3_error(PRODUCT_REGISTRY_ABI)
-    def register(self, product_specification: ProductSpecification) -> Transaction:
+    def register(self, product_spec: ProductSpec) -> Transaction:
         """Submits a product specification to the clearing system.
 
         Parameters
         ----------
-        product_specification : afp.schemas.ProductSpecification
+        product_spec : afp.schemas.ProductSpec
 
         Returns
         -------
@@ -133,7 +179,7 @@ class Product(ClearingSystemAPI):
             Transaction parameters.
         """
         erc20_contract = ERC20(
-            self._w3, cast(ChecksumAddress, product_specification.collateral_asset)
+            self._w3, cast(ChecksumAddress, product_spec.collateral_asset)
         )
         decimals = erc20_contract.decimals()
 
@@ -142,7 +188,7 @@ class Product(ClearingSystemAPI):
         )
         return self._transact(
             product_registry_contract.register(
-                self._convert_product_specification(product_specification, decimals)
+                self._convert_product_specification(product_spec, decimals)
             )
         )
 
@@ -228,20 +274,26 @@ class Product(ClearingSystemAPI):
 
     @staticmethod
     def _convert_product_specification(
-        product: ProductSpecification, decimals: int
+        product: ProductSpec, decimals: int
     ) -> OnChainProduct:
         return OnChainProduct(
-            metadata=ProductMetadata(
-                builder=cast(ChecksumAddress, product.builder_id),
-                symbol=product.symbol,
-                description=product.description,
+            metadata=OnChainProductMetadata(
+                builder=cast(ChecksumAddress, product.metadata.builder_id),
+                symbol=product.metadata.symbol,
+                description=product.metadata.description,
             ),
             oracle_spec=OracleSpecification(
-                oracle_address=cast(ChecksumAddress, product.oracle_address),
-                fsv_decimals=product.fsv_decimals,
-                fsp_alpha=int(product.fsp_alpha * constants.FULL_PRECISION_MULTIPLIER),
-                fsp_beta=int(product.fsp_beta * 10**product.fsv_decimals),
-                fsv_calldata=HexBytes(product.fsv_calldata),
+                oracle_address=cast(
+                    ChecksumAddress, product.oracle_spec.oracle_address
+                ),
+                fsv_decimals=product.oracle_spec.fsv_decimals,
+                fsp_alpha=int(
+                    product.oracle_spec.fsp_alpha * constants.FULL_PRECISION_MULTIPLIER
+                ),
+                fsp_beta=int(
+                    product.oracle_spec.fsp_beta * 10**product.oracle_spec.fsv_decimals
+                ),
+                fsv_calldata=HexBytes(product.oracle_spec.fsv_calldata),
             ),
             price_quotation=product.price_quotation,
             collateral_asset=cast(ChecksumAddress, product.collateral_asset),
