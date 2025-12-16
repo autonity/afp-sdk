@@ -1,7 +1,6 @@
-import warnings
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, cast
+from typing import cast
 
 from eth_typing.evm import ChecksumAddress
 from hexbytes import HexBytes
@@ -118,15 +117,6 @@ class Product(ClearingSystemAPI):
             extended_metadata=extended_metadata,
         )
 
-    def create_product(self, **kwargs: Any) -> ProductSpecification:
-        """Deprecated alias of `Product.create`."""
-        warnings.warn(
-            "Product.create_product() is deprecated. Use Product.create() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self.create(**kwargs)
-
     ### Transactions ###
 
     @convert_web3_error(PRODUCT_REGISTRY_ABI)
@@ -155,15 +145,6 @@ class Product(ClearingSystemAPI):
                 self._convert_product_specification(product_specification, decimals)
             )
         )
-
-    def register_product(self, product: ProductSpecification) -> Transaction:
-        """Deprecated alias of `Product.register`."""
-        warnings.warn(
-            "Product.register_product() is deprecated. Use Product.register() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self.register(product)
 
     @convert_web3_error(CLEARING_DIAMOND_ABI)
     def initiate_final_settlement(
@@ -218,15 +199,6 @@ class Product(ClearingSystemAPI):
         )
         state = product_registry_contract.state(HexBytes(product_id))
         return state.name
-
-    def product_state(self, product_id: str) -> str:
-        """Deprecated alias of `Product.state`."""
-        warnings.warn(
-            "Product.product_state() is deprecated. Use Product.state() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self.state(product_id)
 
     @convert_web3_error(PRODUCT_REGISTRY_ABI)
     def collateral_asset(self, product_id: str) -> str:
