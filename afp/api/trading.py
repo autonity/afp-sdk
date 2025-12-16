@@ -1,5 +1,4 @@
 import secrets
-import warnings
 from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Generator, Iterable
@@ -300,19 +299,6 @@ class Trading(ExchangeAPI):
             newest_first=newest_first,
         )
         return self._exchange.get_orders(filter)
-
-    @refresh_token_on_expiry
-    def open_orders(self, product_id: str | None = None) -> list[Order]:
-        """Deprecated alias of Trading.orders(type_="LIMIT_ORDER", states=("OPEN", "PARTIAL"))."""
-        warnings.warn(
-            "Trading.open_orders() is deprecated. Use "
-            'Trading.orders(type_="LIMIT_ORDER", states=("OPEN", "PARTIAL")) instead.',
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self.orders(
-            type_="limit_order", states=("open", "partial"), product_id=product_id
-        )
 
     @refresh_token_on_expiry
     def order_fills(
