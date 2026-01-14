@@ -434,6 +434,13 @@ ABI = typing.cast(
         },
         {
             "type": "error",
+            "name": "InvalidParameter",
+            "inputs": [
+                {"name": "paramName", "type": "string", "internalType": "string"}
+            ],
+        },
+        {
+            "type": "error",
             "name": "MAECheckFailed",
             "inputs": [
                 {"name": "marginAccount", "type": "address", "internalType": "address"}

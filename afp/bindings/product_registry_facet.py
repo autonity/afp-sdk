@@ -11,6 +11,7 @@ from web3 import types
 from web3.contract import contract
 
 from .types import (
+    ProductState,
     ExpirySpecification,
     ProductMetadata,
     OracleSpecification,
@@ -41,6 +42,25 @@ class ProductRegistryFacet:
         self._contract = w3.eth.contract(
             address=address,
             abi=ABI,
+        )
+
+    def claim_builder_rewards(
+        self,
+        product_id: hexbytes.HexBytes,
+    ) -> contract.ContractFunction:
+        """Binding for `claimBuilderRewards` on the ProductRegistryFacet contract.
+
+        Parameters
+        ----------
+        product_id : hexbytes.HexBytes
+
+        Returns
+        -------
+        web3.contract.contract.ContractFunction
+            A contract function instance to be sent in a transaction.
+        """
+        return self._contract.functions.claimBuilderRewards(
+            product_id,
         )
 
     def expiry_specification(
@@ -149,6 +169,75 @@ class ProductRegistryFacet:
         ).call(block_identifier=block_identifier)
         return hexbytes.HexBytes(return_value)
 
+    def increase_builder_stake(
+        self,
+        product_id: hexbytes.HexBytes,
+        stake_amount: int,
+    ) -> contract.ContractFunction:
+        """Binding for `increaseBuilderStake` on the ProductRegistryFacet contract.
+
+        Parameters
+        ----------
+        product_id : hexbytes.HexBytes
+        stake_amount : int
+
+        Returns
+        -------
+        web3.contract.contract.ContractFunction
+            A contract function instance to be sent in a transaction.
+        """
+        return self._contract.functions.increaseBuilderStake(
+            product_id,
+            stake_amount,
+        )
+
+    def is_builder_stake_valid(
+        self,
+        stake_amount: int,
+        collateral: eth_typing.ChecksumAddress,
+        block_identifier: types.BlockIdentifier = "latest",
+    ) -> bool:
+        """Binding for `isBuilderStakeValid` on the ProductRegistryFacet contract.
+
+        Parameters
+        ----------
+        stake_amount : int
+        collateral : eth_typing.ChecksumAddress
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
+
+        Returns
+        -------
+        bool
+        """
+        return_value = self._contract.functions.isBuilderStakeValid(
+            stake_amount,
+            collateral,
+        ).call(block_identifier=block_identifier)
+        return bool(return_value)
+
+    def min_builder_stake(
+        self,
+        collateral: eth_typing.ChecksumAddress,
+        block_identifier: types.BlockIdentifier = "latest",
+    ) -> int:
+        """Binding for `minBuilderStake` on the ProductRegistryFacet contract.
+
+        Parameters
+        ----------
+        collateral : eth_typing.ChecksumAddress
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
+
+        Returns
+        -------
+        int
+        """
+        return_value = self._contract.functions.minBuilderStake(
+            collateral,
+        ).call(block_identifier=block_identifier)
+        return int(return_value)
+
     def mmr(
         self,
         product_id: hexbytes.HexBytes,
@@ -216,6 +305,28 @@ class ProductRegistryFacet:
             int(return_value[3]),
         )
 
+    def product_treasury(
+        self,
+        product_id: hexbytes.HexBytes,
+        block_identifier: types.BlockIdentifier = "latest",
+    ) -> eth_typing.ChecksumAddress:
+        """Binding for `productTreasury` on the ProductRegistryFacet contract.
+
+        Parameters
+        ----------
+        product_id : hexbytes.HexBytes
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
+
+        Returns
+        -------
+        eth_typing.ChecksumAddress
+        """
+        return_value = self._contract.functions.productTreasury(
+            product_id,
+        ).call(block_identifier=block_identifier)
+        return eth_typing.ChecksumAddress(return_value)
+
     def products(
         self,
         product_id: hexbytes.HexBytes,
@@ -263,12 +374,14 @@ class ProductRegistryFacet:
     def register_future_product(
         self,
         product: FuturesProductV1,
+        initial_builder_stake: int,
     ) -> contract.ContractFunction:
         """Binding for `registerFutureProduct` on the ProductRegistryFacet contract.
 
         Parameters
         ----------
         product : FuturesProductV1
+        initial_builder_stake : int
 
         Returns
         -------
@@ -302,17 +415,20 @@ class ProductRegistryFacet:
                 ),
                 (product.margin_spec.imr, product.margin_spec.mmr),
             ),
+            initial_builder_stake,
         )
 
     def register_prediction_product(
         self,
         product: PredictionProductV1,
+        initial_builder_stake: int,
     ) -> contract.ContractFunction:
         """Binding for `registerPredictionProduct` on the ProductRegistryFacet contract.
 
         Parameters
         ----------
         product : PredictionProductV1
+        initial_builder_stake : int
 
         Returns
         -------
@@ -347,13 +463,14 @@ class ProductRegistryFacet:
                 product.max_price,
                 product.min_price,
             ),
+            initial_builder_stake,
         )
 
     def state(
         self,
         product_id: hexbytes.HexBytes,
         block_identifier: types.BlockIdentifier = "latest",
-    ) -> int:
+    ) -> ProductState:
         """Binding for `state` on the ProductRegistryFacet contract.
 
         Parameters
@@ -364,12 +481,12 @@ class ProductRegistryFacet:
 
         Returns
         -------
-        int
+        ProductState
         """
         return_value = self._contract.functions.state(
             product_id,
         ).call(block_identifier=block_identifier)
-        return int(return_value)
+        return ProductState(return_value)
 
     def type_of(
         self,
@@ -397,6 +514,15 @@ class ProductRegistryFacet:
 ABI = typing.cast(
     eth_typing.ABI,
     [
+        {
+            "type": "function",
+            "name": "claimBuilderRewards",
+            "inputs": [
+                {"name": "productId", "type": "bytes32", "internalType": "bytes32"}
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable",
+        },
         {
             "type": "function",
             "name": "expirySpecification",
@@ -657,6 +783,35 @@ ABI = typing.cast(
         },
         {
             "type": "function",
+            "name": "increaseBuilderStake",
+            "inputs": [
+                {"name": "productId", "type": "bytes32", "internalType": "bytes32"},
+                {"name": "stakeAmount", "type": "uint256", "internalType": "uint256"},
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable",
+        },
+        {
+            "type": "function",
+            "name": "isBuilderStakeValid",
+            "inputs": [
+                {"name": "stakeAmount", "type": "uint256", "internalType": "uint256"},
+                {"name": "collateral", "type": "address", "internalType": "address"},
+            ],
+            "outputs": [{"name": "", "type": "bool", "internalType": "bool"}],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
+            "name": "minBuilderStake",
+            "inputs": [
+                {"name": "collateral", "type": "address", "internalType": "address"}
+            ],
+            "outputs": [{"name": "", "type": "uint256", "internalType": "uint256"}],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
             "name": "mmr",
             "inputs": [
                 {"name": "productId", "type": "bytes32", "internalType": "bytes32"}
@@ -792,6 +947,15 @@ ABI = typing.cast(
                     ],
                 }
             ],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
+            "name": "productTreasury",
+            "inputs": [
+                {"name": "productId", "type": "bytes32", "internalType": "bytes32"}
+            ],
+            "outputs": [{"name": "", "type": "address", "internalType": "address"}],
             "stateMutability": "view",
         },
         {
@@ -1021,7 +1185,12 @@ ABI = typing.cast(
                             ],
                         },
                     ],
-                }
+                },
+                {
+                    "name": "initialBuilderStake",
+                    "type": "uint256",
+                    "internalType": "uint256",
+                },
             ],
             "outputs": [{"name": "", "type": "bytes32", "internalType": "bytes32"}],
             "stateMutability": "nonpayable",
@@ -1149,7 +1318,12 @@ ABI = typing.cast(
                             "internalType": "int256",
                         },
                     ],
-                }
+                },
+                {
+                    "name": "initialBuilderStake",
+                    "type": "uint256",
+                    "internalType": "uint256",
+                },
             ],
             "outputs": [{"name": "", "type": "bytes32", "internalType": "bytes32"}],
             "stateMutability": "nonpayable",
@@ -1178,6 +1352,34 @@ ABI = typing.cast(
         },
         {
             "type": "error",
+            "name": "DepositNotPossible",
+            "inputs": [
+                {"name": "state", "type": "uint8", "internalType": "enum ProductState"}
+            ],
+        },
+        {
+            "type": "error",
+            "name": "InsufficientBalance",
+            "inputs": [
+                {"name": "account", "type": "address", "internalType": "address"},
+                {"name": "balance", "type": "uint256", "internalType": "uint256"},
+                {"name": "required", "type": "uint256", "internalType": "uint256"},
+            ],
+        },
+        {
+            "type": "error",
+            "name": "InvalidFSPSubmissionTime",
+            "inputs": [
+                {"name": "startTime", "type": "uint256", "internalType": "uint256"},
+                {
+                    "name": "earliestFSPSubmissionTime",
+                    "type": "uint256",
+                    "internalType": "uint256",
+                },
+            ],
+        },
+        {
+            "type": "error",
             "name": "InvalidFieldAccess",
             "inputs": [
                 {
@@ -1186,6 +1388,13 @@ ABI = typing.cast(
                     "internalType": "enum ProductType",
                 },
                 {"name": "field", "type": "string", "internalType": "string"},
+            ],
+        },
+        {
+            "type": "error",
+            "name": "InvalidParameter",
+            "inputs": [
+                {"name": "paramName", "type": "string", "internalType": "string"}
             ],
         },
         {
@@ -1217,6 +1426,21 @@ ABI = typing.cast(
         },
         {
             "type": "error",
+            "name": "NotEnoughFee",
+            "inputs": [
+                {"name": "fee", "type": "uint256", "internalType": "uint256"},
+                {"name": "requiredFee", "type": "uint256", "internalType": "uint256"},
+            ],
+        },
+        {
+            "type": "error",
+            "name": "NotFound",
+            "inputs": [
+                {"name": "parameter", "type": "string", "internalType": "string"}
+            ],
+        },
+        {
+            "type": "error",
             "name": "NotImplemented",
             "inputs": [{"name": "feature", "type": "string", "internalType": "string"}],
         },
@@ -1226,6 +1450,11 @@ ABI = typing.cast(
             "inputs": [
                 {"name": "productId", "type": "bytes32", "internalType": "bytes32"}
             ],
+        },
+        {
+            "type": "error",
+            "name": "SafeCastOverflowedUintToInt",
+            "inputs": [{"name": "value", "type": "uint256", "internalType": "uint256"}],
         },
         {
             "type": "error",
