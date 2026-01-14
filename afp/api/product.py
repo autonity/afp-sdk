@@ -171,7 +171,7 @@ class Product(ClearingSystemAPI):
 
     ### Transactions ###
 
-    @convert_web3_error(PRODUCT_REGISTRY_ABI)
+    @convert_web3_error(PRODUCT_REGISTRY_ABI, CLEARING_DIAMOND_ABI)
     def register(self, product_spec: PredictionProductV1) -> Transaction:
         """Submits a product specification to the clearing system.
 
@@ -232,7 +232,7 @@ class Product(ClearingSystemAPI):
 
     ### Views ###
 
-    @convert_web3_error(PRODUCT_REGISTRY_ABI)
+    @convert_web3_error(PRODUCT_REGISTRY_ABI, CLEARING_DIAMOND_ABI)
     def state(self, product_id: str) -> str:
         """Returns the current state of a product.
 
@@ -252,7 +252,7 @@ class Product(ClearingSystemAPI):
         state = product_registry_contract.state(HexBytes(product_id))
         return state.name
 
-    @convert_web3_error(PRODUCT_REGISTRY_ABI)
+    @convert_web3_error(PRODUCT_REGISTRY_ABI, CLEARING_DIAMOND_ABI)
     def collateral_asset(self, product_id: str) -> str:
         """Returns the collateral asset of a product.
 

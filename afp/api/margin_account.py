@@ -13,6 +13,7 @@ from ..bindings import (
     ProductRegistry,
 )
 from ..bindings.erc20 import ERC20
+from ..bindings.facade import CLEARING_DIAMOND_ABI
 from ..bindings.margin_account import ABI as MARGIN_CONTRACT_ABI
 from ..bindings.margin_account_registry import ABI as MARGIN_ACCOUNT_REGISTRY_ABI
 from ..decorators import convert_web3_error
@@ -26,7 +27,7 @@ class MarginAccount(ClearingSystemAPI):
 
     ### Transactions ###
 
-    @convert_web3_error(MARGIN_CONTRACT_ABI)
+    @convert_web3_error(MARGIN_CONTRACT_ABI, CLEARING_DIAMOND_ABI)
     def authorize(self, collateral_asset: str, intent_account_id: str) -> Transaction:
         """Authorizes a blockchain account to submit intents to the clearing system
         using the margin account associated with the collateral asset.
@@ -49,7 +50,7 @@ class MarginAccount(ClearingSystemAPI):
             self._margin_contract(collateral_asset).authorize(intent_account_id)
         )
 
-    @convert_web3_error(MARGIN_CONTRACT_ABI)
+    @convert_web3_error(MARGIN_CONTRACT_ABI, CLEARING_DIAMOND_ABI)
     def deposit(
         self, collateral_asset: str, amount: Decimal
     ) -> tuple[Transaction, Transaction]:
@@ -88,7 +89,7 @@ class MarginAccount(ClearingSystemAPI):
         )
         return (tx1, tx2)
 
-    @convert_web3_error(MARGIN_CONTRACT_ABI)
+    @convert_web3_error(MARGIN_CONTRACT_ABI, CLEARING_DIAMOND_ABI)
     def withdraw(self, collateral_asset: str, amount: Decimal) -> Transaction:
         """Withdraws the specified amount of collateral tokens from the margin account
         associated with the collateral asset.
@@ -113,7 +114,7 @@ class MarginAccount(ClearingSystemAPI):
 
     ### Views ###
 
-    @convert_web3_error(MARGIN_CONTRACT_ABI)
+    @convert_web3_error(MARGIN_CONTRACT_ABI, CLEARING_DIAMOND_ABI)
     def capital(self, collateral_asset: str) -> Decimal:
         """Returns the amount of collateral tokens in the margin account associated
         with the collateral asset.
@@ -133,7 +134,7 @@ class MarginAccount(ClearingSystemAPI):
         )
         return Decimal(amount) / 10 ** self._decimals(collateral_asset)
 
-    @convert_web3_error(MARGIN_CONTRACT_ABI)
+    @convert_web3_error(MARGIN_CONTRACT_ABI, CLEARING_DIAMOND_ABI)
     def position(self, collateral_asset: str, position_id: str) -> Position:
         """Returns the parameters of a position in the margin account associated with
         the collateral asset.
@@ -162,7 +163,7 @@ class MarginAccount(ClearingSystemAPI):
             pnl=Decimal(data.pnl) / 10**decimals,
         )
 
-    @convert_web3_error(MARGIN_CONTRACT_ABI)
+    @convert_web3_error(MARGIN_CONTRACT_ABI, CLEARING_DIAMOND_ABI)
     def positions(self, collateral_asset: str) -> list[Position]:
         """Returns all positions in the margin account associated with the collateral
         asset.
@@ -182,7 +183,7 @@ class MarginAccount(ClearingSystemAPI):
         )
         return [self.position(collateral_asset, Web3.to_hex(id)) for id in position_ids]
 
-    @convert_web3_error(MARGIN_CONTRACT_ABI)
+    @convert_web3_error(MARGIN_CONTRACT_ABI, CLEARING_DIAMOND_ABI)
     def equity(self, collateral_asset: str) -> Decimal:
         """Returns the margin account equity in the margin account associated with the
         collateral asset.
@@ -202,7 +203,7 @@ class MarginAccount(ClearingSystemAPI):
         )
         return Decimal(amount) / 10 ** self._decimals(collateral_asset)
 
-    @convert_web3_error(MARGIN_CONTRACT_ABI)
+    @convert_web3_error(MARGIN_CONTRACT_ABI, CLEARING_DIAMOND_ABI)
     def maintenance_margin_available(self, collateral_asset: str) -> Decimal:
         """Returns the maintenance margin available in the margin account associated
         with the collateral asset.
@@ -222,7 +223,7 @@ class MarginAccount(ClearingSystemAPI):
         )
         return Decimal(amount) / 10 ** self._decimals(collateral_asset)
 
-    @convert_web3_error(MARGIN_CONTRACT_ABI)
+    @convert_web3_error(MARGIN_CONTRACT_ABI, CLEARING_DIAMOND_ABI)
     def maintenance_margin_used(self, collateral_asset: str) -> Decimal:
         """Returns the maintenance margin used in the margin account associated with
         the collateral asset.
@@ -242,7 +243,7 @@ class MarginAccount(ClearingSystemAPI):
         )
         return Decimal(amount) / 10 ** self._decimals(collateral_asset)
 
-    @convert_web3_error(MARGIN_CONTRACT_ABI)
+    @convert_web3_error(MARGIN_CONTRACT_ABI, CLEARING_DIAMOND_ABI)
     def profit_and_loss(self, collateral_asset: str) -> Decimal:
         """Returns the profit and loss in the margin account associated with the
         collateral asset.
@@ -262,7 +263,7 @@ class MarginAccount(ClearingSystemAPI):
         )
         return Decimal(amount) / 10 ** self._decimals(collateral_asset)
 
-    @convert_web3_error(MARGIN_CONTRACT_ABI)
+    @convert_web3_error(MARGIN_CONTRACT_ABI, CLEARING_DIAMOND_ABI)
     def withdrawable_amount(self, collateral_asset: str) -> Decimal:
         """Returns the amount of collateral tokens withdrawable from the margin account
         associated with the collateral asset.

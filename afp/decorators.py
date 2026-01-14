@@ -1,10 +1,12 @@
 from collections.abc import Callable
 from itertools import chain
-from typing import Any
+from typing import Any, cast
 
 import inflection
 from decorator import decorator
-from eth_typing.abi import ABI
+from eth_abi.exceptions import InsufficientDataBytes
+from eth_typing.abi import ABI, ABIError, ABIFunction
+from eth_typing.encoding import HexStr
 from eth_utils import abi
 from hexbytes import HexBytes
 from web3.exceptions import (
@@ -13,6 +15,7 @@ from web3.exceptions import (
     Web3Exception,
     Web3RPCError,
 )
+from web3._utils import contracts, normalizers
 
 from .api.base import ExchangeAPI
 from .exceptions import ClearingSystemError, AuthenticationError
@@ -71,6 +74,25 @@ def _decode_custom_error(data: str, *contract_abis: ABI) -> str | None:
         selector_candidate = abi.function_signature_to_4byte_selector(signature)
         if selector == selector_candidate:
             error = error_candidate["name"]
+            args = _decode_transaction_args(error_candidate, data)
             # Convert 'ErrorType' to 'Error type'
-            return inflection.humanize(inflection.underscore(error))
+            error = inflection.humanize(inflection.underscore(error))
+            if args:
+                error += ": " + ", ".join(f"{key}='{val}'" for key, val in args.items())
+            return error
     return None
+
+
+def _decode_transaction_args(error_abi: ABIError, data: str) -> dict[str, str]:
+    try:
+        args = contracts.decode_transaction_data(  # type: ignore
+            cast(ABIFunction, error_abi),
+            cast(HexStr, data),
+            normalizers=normalizers.BASE_RETURN_NORMALIZERS,  # type: ignore
+        )
+    except InsufficientDataBytes:
+        return {}
+    return {
+        key: HexBytes(val).to_0x_hex() if isinstance(val, bytes) else str(val)
+        for key, val in args.items()
+    }
