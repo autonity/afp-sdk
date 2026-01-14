@@ -43,6 +43,7 @@ class Trading(ExchangeAPI):
         max_trading_fee_rate: Decimal,
         good_until_time: datetime,
         margin_account_id: str | None = None,
+        referral: str | None = None,
         rounding: str | None = None,
     ) -> Intent:
         """Creates an intent with the given intent data, generates its hash and signs it
@@ -69,6 +70,7 @@ class Trading(ExchangeAPI):
         max_trading_fee_rate : decimal.Decimal
         good_until_time : datetime.datetime
         margin_account_id : str, optional
+        referral : str, optional
         rounding : str, optional
             A rounding mode of the `decimal` module or `None` for no rounding.
 
@@ -86,13 +88,18 @@ class Trading(ExchangeAPI):
             trading_protocol_id=self._trading_protocol_id,
             product_id=product.id,
             limit_price=validators.validate_limit_price(
-                Decimal(limit_price), product.tick_size, rounding
+                Decimal(limit_price),
+                product.min_price,
+                product.max_price,
+                product.tick_size,
+                rounding,
             ),
             quantity=quantity,
             max_trading_fee_rate=max_trading_fee_rate,
             side=OrderSide(side.upper()),
             good_until_time=good_until_time,
             nonce=self._generate_nonce(),
+            referral=referral,
         )
         intent_hash = hashing.generate_intent_hash(
             intent_data=intent_data,

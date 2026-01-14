@@ -6,13 +6,15 @@ from hexbytes import HexBytes
 from web3 import Web3
 
 from . import constants
-from .bindings import clearing_facet
+from .bindings import Side as OnChainSide
 from .schemas import IntentData, OrderSide
 
 
+NULL_ADDRESS = cast(ChecksumAddress, "0x0000000000000000000000000000000000000000")
+
 ORDER_SIDE_MAPPING: dict[OrderSide, int] = {
-    OrderSide.BID: clearing_facet.Side.BID.value,
-    OrderSide.ASK: clearing_facet.Side.ASK.value,
+    OrderSide.BID: OnChainSide.BID.value,
+    OrderSide.ASK: OnChainSide.ASK.value,
 }
 
 
@@ -33,6 +35,7 @@ def generate_intent_hash(
         "uint256",  # max_trading_fee_rate
         "uint256",  # good_until_time
         "uint8",  # side
+        "address",  # referral
     ]
     values: list[Any] = [
         margin_account_id,
@@ -45,6 +48,11 @@ def generate_intent_hash(
         int(intent_data.max_trading_fee_rate * constants.FEE_RATE_MULTIPLIER),
         int(intent_data.good_until_time.timestamp()),
         ORDER_SIDE_MAPPING[intent_data.side],
+        (
+            cast(ChecksumAddress, intent_data.referral)
+            if intent_data.referral is not None
+            else NULL_ADDRESS
+        ),
     ]
     return Web3.keccak(encode_packed(types, values))
 

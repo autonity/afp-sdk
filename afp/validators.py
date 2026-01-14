@@ -52,8 +52,20 @@ def validate_address(value: str) -> ChecksumAddress:
 
 
 def validate_limit_price(
-    value: Decimal, tick_size: int, rounding: str | None = None
+    value: Decimal,
+    min_price: Decimal,
+    max_price: Decimal,
+    tick_size: int,
+    rounding: str | None = None,
 ) -> Decimal:
+    if value < min_price:
+        raise ValueError(
+            f"Limit price {value} is less than the product's minimum price {min_price}"
+        )
+    if value > max_price:
+        raise ValueError(
+            f"Limit price {value} is greater than the product's maximum price {max_price}"
+        )
     if rounding is None:
         num_fractional_digits = abs(int(value.normalize().as_tuple().exponent))
         if num_fractional_digits > tick_size:
@@ -61,6 +73,16 @@ def validate_limit_price(
                 f"Limit price {value} can have at most {tick_size} fractional digits"
             )
     return value.quantize(Decimal("10") ** -tick_size, rounding=rounding)
+
+
+def validate_price_limits(
+    min_price: Decimal, max_price: Decimal
+) -> tuple[Decimal, Decimal]:
+    if min_price > max_price:
+        raise ValueError(
+            f"Minimum price {min_price} is greater than maximum price {max_price}"
+        )
+    return (min_price, max_price)
 
 
 def verify_collateral_asset(w3: Web3, address: str) -> ChecksumAddress:

@@ -7,6 +7,7 @@ import typing
 import eth_typing
 import hexbytes
 import web3
+from web3 import types
 from web3.contract import contract
 
 
@@ -54,49 +55,76 @@ class MarginAccountRegistry:
 
     def upgrade_interface_version(
         self,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> str:
         """Binding for `UPGRADE_INTERFACE_VERSION` on the MarginAccountRegistry contract.
+
+        Parameters
+        ----------
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
         str
         """
-        return_value = self._contract.functions.UPGRADE_INTERFACE_VERSION().call()
+        return_value = self._contract.functions.UPGRADE_INTERFACE_VERSION().call(
+            block_identifier=block_identifier
+        )
         return str(return_value)
+
+    def beacon(
+        self,
+        block_identifier: types.BlockIdentifier = "latest",
+    ) -> eth_typing.ChecksumAddress:
+        """Binding for `beacon` on the MarginAccountRegistry contract.
+
+        Parameters
+        ----------
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
+
+        Returns
+        -------
+        eth_typing.ChecksumAddress
+        """
+        return_value = self._contract.functions.beacon().call(
+            block_identifier=block_identifier
+        )
+        return eth_typing.ChecksumAddress(return_value)
 
     def clearing(
         self,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> eth_typing.ChecksumAddress:
         """Binding for `clearing` on the MarginAccountRegistry contract.
 
-        Returns
-        -------
-        eth_typing.ChecksumAddress
-        """
-        return_value = self._contract.functions.clearing().call()
-        return eth_typing.ChecksumAddress(return_value)
-
-    def get_admin(
-        self,
-    ) -> eth_typing.ChecksumAddress:
-        """Binding for `getAdmin` on the MarginAccountRegistry contract.
+        Parameters
+        ----------
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
         eth_typing.ChecksumAddress
         """
-        return_value = self._contract.functions.getAdmin().call()
+        return_value = self._contract.functions.clearing().call(
+            block_identifier=block_identifier
+        )
         return eth_typing.ChecksumAddress(return_value)
 
     def get_margin_account(
         self,
         collateral_asset: eth_typing.ChecksumAddress,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> eth_typing.ChecksumAddress:
         """Binding for `getMarginAccount` on the MarginAccountRegistry contract.
 
         Parameters
         ----------
         collateral_asset : eth_typing.ChecksumAddress
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
@@ -104,23 +132,19 @@ class MarginAccountRegistry:
         """
         return_value = self._contract.functions.getMarginAccount(
             collateral_asset,
-        ).call()
+        ).call(block_identifier=block_identifier)
         return eth_typing.ChecksumAddress(return_value)
 
     def initialize(
         self,
-        _clearing: eth_typing.ChecksumAddress,
-        _valuation: eth_typing.ChecksumAddress,
-        _product_registry: eth_typing.ChecksumAddress,
+        clearing_: eth_typing.ChecksumAddress,
         beacon_: eth_typing.ChecksumAddress,
     ) -> contract.ContractFunction:
         """Binding for `initialize` on the MarginAccountRegistry contract.
 
         Parameters
         ----------
-        _clearing : eth_typing.ChecksumAddress
-        _valuation : eth_typing.ChecksumAddress
-        _product_registry : eth_typing.ChecksumAddress
+        clearing_ : eth_typing.ChecksumAddress
         beacon_ : eth_typing.ChecksumAddress
 
         Returns
@@ -129,9 +153,7 @@ class MarginAccountRegistry:
             A contract function instance to be sent in a transaction.
         """
         return self._contract.functions.initialize(
-            _clearing,
-            _valuation,
-            _product_registry,
+            clearing_,
             beacon_,
         )
 
@@ -154,71 +176,44 @@ class MarginAccountRegistry:
             collateral_asset,
         )
 
-    def is_admin_active(
-        self,
-    ) -> bool:
-        """Binding for `isAdminActive` on the MarginAccountRegistry contract.
-
-        Returns
-        -------
-        bool
-        """
-        return_value = self._contract.functions.isAdminActive().call()
-        return bool(return_value)
-
-    def margin_accounts(
-        self,
-        key0: eth_typing.ChecksumAddress,
-    ) -> eth_typing.ChecksumAddress:
-        """Binding for `marginAccounts` on the MarginAccountRegistry contract.
-
-        Parameters
-        ----------
-        key0 : eth_typing.ChecksumAddress
-
-        Returns
-        -------
-        eth_typing.ChecksumAddress
-        """
-        return_value = self._contract.functions.marginAccounts(
-            key0,
-        ).call()
-        return eth_typing.ChecksumAddress(return_value)
-
     def owner(
         self,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> eth_typing.ChecksumAddress:
         """Binding for `owner` on the MarginAccountRegistry contract.
 
-        Returns
-        -------
-        eth_typing.ChecksumAddress
-        """
-        return_value = self._contract.functions.owner().call()
-        return eth_typing.ChecksumAddress(return_value)
-
-    def product_registry(
-        self,
-    ) -> eth_typing.ChecksumAddress:
-        """Binding for `productRegistry` on the MarginAccountRegistry contract.
+        Parameters
+        ----------
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
         eth_typing.ChecksumAddress
         """
-        return_value = self._contract.functions.productRegistry().call()
+        return_value = self._contract.functions.owner().call(
+            block_identifier=block_identifier
+        )
         return eth_typing.ChecksumAddress(return_value)
 
     def proxiable_uuid(
         self,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> hexbytes.HexBytes:
         """Binding for `proxiableUUID` on the MarginAccountRegistry contract.
+
+        Parameters
+        ----------
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
         hexbytes.HexBytes
         """
-        return_value = self._contract.functions.proxiableUUID().call()
+        return_value = self._contract.functions.proxiableUUID().call(
+            block_identifier=block_identifier
+        )
         return hexbytes.HexBytes(return_value)
 
     def renounce_ownership(
@@ -232,44 +227,6 @@ class MarginAccountRegistry:
             A contract function instance to be sent in a transaction.
         """
         return self._contract.functions.renounceOwnership()
-
-    def set_active(
-        self,
-        active: bool,
-    ) -> contract.ContractFunction:
-        """Binding for `setActive` on the MarginAccountRegistry contract.
-
-        Parameters
-        ----------
-        active : bool
-
-        Returns
-        -------
-        web3.contract.contract.ContractFunction
-            A contract function instance to be sent in a transaction.
-        """
-        return self._contract.functions.setActive(
-            active,
-        )
-
-    def set_admin(
-        self,
-        new_admin: eth_typing.ChecksumAddress,
-    ) -> contract.ContractFunction:
-        """Binding for `setAdmin` on the MarginAccountRegistry contract.
-
-        Parameters
-        ----------
-        new_admin : eth_typing.ChecksumAddress
-
-        Returns
-        -------
-        web3.contract.contract.ContractFunction
-            A contract function instance to be sent in a transaction.
-        """
-        return self._contract.functions.setAdmin(
-            new_admin,
-        )
 
     def transfer_ownership(
         self,
@@ -312,306 +269,223 @@ class MarginAccountRegistry:
             data,
         )
 
-    def valuation(
-        self,
-    ) -> eth_typing.ChecksumAddress:
-        """Binding for `valuation` on the MarginAccountRegistry contract.
-
-        Returns
-        -------
-        eth_typing.ChecksumAddress
-        """
-        return_value = self._contract.functions.valuation().call()
-        return eth_typing.ChecksumAddress(return_value)
-
 
 ABI = typing.cast(
     eth_typing.ABI,
     [
         {
-            "inputs": [
-                {"internalType": "address", "name": "target", "type": "address"}
-            ],
-            "name": "AddressEmptyCode",
-            "type": "error",
-        },
-        {
-            "inputs": [
-                {"internalType": "bytes4", "name": "selector", "type": "bytes4"},
-                {"internalType": "address", "name": "sender", "type": "address"},
-            ],
-            "name": "AdminControlledNotAuthorized",
-            "type": "error",
-        },
-        {
-            "inputs": [
-                {"internalType": "string", "name": "parameter", "type": "string"}
-            ],
-            "name": "AlreadyExists",
-            "type": "error",
-        },
-        {
-            "inputs": [
-                {"internalType": "address", "name": "implementation", "type": "address"}
-            ],
-            "name": "ERC1967InvalidImplementation",
-            "type": "error",
-        },
-        {"inputs": [], "name": "ERC1967NonPayable", "type": "error"},
-        {"inputs": [], "name": "FailedCall", "type": "error"},
-        {"inputs": [], "name": "InvalidInitialization", "type": "error"},
-        {"inputs": [], "name": "NotInitialized", "type": "error"},
-        {"inputs": [], "name": "NotInitializing", "type": "error"},
-        {
-            "inputs": [{"internalType": "address", "name": "owner", "type": "address"}],
-            "name": "OwnableInvalidOwner",
-            "type": "error",
-        },
-        {
-            "inputs": [
-                {"internalType": "address", "name": "account", "type": "address"}
-            ],
-            "name": "OwnableUnauthorizedAccount",
-            "type": "error",
-        },
-        {"inputs": [], "name": "UUPSUnauthorizedCallContext", "type": "error"},
-        {
-            "inputs": [{"internalType": "bytes32", "name": "slot", "type": "bytes32"}],
-            "name": "UUPSUnsupportedProxiableUUID",
-            "type": "error",
-        },
-        {
-            "anonymous": False,
-            "inputs": [
-                {
-                    "indexed": False,
-                    "internalType": "uint64",
-                    "name": "version",
-                    "type": "uint64",
-                }
-            ],
-            "name": "Initialized",
-            "type": "event",
-        },
-        {
-            "anonymous": False,
-            "inputs": [
-                {
-                    "indexed": True,
-                    "internalType": "address",
-                    "name": "collateralAsset",
-                    "type": "address",
-                },
-                {
-                    "indexed": True,
-                    "internalType": "address",
-                    "name": "marginAccount",
-                    "type": "address",
-                },
-            ],
-            "name": "MarginAccountCreated",
-            "type": "event",
-        },
-        {
-            "anonymous": False,
-            "inputs": [
-                {
-                    "indexed": True,
-                    "internalType": "address",
-                    "name": "previousOwner",
-                    "type": "address",
-                },
-                {
-                    "indexed": True,
-                    "internalType": "address",
-                    "name": "newOwner",
-                    "type": "address",
-                },
-            ],
-            "name": "OwnershipTransferred",
-            "type": "event",
-        },
-        {
-            "anonymous": False,
-            "inputs": [
-                {
-                    "indexed": True,
-                    "internalType": "address",
-                    "name": "implementation",
-                    "type": "address",
-                }
-            ],
-            "name": "Upgraded",
-            "type": "event",
-        },
-        {
-            "inputs": [],
+            "type": "function",
             "name": "UPGRADE_INTERFACE_VERSION",
-            "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+            "inputs": [],
+            "outputs": [{"name": "", "type": "string", "internalType": "string"}],
             "stateMutability": "view",
-            "type": "function",
         },
         {
+            "type": "function",
+            "name": "beacon",
             "inputs": [],
+            "outputs": [{"name": "", "type": "address", "internalType": "address"}],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
             "name": "clearing",
-            "outputs": [{"internalType": "address", "name": "", "type": "address"}],
-            "stateMutability": "view",
-            "type": "function",
-        },
-        {
             "inputs": [],
-            "name": "getAdmin",
-            "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+            "outputs": [{"name": "", "type": "address", "internalType": "address"}],
             "stateMutability": "view",
-            "type": "function",
         },
         {
-            "inputs": [
-                {
-                    "internalType": "address",
-                    "name": "collateralAsset",
-                    "type": "address",
-                }
-            ],
+            "type": "function",
             "name": "getMarginAccount",
-            "outputs": [
-                {
-                    "internalType": "contract IMarginAccount",
-                    "name": "",
-                    "type": "address",
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function",
-        },
-        {
-            "inputs": [
-                {"internalType": "address", "name": "_clearing", "type": "address"},
-                {"internalType": "address", "name": "_valuation", "type": "address"},
-                {
-                    "internalType": "address",
-                    "name": "_productRegistry",
-                    "type": "address",
-                },
-                {"internalType": "address", "name": "beacon_", "type": "address"},
-            ],
-            "name": "initialize",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function",
-        },
-        {
             "inputs": [
                 {
-                    "internalType": "address",
                     "name": "collateralAsset",
                     "type": "address",
-                }
-            ],
-            "name": "initializeMarginAccount",
-            "outputs": [
-                {
-                    "internalType": "contract IMarginAccount",
-                    "name": "",
-                    "type": "address",
-                }
-            ],
-            "stateMutability": "nonpayable",
-            "type": "function",
-        },
-        {
-            "inputs": [],
-            "name": "isAdminActive",
-            "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
-            "stateMutability": "view",
-            "type": "function",
-        },
-        {
-            "inputs": [{"internalType": "address", "name": "", "type": "address"}],
-            "name": "marginAccounts",
-            "outputs": [
-                {
-                    "internalType": "contract IMarginAccount",
-                    "name": "",
-                    "type": "address",
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function",
-        },
-        {
-            "inputs": [],
-            "name": "owner",
-            "outputs": [{"internalType": "address", "name": "", "type": "address"}],
-            "stateMutability": "view",
-            "type": "function",
-        },
-        {
-            "inputs": [],
-            "name": "productRegistry",
-            "outputs": [{"internalType": "address", "name": "", "type": "address"}],
-            "stateMutability": "view",
-            "type": "function",
-        },
-        {
-            "inputs": [],
-            "name": "proxiableUUID",
-            "outputs": [{"internalType": "bytes32", "name": "", "type": "bytes32"}],
-            "stateMutability": "view",
-            "type": "function",
-        },
-        {
-            "inputs": [],
-            "name": "renounceOwnership",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function",
-        },
-        {
-            "inputs": [{"internalType": "bool", "name": "active", "type": "bool"}],
-            "name": "setActive",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function",
-        },
-        {
-            "inputs": [
-                {"internalType": "address", "name": "newAdmin", "type": "address"}
-            ],
-            "name": "setAdmin",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function",
-        },
-        {
-            "inputs": [
-                {"internalType": "address", "name": "newOwner", "type": "address"}
-            ],
-            "name": "transferOwnership",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function",
-        },
-        {
-            "inputs": [
-                {
                     "internalType": "address",
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "address",
+                    "internalType": "contract IMarginAccount",
+                }
+            ],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
+            "name": "initialize",
+            "inputs": [
+                {"name": "clearing_", "type": "address", "internalType": "address"},
+                {"name": "beacon_", "type": "address", "internalType": "address"},
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable",
+        },
+        {
+            "type": "function",
+            "name": "initializeMarginAccount",
+            "inputs": [
+                {
+                    "name": "collateralAsset",
+                    "type": "address",
+                    "internalType": "address",
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "address",
+                    "internalType": "contract IMarginAccount",
+                }
+            ],
+            "stateMutability": "nonpayable",
+        },
+        {
+            "type": "function",
+            "name": "owner",
+            "inputs": [],
+            "outputs": [{"name": "", "type": "address", "internalType": "address"}],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
+            "name": "proxiableUUID",
+            "inputs": [],
+            "outputs": [{"name": "", "type": "bytes32", "internalType": "bytes32"}],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
+            "name": "renounceOwnership",
+            "inputs": [],
+            "outputs": [],
+            "stateMutability": "nonpayable",
+        },
+        {
+            "type": "function",
+            "name": "transferOwnership",
+            "inputs": [
+                {"name": "newOwner", "type": "address", "internalType": "address"}
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable",
+        },
+        {
+            "type": "function",
+            "name": "upgradeToAndCall",
+            "inputs": [
+                {
                     "name": "newImplementation",
                     "type": "address",
+                    "internalType": "address",
                 },
-                {"internalType": "bytes", "name": "data", "type": "bytes"},
+                {"name": "data", "type": "bytes", "internalType": "bytes"},
             ],
-            "name": "upgradeToAndCall",
             "outputs": [],
             "stateMutability": "payable",
-            "type": "function",
         },
         {
-            "inputs": [],
-            "name": "valuation",
-            "outputs": [{"internalType": "address", "name": "", "type": "address"}],
-            "stateMutability": "view",
-            "type": "function",
+            "type": "event",
+            "name": "Initialized",
+            "inputs": [
+                {
+                    "name": "version",
+                    "type": "uint64",
+                    "indexed": False,
+                    "internalType": "uint64",
+                }
+            ],
+            "anonymous": False,
+        },
+        {
+            "type": "event",
+            "name": "MarginAccountCreated",
+            "inputs": [
+                {
+                    "name": "collateralAsset",
+                    "type": "address",
+                    "indexed": True,
+                    "internalType": "address",
+                },
+                {
+                    "name": "marginAccount",
+                    "type": "address",
+                    "indexed": True,
+                    "internalType": "address",
+                },
+            ],
+            "anonymous": False,
+        },
+        {
+            "type": "event",
+            "name": "OwnershipTransferred",
+            "inputs": [
+                {
+                    "name": "previousOwner",
+                    "type": "address",
+                    "indexed": True,
+                    "internalType": "address",
+                },
+                {
+                    "name": "newOwner",
+                    "type": "address",
+                    "indexed": True,
+                    "internalType": "address",
+                },
+            ],
+            "anonymous": False,
+        },
+        {
+            "type": "event",
+            "name": "Upgraded",
+            "inputs": [
+                {
+                    "name": "implementation",
+                    "type": "address",
+                    "indexed": True,
+                    "internalType": "address",
+                }
+            ],
+            "anonymous": False,
+        },
+        {
+            "type": "error",
+            "name": "AddressEmptyCode",
+            "inputs": [
+                {"name": "target", "type": "address", "internalType": "address"}
+            ],
+        },
+        {"type": "error", "name": "AlreadyInitialized", "inputs": []},
+        {
+            "type": "error",
+            "name": "ERC1967InvalidImplementation",
+            "inputs": [
+                {"name": "implementation", "type": "address", "internalType": "address"}
+            ],
+        },
+        {"type": "error", "name": "ERC1967NonPayable", "inputs": []},
+        {"type": "error", "name": "FailedCall", "inputs": []},
+        {"type": "error", "name": "InvalidInitialization", "inputs": []},
+        {"type": "error", "name": "NotInitializing", "inputs": []},
+        {
+            "type": "error",
+            "name": "OwnableInvalidOwner",
+            "inputs": [{"name": "owner", "type": "address", "internalType": "address"}],
+        },
+        {
+            "type": "error",
+            "name": "OwnableUnauthorizedAccount",
+            "inputs": [
+                {"name": "account", "type": "address", "internalType": "address"}
+            ],
+        },
+        {"type": "error", "name": "UUPSUnauthorizedCallContext", "inputs": []},
+        {
+            "type": "error",
+            "name": "UUPSUnsupportedProxiableUUID",
+            "inputs": [{"name": "slot", "type": "bytes32", "internalType": "bytes32"}],
         },
     ],
 )

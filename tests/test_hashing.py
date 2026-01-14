@@ -30,7 +30,7 @@ def test_generate_intent_hash():
     )
 
     expected_hash = HexBytes(
-        "0x54aeb60873e54eebcc582af5bef7caf005425a2083d6b98c5d7c27f3952f2e57"
+        "0xa8c54edd8ff9ce32a27462bf56d2f819c364e40b049e3616bfe3212b1f692b6f"
     )
     actual_hash = hashing.generate_intent_hash(
         intent_data=intent_data,

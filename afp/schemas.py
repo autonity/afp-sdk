@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 from functools import partial
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, Self
 
 import inflection
 from pydantic import (
@@ -13,6 +13,7 @@ from pydantic import (
     Field,
     PlainSerializer,
     computed_field,
+    model_validator,
 )
 
 from . import validators
@@ -102,6 +103,8 @@ class ExchangeProduct(Model):
     tick_size: int
     collateral_asset: str
     listing_state: ListingState
+    min_price: Decimal
+    max_price: Decimal
 
     def __str__(self) -> str:
         return self.id
@@ -114,12 +117,13 @@ class ExchangeProductFilter(PaginationFilter):
 class IntentData(Model):
     trading_protocol_id: str
     product_id: str
-    limit_price: Annotated[Decimal, Field(gt=0)]
+    limit_price: Decimal
     quantity: Annotated[int, Field(gt=0)]
-    max_trading_fee_rate: Annotated[Decimal, Field(ge=0)]
+    max_trading_fee_rate: Decimal
     side: OrderSide
     good_until_time: Timestamp
     nonce: int
+    referral: Annotated[str | None, AfterValidator(validators.validate_address)] = None
 
 
 class Intent(Model):
@@ -237,10 +241,15 @@ class Position(Model):
     pnl: Decimal
 
 
-# Builder API
+# Product API
 
 
-class OracleSpec(Model):
+class ExpirySpecification(Model):
+    earliest_fsp_submission_time: Timestamp
+    tradeout_interval: Annotated[int, Field(ge=0)]
+
+
+class OracleSpecification(Model):
     oracle_address: Annotated[str, AfterValidator(validators.validate_address)]
     fsv_decimals: Annotated[int, Field(ge=0, lt=256)]  # uint8
     fsp_alpha: Decimal
@@ -254,39 +263,27 @@ class ProductMetadata(Model):
     description: str
 
 
-class ProductSpec(Model):
-    id: str
+class BaseProduct(Model):
     metadata: ProductMetadata
-    oracle_spec: OracleSpec
-    start_time: Timestamp
-    earliest_fsp_submission_time: Timestamp
+    oracle_spec: OracleSpecification
     collateral_asset: Annotated[str, AfterValidator(validators.validate_address)]
-    price_quotation: str
-    tick_size: Annotated[int, Field(ge=0)]
-    unit_value: Annotated[Decimal, Field(gt=0)]
-    initial_margin_requirement: Annotated[Decimal, Field(gt=0)]
-    maintenance_margin_requirement: Annotated[Decimal, Field(gt=0)]
-    auction_bounty: Annotated[Decimal, Field(ge=0, le=1)]
-    tradeout_interval: Annotated[int, Field(ge=0)]
+    start_time: Timestamp
+    point_value: Annotated[Decimal, Field(gt=0)]
+    price_decimals: Annotated[int, Field(ge=0)]
     extended_metadata: str = ""
+
+
+class PredictionProductV1(Model):
+    id: str
+    base: BaseProduct
+    expiry_spec: ExpirySpecification
+    min_price: Decimal
+    max_price: Decimal
+
+    @model_validator(mode="after")
+    def validate_price_limits(self) -> Self:
+        validators.validate_price_limits(self.min_price, self.max_price)
+        return self
 
     def __str__(self) -> str:
         return self.id
-
-
-# Liquidation API
-
-
-class Bid(Model):
-    product_id: Annotated[str, AfterValidator(validators.validate_hexstr32)]
-    price: Annotated[Decimal, Field(gt=0)]
-    quantity: Annotated[int, Field(gt=0)]
-    side: OrderSide
-
-
-class AuctionData(Model):
-    start_block: int
-    margin_account_equity_at_initiation: Decimal
-    maintenance_margin_used_at_initiation: Decimal
-    margin_account_equity_now: Decimal
-    maintenance_margin_used_now: Decimal

@@ -7,7 +7,7 @@ import afp
 
 
 AUTONITY_RPC_URL = "https://bakerloo.autonity-apis.com"
-PRIVATE_KEY = os.environ["BUILDER_PRIVATE_KEY"]
+PRIVATE_KEY = os.environ["PRIVATE_KEY"]
 
 
 def main():
@@ -17,22 +17,20 @@ def main():
     product = app.Product()
 
     specification = product.create(
-        symbol="SDK-TEST-1",
-        description="Test Product 1",
-        oracle_address="0xd8A8C5A492Fc2448cFcF980218c0F7D2De4d6FB3",
-        fsv_decimals=1,
-        fsp_alpha=Decimal("10000"),
-        fsp_beta=Decimal("0"),
+        symbol="USCPIG26",
+        description="US CPI February 2026 MoM change (annualized)",
+        fsv_decimals=2,
+        fsp_alpha=Decimal("1.0"),
+        fsp_beta=Decimal("0.0"),
         fsv_calldata="0x",
+        collateral_asset="0xDEfAaC81a079533Bf2fb004c613cc2870cF0A5b5",
         start_time=datetime.now() + timedelta(minutes=1),
+        point_value=Decimal("1"),
+        price_decimals=2,
         earliest_fsp_submission_time=datetime.now() + timedelta(days=7),
-        collateral_asset="0xB855D5e83363A4494e09f0Bb3152A70d3f161940",
-        tick_size=6,
-        unit_value=Decimal("1"),
-        initial_margin_requirement=Decimal("0.2"),
-        maintenance_margin_requirement=Decimal("0.1"),
-        auction_bounty=Decimal("0.1"),
-        tradeout_interval=3600,
+        tradeout_interval=86400,
+        min_price=Decimal("1.75"),
+        max_price=Decimal("3.75"),
         extended_metadata="QmPK1s3pNYLi9ERiq3BDxKa4XosgWwFRQUydHUtz4YgpqB",
     )
     pprint(specification.model_dump())

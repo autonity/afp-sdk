@@ -3,32 +3,14 @@
 # This module has been generated using pyabigen v0.2.16
 
 import typing
-from dataclasses import dataclass
 
 import eth_typing
 import hexbytes
 import web3
+from web3 import types
 from web3.contract import contract
 
-
-@dataclass
-class Settlement:
-    """Port of `struct Settlement` on the IMarginAccount contract."""
-
-    position_id: hexbytes.HexBytes
-    quantity: int
-    price: int
-
-
-@dataclass
-class PositionData:
-    """Port of `struct PositionData` on the IMarginAccount contract."""
-
-    position_id: hexbytes.HexBytes
-    quantity: int
-    cost_basis: int
-    maintenance_margin: int
-    pnl: int
+from .types import PositionData
 
 
 class MarginAccount:
@@ -84,6 +66,11 @@ class MarginAccount:
         return self._contract.events.IntentRevoked
 
     @property
+    def OwnershipTransferred(self) -> contract.ContractEvent:
+        """Binding for `event OwnershipTransferred` on the MarginAccount contract."""
+        return self._contract.events.OwnershipTransferred
+
+    @property
     def PositionUpdated(self) -> contract.ContractEvent:
         """Binding for `event PositionUpdated` on the MarginAccount contract."""
         return self._contract.events.PositionUpdated
@@ -114,155 +101,90 @@ class MarginAccount:
 
     def authorized(
         self,
-        margin_account: eth_typing.ChecksumAddress,
+        margin_account_id: eth_typing.ChecksumAddress,
         intent_account: eth_typing.ChecksumAddress,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> bool:
         """Binding for `authorized` on the MarginAccount contract.
 
         Parameters
         ----------
-        margin_account : eth_typing.ChecksumAddress
+        margin_account_id : eth_typing.ChecksumAddress
         intent_account : eth_typing.ChecksumAddress
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
         bool
         """
         return_value = self._contract.functions.authorized(
-            margin_account,
-            intent_account,
-        ).call()
-        return bool(return_value)
-
-    def batch_mae_check(
-        self,
-        margin_account: eth_typing.ChecksumAddress,
-        settlements: typing.List[Settlement],
-        mark_price_if_settled: typing.List[int],
-    ) -> typing.Tuple[bool, int, int]:
-        """Binding for `batchMaeCheck` on the MarginAccount contract.
-
-        Parameters
-        ----------
-        margin_account : eth_typing.ChecksumAddress
-        settlements : typing.List[Settlement]
-        mark_price_if_settled : typing.List[int]
-
-        Returns
-        -------
-        bool
-        int
-        int
-        """
-        return_value = self._contract.functions.batchMaeCheck(
-            margin_account,
-            [(item.position_id, item.quantity, item.price) for item in settlements],
-            mark_price_if_settled,
-        ).call()
-        return (
-            bool(return_value[0]),
-            int(return_value[1]),
-            int(return_value[2]),
-        )
-
-    def batch_settle(
-        self,
-        margin_account_id: eth_typing.ChecksumAddress,
-        settlements: typing.List[Settlement],
-    ) -> contract.ContractFunction:
-        """Binding for `batchSettle` on the MarginAccount contract.
-
-        Parameters
-        ----------
-        margin_account_id : eth_typing.ChecksumAddress
-        settlements : typing.List[Settlement]
-
-        Returns
-        -------
-        web3.contract.contract.ContractFunction
-            A contract function instance to be sent in a transaction.
-        """
-        return self._contract.functions.batchSettle(
             margin_account_id,
-            [(item.position_id, item.quantity, item.price) for item in settlements],
-        )
+            intent_account,
+        ).call(block_identifier=block_identifier)
+        return bool(return_value)
 
     def capital(
         self,
-        margin_account: eth_typing.ChecksumAddress,
+        margin_account_id: eth_typing.ChecksumAddress,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> int:
         """Binding for `capital` on the MarginAccount contract.
 
         Parameters
         ----------
-        margin_account : eth_typing.ChecksumAddress
+        margin_account_id : eth_typing.ChecksumAddress
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
         int
         """
         return_value = self._contract.functions.capital(
-            margin_account,
-        ).call()
+            margin_account_id,
+        ).call(block_identifier=block_identifier)
         return int(return_value)
 
     def clearing(
         self,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> eth_typing.ChecksumAddress:
         """Binding for `clearing` on the MarginAccount contract.
+
+        Parameters
+        ----------
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
         eth_typing.ChecksumAddress
         """
-        return_value = self._contract.functions.clearing().call()
+        return_value = self._contract.functions.clearing().call(
+            block_identifier=block_identifier
+        )
         return eth_typing.ChecksumAddress(return_value)
 
     def collateral_asset(
         self,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> eth_typing.ChecksumAddress:
         """Binding for `collateralAsset` on the MarginAccount contract.
 
-        Returns
-        -------
-        eth_typing.ChecksumAddress
-        """
-        return_value = self._contract.functions.collateralAsset().call()
-        return eth_typing.ChecksumAddress(return_value)
-
-    def collateral_token(
-        self,
-    ) -> eth_typing.ChecksumAddress:
-        """Binding for `collateralToken` on the MarginAccount contract.
-
-        Returns
-        -------
-        eth_typing.ChecksumAddress
-        """
-        return_value = self._contract.functions.collateralToken().call()
-        return eth_typing.ChecksumAddress(return_value)
-
-    def collect_fee(
-        self,
-        margin_account: eth_typing.ChecksumAddress,
-        capital_amount: int,
-    ) -> contract.ContractFunction:
-        """Binding for `collectFee` on the MarginAccount contract.
-
         Parameters
         ----------
-        margin_account : eth_typing.ChecksumAddress
-        capital_amount : int
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
-        web3.contract.contract.ContractFunction
-            A contract function instance to be sent in a transaction.
+        eth_typing.ChecksumAddress
         """
-        return self._contract.functions.collectFee(
-            margin_account,
-            capital_amount,
+        return_value = self._contract.functions.collateralAsset().call(
+            block_identifier=block_identifier
         )
+        return eth_typing.ChecksumAddress(return_value)
 
     def deposit(
         self,
@@ -283,93 +205,15 @@ class MarginAccount:
             amount,
         )
 
-    def disperse_fees(
-        self,
-        recipients: typing.List[eth_typing.ChecksumAddress],
-        capital_amounts: typing.List[int],
-    ) -> contract.ContractFunction:
-        """Binding for `disperseFees` on the MarginAccount contract.
-
-        Parameters
-        ----------
-        recipients : typing.List[eth_typing.ChecksumAddress]
-        capital_amounts : typing.List[int]
-
-        Returns
-        -------
-        web3.contract.contract.ContractFunction
-            A contract function instance to be sent in a transaction.
-        """
-        return self._contract.functions.disperseFees(
-            recipients,
-            capital_amounts,
-        )
-
-    def estimate_liquidation_price(
-        self,
-        margin_account_id: eth_typing.ChecksumAddress,
-        product_id: hexbytes.HexBytes,
-        price: int,
-        quantity: int,
-    ) -> int:
-        """Binding for `estimateLiquidationPrice` on the MarginAccount contract.
-
-        Parameters
-        ----------
-        margin_account_id : eth_typing.ChecksumAddress
-        product_id : hexbytes.HexBytes
-        price : int
-        quantity : int
-
-        Returns
-        -------
-        int
-        """
-        return_value = self._contract.functions.estimateLiquidationPrice(
-            margin_account_id,
-            product_id,
-            price,
-            quantity,
-        ).call()
-        return int(return_value)
-
-    def estimate_liquidation_price_for_position(
-        self,
-        margin_account_id: eth_typing.ChecksumAddress,
-        position_id: hexbytes.HexBytes,
-    ) -> int:
-        """Binding for `estimateLiquidationPriceForPosition` on the MarginAccount contract.
-
-        Parameters
-        ----------
-        margin_account_id : eth_typing.ChecksumAddress
-        position_id : hexbytes.HexBytes
-
-        Returns
-        -------
-        int
-        """
-        return_value = self._contract.functions.estimateLiquidationPriceForPosition(
-            margin_account_id,
-            position_id,
-        ).call()
-        return int(return_value)
-
     def initialize(
         self,
-        _collateral_token: eth_typing.ChecksumAddress,
-        _valuation: eth_typing.ChecksumAddress,
-        _product_registry: eth_typing.ChecksumAddress,
-        _clearing: eth_typing.ChecksumAddress,
+        clearing_: eth_typing.ChecksumAddress,
     ) -> contract.ContractFunction:
         """Binding for `initialize` on the MarginAccount contract.
 
         Parameters
         ----------
-        _collateral_token : eth_typing.ChecksumAddress
-        _valuation : eth_typing.ChecksumAddress
-        _product_registry : eth_typing.ChecksumAddress
-        _clearing : eth_typing.ChecksumAddress
+        clearing_ : eth_typing.ChecksumAddress
 
         Returns
         -------
@@ -377,209 +221,162 @@ class MarginAccount:
             A contract function instance to be sent in a transaction.
         """
         return self._contract.functions.initialize(
-            _collateral_token,
-            _valuation,
-            _product_registry,
-            _clearing,
+            clearing_,
         )
 
     def mae(
         self,
-        margin_account: eth_typing.ChecksumAddress,
+        margin_account_id: eth_typing.ChecksumAddress,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> int:
         """Binding for `mae` on the MarginAccount contract.
 
         Parameters
         ----------
-        margin_account : eth_typing.ChecksumAddress
+        margin_account_id : eth_typing.ChecksumAddress
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
         int
         """
         return_value = self._contract.functions.mae(
-            margin_account,
-        ).call()
+            margin_account_id,
+        ).call(block_identifier=block_identifier)
         return int(return_value)
-
-    def mae_and_mmu_after_batch_trade(
-        self,
-        margin_account: eth_typing.ChecksumAddress,
-        settlements: typing.List[Settlement],
-        mark_price_if_settled: typing.List[int],
-    ) -> typing.Tuple[int, int]:
-        """Binding for `maeAndMmuAfterBatchTrade` on the MarginAccount contract.
-
-        Parameters
-        ----------
-        margin_account : eth_typing.ChecksumAddress
-        settlements : typing.List[Settlement]
-        mark_price_if_settled : typing.List[int]
-
-        Returns
-        -------
-        int
-        int
-        """
-        return_value = self._contract.functions.maeAndMmuAfterBatchTrade(
-            margin_account,
-            [(item.position_id, item.quantity, item.price) for item in settlements],
-            mark_price_if_settled,
-        ).call()
-        return (
-            int(return_value[0]),
-            int(return_value[1]),
-        )
-
-    def mae_check(
-        self,
-        margin_account: eth_typing.ChecksumAddress,
-        settlement: Settlement,
-        mark_price_if_settled: int,
-    ) -> typing.Tuple[bool, int, int]:
-        """Binding for `maeCheck` on the MarginAccount contract.
-
-        Parameters
-        ----------
-        margin_account : eth_typing.ChecksumAddress
-        settlement : Settlement
-        mark_price_if_settled : int
-
-        Returns
-        -------
-        bool
-        int
-        int
-        """
-        return_value = self._contract.functions.maeCheck(
-            margin_account,
-            (settlement.position_id, settlement.quantity, settlement.price),
-            mark_price_if_settled,
-        ).call()
-        return (
-            bool(return_value[0]),
-            int(return_value[1]),
-            int(return_value[2]),
-        )
 
     def mma(
         self,
-        margin_account: eth_typing.ChecksumAddress,
+        margin_account_id: eth_typing.ChecksumAddress,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> int:
         """Binding for `mma` on the MarginAccount contract.
 
         Parameters
         ----------
-        margin_account : eth_typing.ChecksumAddress
+        margin_account_id : eth_typing.ChecksumAddress
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
         int
         """
         return_value = self._contract.functions.mma(
-            margin_account,
-        ).call()
+            margin_account_id,
+        ).call(block_identifier=block_identifier)
         return int(return_value)
 
     def mmu(
         self,
-        margin_account: eth_typing.ChecksumAddress,
+        margin_account_id: eth_typing.ChecksumAddress,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> int:
         """Binding for `mmu` on the MarginAccount contract.
 
         Parameters
         ----------
-        margin_account : eth_typing.ChecksumAddress
+        margin_account_id : eth_typing.ChecksumAddress
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
         int
         """
         return_value = self._contract.functions.mmu(
-            margin_account,
-        ).call()
+            margin_account_id,
+        ).call(block_identifier=block_identifier)
         return int(return_value)
+
+    def owner(
+        self,
+        block_identifier: types.BlockIdentifier = "latest",
+    ) -> eth_typing.ChecksumAddress:
+        """Binding for `owner` on the MarginAccount contract.
+
+        Parameters
+        ----------
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
+
+        Returns
+        -------
+        eth_typing.ChecksumAddress
+        """
+        return_value = self._contract.functions.owner().call(
+            block_identifier=block_identifier
+        )
+        return eth_typing.ChecksumAddress(return_value)
 
     def pnl(
         self,
-        margin_account: eth_typing.ChecksumAddress,
+        margin_account_id: eth_typing.ChecksumAddress,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> int:
         """Binding for `pnl` on the MarginAccount contract.
 
         Parameters
         ----------
-        margin_account : eth_typing.ChecksumAddress
+        margin_account_id : eth_typing.ChecksumAddress
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
         int
         """
         return_value = self._contract.functions.pnl(
-            margin_account,
-        ).call()
-        return int(return_value)
-
-    def position_age(
-        self,
-        margin_account_id: eth_typing.ChecksumAddress,
-        position_id: hexbytes.HexBytes,
-    ) -> int:
-        """Binding for `positionAge` on the MarginAccount contract.
-
-        Parameters
-        ----------
-        margin_account_id : eth_typing.ChecksumAddress
-        position_id : hexbytes.HexBytes
-
-        Returns
-        -------
-        int
-        """
-        return_value = self._contract.functions.positionAge(
             margin_account_id,
-            position_id,
-        ).call()
+        ).call(block_identifier=block_identifier)
         return int(return_value)
 
     def position_count(
         self,
-        margin_account: eth_typing.ChecksumAddress,
+        margin_account_id: eth_typing.ChecksumAddress,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> int:
         """Binding for `positionCount` on the MarginAccount contract.
 
         Parameters
         ----------
-        margin_account : eth_typing.ChecksumAddress
+        margin_account_id : eth_typing.ChecksumAddress
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
         int
         """
         return_value = self._contract.functions.positionCount(
-            margin_account,
-        ).call()
+            margin_account_id,
+        ).call(block_identifier=block_identifier)
         return int(return_value)
 
     def position_data(
         self,
-        margin_account: eth_typing.ChecksumAddress,
-        position_id: hexbytes.HexBytes,
+        margin_account_id: eth_typing.ChecksumAddress,
+        product_id: hexbytes.HexBytes,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> PositionData:
         """Binding for `positionData` on the MarginAccount contract.
 
         Parameters
         ----------
-        margin_account : eth_typing.ChecksumAddress
-        position_id : hexbytes.HexBytes
+        margin_account_id : eth_typing.ChecksumAddress
+        product_id : hexbytes.HexBytes
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
         PositionData
         """
         return_value = self._contract.functions.positionData(
-            margin_account,
-            position_id,
-        ).call()
+            margin_account_id,
+            product_id,
+        ).call(block_identifier=block_identifier)
         return PositionData(
             hexbytes.HexBytes(return_value[0]),
             int(return_value[1]),
@@ -591,14 +388,17 @@ class MarginAccount:
     def position_pn_l(
         self,
         margin_account: eth_typing.ChecksumAddress,
-        position_id: hexbytes.HexBytes,
+        product_id: hexbytes.HexBytes,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> int:
         """Binding for `positionPnL` on the MarginAccount contract.
 
         Parameters
         ----------
         margin_account : eth_typing.ChecksumAddress
-        position_id : hexbytes.HexBytes
+        product_id : hexbytes.HexBytes
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
@@ -606,64 +406,70 @@ class MarginAccount:
         """
         return_value = self._contract.functions.positionPnL(
             margin_account,
-            position_id,
-        ).call()
+            product_id,
+        ).call(block_identifier=block_identifier)
         return int(return_value)
 
     def position_quantity(
         self,
-        margin_account: eth_typing.ChecksumAddress,
-        position_id: hexbytes.HexBytes,
+        margin_account_id: eth_typing.ChecksumAddress,
+        product_id: hexbytes.HexBytes,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> int:
         """Binding for `positionQuantity` on the MarginAccount contract.
 
         Parameters
         ----------
-        margin_account : eth_typing.ChecksumAddress
-        position_id : hexbytes.HexBytes
+        margin_account_id : eth_typing.ChecksumAddress
+        product_id : hexbytes.HexBytes
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
         int
         """
         return_value = self._contract.functions.positionQuantity(
-            margin_account,
-            position_id,
-        ).call()
+            margin_account_id,
+            product_id,
+        ).call(block_identifier=block_identifier)
         return int(return_value)
 
     def positions(
         self,
-        margin_account: eth_typing.ChecksumAddress,
+        margin_account_id: eth_typing.ChecksumAddress,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> typing.List[hexbytes.HexBytes]:
         """Binding for `positions` on the MarginAccount contract.
 
         Parameters
         ----------
-        margin_account : eth_typing.ChecksumAddress
+        margin_account_id : eth_typing.ChecksumAddress
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
         typing.List[hexbytes.HexBytes]
         """
         return_value = self._contract.functions.positions(
-            margin_account,
-        ).call()
+            margin_account_id,
+        ).call(block_identifier=block_identifier)
         return [
             hexbytes.HexBytes(return_value_elem) for return_value_elem in return_value
         ]
 
-    def product_registry(
+    def renounce_ownership(
         self,
-    ) -> eth_typing.ChecksumAddress:
-        """Binding for `productRegistry` on the MarginAccount contract.
+    ) -> contract.ContractFunction:
+        """Binding for `renounceOwnership` on the MarginAccount contract.
 
         Returns
         -------
-        eth_typing.ChecksumAddress
+        web3.contract.contract.ContractFunction
+            A contract function instance to be sent in a transaction.
         """
-        return_value = self._contract.functions.productRegistry().call()
-        return eth_typing.ChecksumAddress(return_value)
+        return self._contract.functions.renounceOwnership()
 
     def revoke_authorization(
         self,
@@ -684,42 +490,24 @@ class MarginAccount:
             intent_account,
         )
 
-    def settle(
+    def transfer_ownership(
         self,
-        margin_account: eth_typing.ChecksumAddress,
-        intent_account: eth_typing.ChecksumAddress,
-        settlement: Settlement,
+        new_owner: eth_typing.ChecksumAddress,
     ) -> contract.ContractFunction:
-        """Binding for `settle` on the MarginAccount contract.
+        """Binding for `transferOwnership` on the MarginAccount contract.
 
         Parameters
         ----------
-        margin_account : eth_typing.ChecksumAddress
-        intent_account : eth_typing.ChecksumAddress
-        settlement : Settlement
+        new_owner : eth_typing.ChecksumAddress
 
         Returns
         -------
         web3.contract.contract.ContractFunction
             A contract function instance to be sent in a transaction.
         """
-        return self._contract.functions.settle(
-            margin_account,
-            intent_account,
-            (settlement.position_id, settlement.quantity, settlement.price),
+        return self._contract.functions.transferOwnership(
+            new_owner,
         )
-
-    def valuation(
-        self,
-    ) -> eth_typing.ChecksumAddress:
-        """Binding for `valuation` on the MarginAccount contract.
-
-        Returns
-        -------
-        eth_typing.ChecksumAddress
-        """
-        return_value = self._contract.functions.valuation().call()
-        return eth_typing.ChecksumAddress(return_value)
 
     def withdraw(
         self,
@@ -742,21 +530,24 @@ class MarginAccount:
 
     def withdrawable(
         self,
-        margin_account: eth_typing.ChecksumAddress,
+        margin_account_id: eth_typing.ChecksumAddress,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> int:
         """Binding for `withdrawable` on the MarginAccount contract.
 
         Parameters
         ----------
-        margin_account : eth_typing.ChecksumAddress
+        margin_account_id : eth_typing.ChecksumAddress
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
         int
         """
         return_value = self._contract.functions.withdrawable(
-            margin_account,
-        ).call()
+            margin_account_id,
+        ).call(block_identifier=block_identifier)
         return int(return_value)
 
 
@@ -764,700 +555,490 @@ ABI = typing.cast(
     eth_typing.ABI,
     [
         {
+            "type": "function",
+            "name": "authorize",
             "inputs": [
-                {"internalType": "uint256", "name": "dispersed", "type": "uint256"},
-                {"internalType": "int256", "name": "collected", "type": "int256"},
+                {"name": "intentAccount", "type": "address", "internalType": "address"}
             ],
-            "name": "FeeInvariantViolated",
-            "type": "error",
+            "outputs": [],
+            "stateMutability": "nonpayable",
         },
         {
-            "inputs": [
-                {"internalType": "address", "name": "account", "type": "address"},
-                {"internalType": "uint256", "name": "balance", "type": "uint256"},
-                {"internalType": "uint256", "name": "required", "type": "uint256"},
-            ],
-            "name": "InsufficientBalance",
-            "type": "error",
-        },
-        {"inputs": [], "name": "InvalidInitialization", "type": "error"},
-        {
-            "inputs": [
-                {"internalType": "string", "name": "paramName", "type": "string"}
-            ],
-            "name": "InvalidParameter",
-            "type": "error",
-        },
-        {"inputs": [], "name": "NotInitializing", "type": "error"},
-        {
-            "inputs": [
-                {"internalType": "address", "name": "marginAccount", "type": "address"},
-                {"internalType": "bytes32", "name": "productId", "type": "bytes32"},
-            ],
-            "name": "PositionNotFound",
-            "type": "error",
-        },
-        {
-            "inputs": [{"internalType": "address", "name": "token", "type": "address"}],
-            "name": "SafeERC20FailedOperation",
-            "type": "error",
-        },
-        {
-            "inputs": [
-                {"internalType": "address", "name": "account", "type": "address"}
-            ],
-            "name": "Unauthorized",
-            "type": "error",
-        },
-        {
-            "anonymous": False,
+            "type": "function",
+            "name": "authorized",
             "inputs": [
                 {
-                    "indexed": True,
-                    "internalType": "address",
-                    "name": "user",
+                    "name": "marginAccountId",
                     "type": "address",
-                },
-                {
-                    "indexed": False,
-                    "internalType": "uint256",
-                    "name": "amount",
-                    "type": "uint256",
-                },
-            ],
-            "name": "Deposit",
-            "type": "event",
-        },
-        {
-            "anonymous": False,
-            "inputs": [
-                {
-                    "indexed": True,
                     "internalType": "address",
-                    "name": "marginAccountID",
-                    "type": "address",
                 },
-                {
-                    "indexed": False,
-                    "internalType": "int256",
-                    "name": "capitalAmount",
-                    "type": "int256",
-                },
+                {"name": "intentAccount", "type": "address", "internalType": "address"},
             ],
-            "name": "FeeCollected",
-            "type": "event",
+            "outputs": [{"name": "", "type": "bool", "internalType": "bool"}],
+            "stateMutability": "view",
         },
         {
-            "anonymous": False,
+            "type": "function",
+            "name": "capital",
             "inputs": [
                 {
-                    "indexed": True,
+                    "name": "marginAccountId",
+                    "type": "address",
                     "internalType": "address",
-                    "name": "recipient",
-                    "type": "address",
-                },
-                {
-                    "indexed": False,
-                    "internalType": "uint256",
-                    "name": "capitalAmount",
-                    "type": "uint256",
-                },
-            ],
-            "name": "FeeDispersed",
-            "type": "event",
-        },
-        {
-            "anonymous": False,
-            "inputs": [
-                {
-                    "indexed": False,
-                    "internalType": "uint64",
-                    "name": "version",
-                    "type": "uint64",
                 }
             ],
-            "name": "Initialized",
-            "type": "event",
-        },
-        {
-            "anonymous": False,
-            "inputs": [
-                {
-                    "indexed": True,
-                    "internalType": "address",
-                    "name": "marginAccountID",
-                    "type": "address",
-                },
-                {
-                    "indexed": True,
-                    "internalType": "address",
-                    "name": "intentAccount",
-                    "type": "address",
-                },
-            ],
-            "name": "IntentAuthorized",
-            "type": "event",
-        },
-        {
-            "anonymous": False,
-            "inputs": [
-                {
-                    "indexed": True,
-                    "internalType": "address",
-                    "name": "marginAccountID",
-                    "type": "address",
-                },
-                {
-                    "indexed": True,
-                    "internalType": "address",
-                    "name": "intentAccount",
-                    "type": "address",
-                },
-            ],
-            "name": "IntentRevoked",
-            "type": "event",
-        },
-        {
-            "anonymous": False,
-            "inputs": [
-                {
-                    "indexed": True,
-                    "internalType": "address",
-                    "name": "marginAccountID",
-                    "type": "address",
-                },
-                {
-                    "indexed": True,
-                    "internalType": "bytes32",
-                    "name": "positionId",
-                    "type": "bytes32",
-                },
-                {
-                    "indexed": False,
-                    "internalType": "int256",
-                    "name": "totalQuantity",
-                    "type": "int256",
-                },
-                {
-                    "indexed": False,
-                    "internalType": "int256",
-                    "name": "costBasis",
-                    "type": "int256",
-                },
-                {
-                    "indexed": False,
-                    "internalType": "uint256",
-                    "name": "price",
-                    "type": "uint256",
-                },
-                {
-                    "indexed": False,
-                    "internalType": "int256",
-                    "name": "quantity",
-                    "type": "int256",
-                },
-            ],
-            "name": "PositionUpdated",
-            "type": "event",
-        },
-        {
-            "anonymous": False,
-            "inputs": [
-                {
-                    "indexed": True,
-                    "internalType": "address",
-                    "name": "user",
-                    "type": "address",
-                },
-                {
-                    "indexed": False,
-                    "internalType": "uint256",
-                    "name": "amount",
-                    "type": "uint256",
-                },
-            ],
-            "name": "Withdraw",
-            "type": "event",
-        },
-        {
-            "inputs": [
-                {"internalType": "address", "name": "intentAccount", "type": "address"}
-            ],
-            "name": "authorize",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function",
-        },
-        {
-            "inputs": [
-                {"internalType": "address", "name": "marginAccount", "type": "address"},
-                {"internalType": "address", "name": "intentAccount", "type": "address"},
-            ],
-            "name": "authorized",
-            "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+            "outputs": [{"name": "", "type": "int256", "internalType": "int256"}],
             "stateMutability": "view",
-            "type": "function",
         },
         {
-            "inputs": [
-                {"internalType": "address", "name": "marginAccount", "type": "address"},
-                {
-                    "components": [
-                        {
-                            "internalType": "bytes32",
-                            "name": "positionId",
-                            "type": "bytes32",
-                        },
-                        {
-                            "internalType": "int256",
-                            "name": "quantity",
-                            "type": "int256",
-                        },
-                        {"internalType": "uint256", "name": "price", "type": "uint256"},
-                    ],
-                    "internalType": "struct IMarginAccount.Settlement[]",
-                    "name": "settlements",
-                    "type": "tuple[]",
-                },
-                {
-                    "internalType": "uint256[]",
-                    "name": "markPriceIfSettled",
-                    "type": "uint256[]",
-                },
-            ],
-            "name": "batchMaeCheck",
-            "outputs": [
-                {"internalType": "bool", "name": "checkPassed", "type": "bool"},
-                {"internalType": "int256", "name": "maeAfter", "type": "int256"},
-                {"internalType": "uint256", "name": "mmuAfter", "type": "uint256"},
-            ],
-            "stateMutability": "view",
             "type": "function",
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "address",
-                    "name": "marginAccountID",
-                    "type": "address",
-                },
-                {
-                    "components": [
-                        {
-                            "internalType": "bytes32",
-                            "name": "positionId",
-                            "type": "bytes32",
-                        },
-                        {
-                            "internalType": "int256",
-                            "name": "quantity",
-                            "type": "int256",
-                        },
-                        {"internalType": "uint256", "name": "price", "type": "uint256"},
-                    ],
-                    "internalType": "struct IMarginAccount.Settlement[]",
-                    "name": "settlements",
-                    "type": "tuple[]",
-                },
-            ],
-            "name": "batchSettle",
-            "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
-            "stateMutability": "nonpayable",
-            "type": "function",
-        },
-        {
-            "inputs": [
-                {"internalType": "address", "name": "marginAccount", "type": "address"}
-            ],
-            "name": "capital",
-            "outputs": [{"internalType": "int256", "name": "", "type": "int256"}],
-            "stateMutability": "view",
-            "type": "function",
-        },
-        {
-            "inputs": [],
             "name": "clearing",
-            "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "address",
+                    "internalType": "contract IMarginAccountFacet",
+                }
+            ],
             "stateMutability": "view",
-            "type": "function",
         },
         {
-            "inputs": [],
+            "type": "function",
             "name": "collateralAsset",
-            "outputs": [{"internalType": "address", "name": "", "type": "address"}],
-            "stateMutability": "view",
-            "type": "function",
-        },
-        {
             "inputs": [],
-            "name": "collateralToken",
-            "outputs": [
-                {"internalType": "contract IERC20", "name": "", "type": "address"}
-            ],
+            "outputs": [{"name": "", "type": "address", "internalType": "address"}],
             "stateMutability": "view",
-            "type": "function",
         },
         {
-            "inputs": [
-                {"internalType": "address", "name": "marginAccount", "type": "address"},
-                {"internalType": "int256", "name": "capitalAmount", "type": "int256"},
-            ],
-            "name": "collectFee",
-            "outputs": [],
-            "stateMutability": "nonpayable",
             "type": "function",
-        },
-        {
-            "inputs": [
-                {"internalType": "uint256", "name": "amount", "type": "uint256"}
-            ],
             "name": "deposit",
+            "inputs": [
+                {"name": "amount", "type": "uint256", "internalType": "uint256"}
+            ],
             "outputs": [],
             "stateMutability": "nonpayable",
-            "type": "function",
         },
         {
-            "inputs": [
-                {
-                    "internalType": "address[]",
-                    "name": "recipients",
-                    "type": "address[]",
-                },
-                {
-                    "internalType": "uint256[]",
-                    "name": "capitalAmounts",
-                    "type": "uint256[]",
-                },
-            ],
-            "name": "disperseFees",
-            "outputs": [],
-            "stateMutability": "nonpayable",
             "type": "function",
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "address",
-                    "name": "marginAccountId",
-                    "type": "address",
-                },
-                {"internalType": "bytes32", "name": "productId", "type": "bytes32"},
-                {"internalType": "uint256", "name": "price", "type": "uint256"},
-                {"internalType": "int256", "name": "quantity", "type": "int256"},
-            ],
-            "name": "estimateLiquidationPrice",
-            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-            "stateMutability": "view",
-            "type": "function",
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "address",
-                    "name": "marginAccountId",
-                    "type": "address",
-                },
-                {"internalType": "bytes32", "name": "positionId", "type": "bytes32"},
-            ],
-            "name": "estimateLiquidationPriceForPosition",
-            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-            "stateMutability": "view",
-            "type": "function",
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "address",
-                    "name": "_collateralToken",
-                    "type": "address",
-                },
-                {"internalType": "address", "name": "_valuation", "type": "address"},
-                {
-                    "internalType": "address",
-                    "name": "_productRegistry",
-                    "type": "address",
-                },
-                {"internalType": "address", "name": "_clearing", "type": "address"},
-            ],
             "name": "initialize",
+            "inputs": [
+                {"name": "clearing_", "type": "address", "internalType": "address"}
+            ],
             "outputs": [],
             "stateMutability": "nonpayable",
-            "type": "function",
         },
         {
-            "inputs": [
-                {"internalType": "address", "name": "marginAccount", "type": "address"}
-            ],
+            "type": "function",
             "name": "mae",
-            "outputs": [{"internalType": "int256", "name": "", "type": "int256"}],
-            "stateMutability": "view",
-            "type": "function",
-        },
-        {
-            "inputs": [
-                {"internalType": "address", "name": "marginAccount", "type": "address"},
-                {
-                    "components": [
-                        {
-                            "internalType": "bytes32",
-                            "name": "positionId",
-                            "type": "bytes32",
-                        },
-                        {
-                            "internalType": "int256",
-                            "name": "quantity",
-                            "type": "int256",
-                        },
-                        {"internalType": "uint256", "name": "price", "type": "uint256"},
-                    ],
-                    "internalType": "struct IMarginAccount.Settlement[]",
-                    "name": "settlements",
-                    "type": "tuple[]",
-                },
-                {
-                    "internalType": "uint256[]",
-                    "name": "markPriceIfSettled",
-                    "type": "uint256[]",
-                },
-            ],
-            "name": "maeAndMmuAfterBatchTrade",
-            "outputs": [
-                {"internalType": "int256", "name": "maeAfter", "type": "int256"},
-                {"internalType": "uint256", "name": "mmuAfter", "type": "uint256"},
-            ],
-            "stateMutability": "view",
-            "type": "function",
-        },
-        {
-            "inputs": [
-                {"internalType": "address", "name": "marginAccount", "type": "address"},
-                {
-                    "components": [
-                        {
-                            "internalType": "bytes32",
-                            "name": "positionId",
-                            "type": "bytes32",
-                        },
-                        {
-                            "internalType": "int256",
-                            "name": "quantity",
-                            "type": "int256",
-                        },
-                        {"internalType": "uint256", "name": "price", "type": "uint256"},
-                    ],
-                    "internalType": "struct IMarginAccount.Settlement",
-                    "name": "settlement",
-                    "type": "tuple",
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "markPriceIfSettled",
-                    "type": "uint256",
-                },
-            ],
-            "name": "maeCheck",
-            "outputs": [
-                {"internalType": "bool", "name": "checkPassed", "type": "bool"},
-                {"internalType": "int256", "name": "maeAfter", "type": "int256"},
-                {"internalType": "uint256", "name": "mmuAfter", "type": "uint256"},
-            ],
-            "stateMutability": "view",
-            "type": "function",
-        },
-        {
-            "inputs": [
-                {"internalType": "address", "name": "marginAccount", "type": "address"}
-            ],
-            "name": "mma",
-            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-            "stateMutability": "view",
-            "type": "function",
-        },
-        {
-            "inputs": [
-                {"internalType": "address", "name": "marginAccount", "type": "address"}
-            ],
-            "name": "mmu",
-            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-            "stateMutability": "view",
-            "type": "function",
-        },
-        {
-            "inputs": [
-                {"internalType": "address", "name": "marginAccount", "type": "address"}
-            ],
-            "name": "pnl",
-            "outputs": [{"internalType": "int256", "name": "", "type": "int256"}],
-            "stateMutability": "view",
-            "type": "function",
-        },
-        {
             "inputs": [
                 {
-                    "internalType": "address",
                     "name": "marginAccountId",
                     "type": "address",
-                },
-                {"internalType": "bytes32", "name": "positionId", "type": "bytes32"},
+                    "internalType": "address",
+                }
             ],
-            "name": "positionAge",
-            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+            "outputs": [{"name": "", "type": "int256", "internalType": "int256"}],
             "stateMutability": "view",
-            "type": "function",
         },
         {
+            "type": "function",
+            "name": "mma",
             "inputs": [
-                {"internalType": "address", "name": "marginAccount", "type": "address"}
+                {
+                    "name": "marginAccountId",
+                    "type": "address",
+                    "internalType": "address",
+                }
             ],
+            "outputs": [{"name": "", "type": "uint256", "internalType": "uint256"}],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
+            "name": "mmu",
+            "inputs": [
+                {
+                    "name": "marginAccountId",
+                    "type": "address",
+                    "internalType": "address",
+                }
+            ],
+            "outputs": [{"name": "", "type": "uint256", "internalType": "uint256"}],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
+            "name": "owner",
+            "inputs": [],
+            "outputs": [{"name": "", "type": "address", "internalType": "address"}],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
+            "name": "pnl",
+            "inputs": [
+                {
+                    "name": "marginAccountId",
+                    "type": "address",
+                    "internalType": "address",
+                }
+            ],
+            "outputs": [{"name": "", "type": "int256", "internalType": "int256"}],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
             "name": "positionCount",
-            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+            "inputs": [
+                {
+                    "name": "marginAccountId",
+                    "type": "address",
+                    "internalType": "address",
+                }
+            ],
+            "outputs": [{"name": "", "type": "uint256", "internalType": "uint256"}],
             "stateMutability": "view",
-            "type": "function",
         },
         {
-            "inputs": [
-                {"internalType": "address", "name": "marginAccount", "type": "address"},
-                {"internalType": "bytes32", "name": "positionId", "type": "bytes32"},
-            ],
+            "type": "function",
             "name": "positionData",
+            "inputs": [
+                {
+                    "name": "marginAccountId",
+                    "type": "address",
+                    "internalType": "address",
+                },
+                {"name": "productId", "type": "bytes32", "internalType": "bytes32"},
+            ],
             "outputs": [
                 {
+                    "name": "",
+                    "type": "tuple",
+                    "internalType": "struct PositionData",
                     "components": [
                         {
-                            "internalType": "bytes32",
-                            "name": "positionId",
+                            "name": "productId",
                             "type": "bytes32",
+                            "internalType": "bytes32",
                         },
                         {
-                            "internalType": "int256",
                             "name": "quantity",
                             "type": "int256",
+                            "internalType": "int256",
                         },
                         {
-                            "internalType": "int256",
                             "name": "costBasis",
                             "type": "int256",
+                            "internalType": "int256",
                         },
                         {
-                            "internalType": "uint256",
                             "name": "maintenanceMargin",
                             "type": "uint256",
+                            "internalType": "uint256",
                         },
-                        {"internalType": "int256", "name": "pnl", "type": "int256"},
+                        {"name": "pnl", "type": "int256", "internalType": "int256"},
                     ],
-                    "internalType": "struct IMarginAccount.PositionData",
-                    "name": "",
-                    "type": "tuple",
                 }
             ],
             "stateMutability": "view",
-            "type": "function",
         },
         {
-            "inputs": [
-                {"internalType": "address", "name": "marginAccount", "type": "address"},
-                {"internalType": "bytes32", "name": "positionId", "type": "bytes32"},
-            ],
+            "type": "function",
             "name": "positionPnL",
-            "outputs": [{"internalType": "int256", "name": "", "type": "int256"}],
+            "inputs": [
+                {"name": "marginAccount", "type": "address", "internalType": "address"},
+                {"name": "productId", "type": "bytes32", "internalType": "bytes32"},
+            ],
+            "outputs": [{"name": "", "type": "int256", "internalType": "int256"}],
             "stateMutability": "view",
-            "type": "function",
         },
         {
-            "inputs": [
-                {"internalType": "address", "name": "marginAccount", "type": "address"},
-                {"internalType": "bytes32", "name": "positionId", "type": "bytes32"},
-            ],
+            "type": "function",
             "name": "positionQuantity",
-            "outputs": [{"internalType": "int256", "name": "", "type": "int256"}],
-            "stateMutability": "view",
-            "type": "function",
-        },
-        {
             "inputs": [
-                {"internalType": "address", "name": "marginAccount", "type": "address"}
+                {
+                    "name": "marginAccountId",
+                    "type": "address",
+                    "internalType": "address",
+                },
+                {"name": "productId", "type": "bytes32", "internalType": "bytes32"},
             ],
-            "name": "positions",
-            "outputs": [{"internalType": "bytes32[]", "name": "", "type": "bytes32[]"}],
+            "outputs": [{"name": "", "type": "int256", "internalType": "int256"}],
             "stateMutability": "view",
-            "type": "function",
         },
         {
-            "inputs": [],
-            "name": "productRegistry",
-            "outputs": [
+            "type": "function",
+            "name": "positions",
+            "inputs": [
                 {
-                    "internalType": "contract IProductRegistry",
-                    "name": "",
+                    "name": "marginAccountId",
                     "type": "address",
+                    "internalType": "address",
                 }
             ],
+            "outputs": [{"name": "", "type": "bytes32[]", "internalType": "bytes32[]"}],
             "stateMutability": "view",
-            "type": "function",
         },
         {
-            "inputs": [
-                {"internalType": "address", "name": "intentAccount", "type": "address"}
-            ],
-            "name": "revokeAuthorization",
+            "type": "function",
+            "name": "renounceOwnership",
+            "inputs": [],
             "outputs": [],
             "stateMutability": "nonpayable",
-            "type": "function",
         },
         {
+            "type": "function",
+            "name": "revokeAuthorization",
             "inputs": [
-                {"internalType": "address", "name": "marginAccount", "type": "address"},
-                {"internalType": "address", "name": "intentAccount", "type": "address"},
+                {"name": "intentAccount", "type": "address", "internalType": "address"}
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable",
+        },
+        {
+            "type": "function",
+            "name": "transferOwnership",
+            "inputs": [
+                {"name": "newOwner", "type": "address", "internalType": "address"}
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable",
+        },
+        {
+            "type": "function",
+            "name": "withdraw",
+            "inputs": [
+                {"name": "amount", "type": "uint256", "internalType": "uint256"}
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable",
+        },
+        {
+            "type": "function",
+            "name": "withdrawable",
+            "inputs": [
                 {
-                    "components": [
-                        {
-                            "internalType": "bytes32",
-                            "name": "positionId",
-                            "type": "bytes32",
-                        },
-                        {
-                            "internalType": "int256",
-                            "name": "quantity",
-                            "type": "int256",
-                        },
-                        {"internalType": "uint256", "name": "price", "type": "uint256"},
-                    ],
-                    "internalType": "struct IMarginAccount.Settlement",
-                    "name": "settlement",
-                    "type": "tuple",
+                    "name": "marginAccountId",
+                    "type": "address",
+                    "internalType": "address",
+                }
+            ],
+            "outputs": [{"name": "", "type": "uint256", "internalType": "uint256"}],
+            "stateMutability": "view",
+        },
+        {
+            "type": "event",
+            "name": "Deposit",
+            "inputs": [
+                {
+                    "name": "user",
+                    "type": "address",
+                    "indexed": True,
+                    "internalType": "address",
+                },
+                {
+                    "name": "amount",
+                    "type": "uint256",
+                    "indexed": False,
+                    "internalType": "uint256",
                 },
             ],
-            "name": "settle",
-            "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
-            "stateMutability": "nonpayable",
-            "type": "function",
+            "anonymous": False,
         },
         {
-            "inputs": [],
-            "name": "valuation",
-            "outputs": [
-                {"internalType": "contract IValuation", "name": "", "type": "address"}
-            ],
-            "stateMutability": "view",
-            "type": "function",
-        },
-        {
+            "type": "event",
+            "name": "FeeCollected",
             "inputs": [
-                {"internalType": "uint256", "name": "amount", "type": "uint256"}
+                {
+                    "name": "marginAccountId",
+                    "type": "address",
+                    "indexed": True,
+                    "internalType": "address",
+                },
+                {
+                    "name": "capitalAmount",
+                    "type": "int256",
+                    "indexed": False,
+                    "internalType": "int256",
+                },
             ],
-            "name": "withdraw",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function",
+            "anonymous": False,
         },
         {
+            "type": "event",
+            "name": "FeeDispersed",
             "inputs": [
-                {"internalType": "address", "name": "marginAccount", "type": "address"}
+                {
+                    "name": "recipient",
+                    "type": "address",
+                    "indexed": True,
+                    "internalType": "address",
+                },
+                {
+                    "name": "capitalAmount",
+                    "type": "uint256",
+                    "indexed": False,
+                    "internalType": "uint256",
+                },
             ],
-            "name": "withdrawable",
-            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-            "stateMutability": "view",
-            "type": "function",
+            "anonymous": False,
+        },
+        {
+            "type": "event",
+            "name": "Initialized",
+            "inputs": [
+                {
+                    "name": "version",
+                    "type": "uint64",
+                    "indexed": False,
+                    "internalType": "uint64",
+                }
+            ],
+            "anonymous": False,
+        },
+        {
+            "type": "event",
+            "name": "IntentAuthorized",
+            "inputs": [
+                {
+                    "name": "marginAccountId",
+                    "type": "address",
+                    "indexed": True,
+                    "internalType": "address",
+                },
+                {
+                    "name": "intentAccount",
+                    "type": "address",
+                    "indexed": True,
+                    "internalType": "address",
+                },
+            ],
+            "anonymous": False,
+        },
+        {
+            "type": "event",
+            "name": "IntentRevoked",
+            "inputs": [
+                {
+                    "name": "marginAccountId",
+                    "type": "address",
+                    "indexed": True,
+                    "internalType": "address",
+                },
+                {
+                    "name": "intentAccount",
+                    "type": "address",
+                    "indexed": True,
+                    "internalType": "address",
+                },
+            ],
+            "anonymous": False,
+        },
+        {
+            "type": "event",
+            "name": "OwnershipTransferred",
+            "inputs": [
+                {
+                    "name": "previousOwner",
+                    "type": "address",
+                    "indexed": True,
+                    "internalType": "address",
+                },
+                {
+                    "name": "newOwner",
+                    "type": "address",
+                    "indexed": True,
+                    "internalType": "address",
+                },
+            ],
+            "anonymous": False,
+        },
+        {
+            "type": "event",
+            "name": "PositionUpdated",
+            "inputs": [
+                {
+                    "name": "marginAccountId",
+                    "type": "address",
+                    "indexed": True,
+                    "internalType": "address",
+                },
+                {
+                    "name": "productId",
+                    "type": "bytes32",
+                    "indexed": True,
+                    "internalType": "bytes32",
+                },
+                {
+                    "name": "totalQuantity",
+                    "type": "int256",
+                    "indexed": False,
+                    "internalType": "int256",
+                },
+                {
+                    "name": "costBasis",
+                    "type": "int256",
+                    "indexed": False,
+                    "internalType": "int256",
+                },
+                {
+                    "name": "price",
+                    "type": "uint256",
+                    "indexed": False,
+                    "internalType": "uint256",
+                },
+                {
+                    "name": "quantity",
+                    "type": "int256",
+                    "indexed": False,
+                    "internalType": "int256",
+                },
+            ],
+            "anonymous": False,
+        },
+        {
+            "type": "event",
+            "name": "Withdraw",
+            "inputs": [
+                {
+                    "name": "user",
+                    "type": "address",
+                    "indexed": True,
+                    "internalType": "address",
+                },
+                {
+                    "name": "amount",
+                    "type": "uint256",
+                    "indexed": False,
+                    "internalType": "uint256",
+                },
+            ],
+            "anonymous": False,
+        },
+        {"type": "error", "name": "InvalidInitialization", "inputs": []},
+        {"type": "error", "name": "NotInitializing", "inputs": []},
+        {
+            "type": "error",
+            "name": "OwnableInvalidOwner",
+            "inputs": [{"name": "owner", "type": "address", "internalType": "address"}],
+        },
+        {
+            "type": "error",
+            "name": "OwnableUnauthorizedAccount",
+            "inputs": [
+                {"name": "account", "type": "address", "internalType": "address"}
+            ],
+        },
+        {
+            "type": "error",
+            "name": "SafeCastOverflowedIntToUint",
+            "inputs": [{"name": "value", "type": "int256", "internalType": "int256"}],
+        },
+        {
+            "type": "error",
+            "name": "SafeERC20FailedOperation",
+            "inputs": [{"name": "token", "type": "address", "internalType": "address"}],
         },
     ],
 )

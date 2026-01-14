@@ -2,21 +2,97 @@
 
 # This module has been generated using pyabigen v0.2.16
 
+import enum
 import typing
 from dataclasses import dataclass
 
 import eth_typing
 import hexbytes
 import web3
+from web3 import types
 from web3.contract import contract
 
-from .margin_account import Settlement, PositionData
-from .product_registry import (
-    OracleSpecification,
-    Product,
-    ProductMetadata,
-    ProductState,
-)
+
+class ProductState(enum.IntEnum):
+    """Port of `enum ProductState` on the SystemViewer contract."""
+
+    NOT_EXIST = 0
+    PENDING = 1
+    LIVE = 2
+    TRADEOUT = 3
+    FINAL_SETTLEMENT = 4
+    EXPIRED = 5
+
+
+@dataclass
+class Settlement:
+    """Port of `struct Settlement` on the SystemViewer contract."""
+
+    product_id: hexbytes.HexBytes
+    quantity: int
+    price: int
+
+
+@dataclass
+class PositionData:
+    """Port of `struct PositionData` on the SystemViewer contract."""
+
+    product_id: hexbytes.HexBytes
+    quantity: int
+    cost_basis: int
+    maintenance_margin: int
+    pnl: int
+
+
+@dataclass
+class ProductMetadata:
+    """Port of `struct ProductMetadata` on the SystemViewer contract."""
+
+    builder: eth_typing.ChecksumAddress
+    symbol: str
+    description: str
+
+
+@dataclass
+class OracleSpecification:
+    """Port of `struct OracleSpecification` on the SystemViewer contract."""
+
+    oracle_address: eth_typing.ChecksumAddress
+    fsv_decimals: int
+    fsp_alpha: int
+    fsp_beta: int
+    fsv_calldata: hexbytes.HexBytes
+
+
+@dataclass
+class BaseProduct:
+    """Port of `struct BaseProduct` on the SystemViewer contract."""
+
+    metadata: ProductMetadata
+    oracle_spec: OracleSpecification
+    collateral_asset: eth_typing.ChecksumAddress
+    start_time: int
+    point_value: int
+    price_decimals: int
+    extended_metadata: str
+
+
+@dataclass
+class ExpirySpecification:
+    """Port of `struct ExpirySpecification` on the SystemViewer contract."""
+
+    earliest_fsp_submission_time: int
+    tradeout_interval: int
+
+
+@dataclass
+class PredictionProductV1:
+    """Port of `struct PredictionProductV1` on the SystemViewer contract."""
+
+    base: BaseProduct
+    expiry_spec: ExpirySpecification
+    max_price: int
+    min_price: int
 
 
 @dataclass
@@ -69,26 +145,42 @@ class SystemViewer:
 
     def upgrade_interface_version(
         self,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> str:
         """Binding for `UPGRADE_INTERFACE_VERSION` on the SystemViewer contract.
+
+        Parameters
+        ----------
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
         str
         """
-        return_value = self._contract.functions.UPGRADE_INTERFACE_VERSION().call()
+        return_value = self._contract.functions.UPGRADE_INTERFACE_VERSION().call(
+            block_identifier=block_identifier
+        )
         return str(return_value)
 
     def clearing(
         self,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> eth_typing.ChecksumAddress:
         """Binding for `clearing` on the SystemViewer contract.
+
+        Parameters
+        ----------
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
         eth_typing.ChecksumAddress
         """
-        return_value = self._contract.functions.clearing().call()
+        return_value = self._contract.functions.clearing().call(
+            block_identifier=block_identifier
+        )
         return eth_typing.ChecksumAddress(return_value)
 
     def initialize(
@@ -120,6 +212,7 @@ class SystemViewer:
         self,
         collateral_asset: eth_typing.ChecksumAddress,
         accounts: typing.List[eth_typing.ChecksumAddress],
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> typing.List[int]:
         """Binding for `maeByCollateralAsset` on the SystemViewer contract.
 
@@ -127,6 +220,8 @@ class SystemViewer:
         ----------
         collateral_asset : eth_typing.ChecksumAddress
         accounts : typing.List[eth_typing.ChecksumAddress]
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
@@ -135,13 +230,14 @@ class SystemViewer:
         return_value = self._contract.functions.maeByCollateralAsset(
             collateral_asset,
             accounts,
-        ).call()
+        ).call(block_identifier=block_identifier)
         return [int(return_value_elem) for return_value_elem in return_value]
 
     def mae_by_collateral_assets(
         self,
         collateral_assets: typing.List[eth_typing.ChecksumAddress],
         accounts: typing.List[eth_typing.ChecksumAddress],
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> typing.List[int]:
         """Binding for `maeByCollateralAssets` on the SystemViewer contract.
 
@@ -149,6 +245,8 @@ class SystemViewer:
         ----------
         collateral_assets : typing.List[eth_typing.ChecksumAddress]
         accounts : typing.List[eth_typing.ChecksumAddress]
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
@@ -157,22 +255,23 @@ class SystemViewer:
         return_value = self._contract.functions.maeByCollateralAssets(
             collateral_assets,
             accounts,
-        ).call()
+        ).call(block_identifier=block_identifier)
         return [int(return_value_elem) for return_value_elem in return_value]
 
-    def mae_checks_by_collateral_asset(
+    def mae_checks(
         self,
-        collateral_asset: eth_typing.ChecksumAddress,
         accounts: typing.List[eth_typing.ChecksumAddress],
         settlements: typing.List[Settlement],
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> typing.Tuple[typing.List[bool], typing.List[int], typing.List[int]]:
-        """Binding for `maeChecksByCollateralAsset` on the SystemViewer contract.
+        """Binding for `maeChecks` on the SystemViewer contract.
 
         Parameters
         ----------
-        collateral_asset : eth_typing.ChecksumAddress
         accounts : typing.List[eth_typing.ChecksumAddress]
         settlements : typing.List[Settlement]
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
@@ -180,11 +279,10 @@ class SystemViewer:
         typing.List[int]
         typing.List[int]
         """
-        return_value = self._contract.functions.maeChecksByCollateralAsset(
-            collateral_asset,
+        return_value = self._contract.functions.maeChecks(
             accounts,
-            [(item.position_id, item.quantity, item.price) for item in settlements],
-        ).call()
+            [(item.product_id, item.quantity, item.price) for item in settlements],
+        ).call(block_identifier=block_identifier)
         return (
             [bool(return_value0_elem) for return_value0_elem in return_value[0]],
             [int(return_value1_elem) for return_value1_elem in return_value[1]],
@@ -193,32 +291,99 @@ class SystemViewer:
 
     def margin_account_registry(
         self,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> eth_typing.ChecksumAddress:
         """Binding for `marginAccountRegistry` on the SystemViewer contract.
+
+        Parameters
+        ----------
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
         eth_typing.ChecksumAddress
         """
-        return_value = self._contract.functions.marginAccountRegistry().call()
+        return_value = self._contract.functions.marginAccountRegistry().call(
+            block_identifier=block_identifier
+        )
         return eth_typing.ChecksumAddress(return_value)
 
     def owner(
         self,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> eth_typing.ChecksumAddress:
         """Binding for `owner` on the SystemViewer contract.
+
+        Parameters
+        ----------
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
         eth_typing.ChecksumAddress
         """
-        return_value = self._contract.functions.owner().call()
+        return_value = self._contract.functions.owner().call(
+            block_identifier=block_identifier
+        )
         return eth_typing.ChecksumAddress(return_value)
+
+    def position_quantities_by_product_id(
+        self,
+        product_id: hexbytes.HexBytes,
+        accounts: typing.List[eth_typing.ChecksumAddress],
+        block_identifier: types.BlockIdentifier = "latest",
+    ) -> typing.List[int]:
+        """Binding for `positionQuantitiesByProductId` on the SystemViewer contract.
+
+        Parameters
+        ----------
+        product_id : hexbytes.HexBytes
+        accounts : typing.List[eth_typing.ChecksumAddress]
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
+
+        Returns
+        -------
+        typing.List[int]
+        """
+        return_value = self._contract.functions.positionQuantitiesByProductId(
+            product_id,
+            accounts,
+        ).call(block_identifier=block_identifier)
+        return [int(return_value_elem) for return_value_elem in return_value]
+
+    def position_quantities_by_product_ids(
+        self,
+        product_ids: typing.List[hexbytes.HexBytes],
+        accounts: typing.List[eth_typing.ChecksumAddress],
+        block_identifier: types.BlockIdentifier = "latest",
+    ) -> typing.List[int]:
+        """Binding for `positionQuantitiesByProductIds` on the SystemViewer contract.
+
+        Parameters
+        ----------
+        product_ids : typing.List[hexbytes.HexBytes]
+        accounts : typing.List[eth_typing.ChecksumAddress]
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
+
+        Returns
+        -------
+        typing.List[int]
+        """
+        return_value = self._contract.functions.positionQuantitiesByProductIds(
+            product_ids,
+            accounts,
+        ).call(block_identifier=block_identifier)
+        return [int(return_value_elem) for return_value_elem in return_value]
 
     def positions_by_collateral_asset(
         self,
         collateral_asset: eth_typing.ChecksumAddress,
         accounts: typing.List[eth_typing.ChecksumAddress],
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> typing.List[typing.List[PositionData]]:
         """Binding for `positionsByCollateralAsset` on the SystemViewer contract.
 
@@ -226,6 +391,8 @@ class SystemViewer:
         ----------
         collateral_asset : eth_typing.ChecksumAddress
         accounts : typing.List[eth_typing.ChecksumAddress]
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
@@ -234,7 +401,7 @@ class SystemViewer:
         return_value = self._contract.functions.positionsByCollateralAsset(
             collateral_asset,
             accounts,
-        ).call()
+        ).call(block_identifier=block_identifier)
         return [
             [
                 PositionData(
@@ -253,6 +420,7 @@ class SystemViewer:
         self,
         collateral_assets: typing.List[eth_typing.ChecksumAddress],
         accounts: typing.List[eth_typing.ChecksumAddress],
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> typing.List[typing.List[PositionData]]:
         """Binding for `positionsByCollateralAssets` on the SystemViewer contract.
 
@@ -260,6 +428,8 @@ class SystemViewer:
         ----------
         collateral_assets : typing.List[eth_typing.ChecksumAddress]
         accounts : typing.List[eth_typing.ChecksumAddress]
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
@@ -268,7 +438,7 @@ class SystemViewer:
         return_value = self._contract.functions.positionsByCollateralAssets(
             collateral_assets,
             accounts,
-        ).call()
+        ).call(block_identifier=block_identifier)
         return [
             [
                 PositionData(
@@ -286,70 +456,85 @@ class SystemViewer:
     def product_details(
         self,
         product_ids: typing.List[hexbytes.HexBytes],
-    ) -> typing.List[Product]:
+        block_identifier: types.BlockIdentifier = "latest",
+    ) -> typing.List[PredictionProductV1]:
         """Binding for `productDetails` on the SystemViewer contract.
 
         Parameters
         ----------
         product_ids : typing.List[hexbytes.HexBytes]
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
-        typing.List[Product]
+        typing.List[PredictionProductV1]
         """
         return_value = self._contract.functions.productDetails(
             product_ids,
-        ).call()
+        ).call(block_identifier=block_identifier)
         return [
-            Product(
-                ProductMetadata(
-                    eth_typing.ChecksumAddress(return_value_elem[0][0]),
-                    str(return_value_elem[0][1]),
-                    str(return_value_elem[0][2]),
+            PredictionProductV1(
+                BaseProduct(
+                    ProductMetadata(
+                        eth_typing.ChecksumAddress(return_value_elem[0][0][0]),
+                        str(return_value_elem[0][0][1]),
+                        str(return_value_elem[0][0][2]),
+                    ),
+                    OracleSpecification(
+                        eth_typing.ChecksumAddress(return_value_elem[0][1][0]),
+                        int(return_value_elem[0][1][1]),
+                        int(return_value_elem[0][1][2]),
+                        int(return_value_elem[0][1][3]),
+                        hexbytes.HexBytes(return_value_elem[0][1][4]),
+                    ),
+                    eth_typing.ChecksumAddress(return_value_elem[0][2]),
+                    int(return_value_elem[0][3]),
+                    int(return_value_elem[0][4]),
+                    int(return_value_elem[0][5]),
+                    str(return_value_elem[0][6]),
                 ),
-                OracleSpecification(
-                    eth_typing.ChecksumAddress(return_value_elem[1][0]),
-                    int(return_value_elem[1][1]),
-                    int(return_value_elem[1][2]),
-                    int(return_value_elem[1][3]),
-                    hexbytes.HexBytes(return_value_elem[1][4]),
+                ExpirySpecification(
+                    int(return_value_elem[1][0]), int(return_value_elem[1][1])
                 ),
-                str(return_value_elem[2]),
-                eth_typing.ChecksumAddress(return_value_elem[3]),
-                int(return_value_elem[4]),
-                int(return_value_elem[5]),
-                int(return_value_elem[6]),
-                int(return_value_elem[7]),
-                int(return_value_elem[8]),
-                int(return_value_elem[9]),
-                int(return_value_elem[10]),
-                int(return_value_elem[11]),
-                str(return_value_elem[12]),
+                int(return_value_elem[2]),
+                int(return_value_elem[3]),
             )
             for return_value_elem in return_value
         ]
 
     def product_registry(
         self,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> eth_typing.ChecksumAddress:
         """Binding for `productRegistry` on the SystemViewer contract.
+
+        Parameters
+        ----------
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
         eth_typing.ChecksumAddress
         """
-        return_value = self._contract.functions.productRegistry().call()
+        return_value = self._contract.functions.productRegistry().call(
+            block_identifier=block_identifier
+        )
         return eth_typing.ChecksumAddress(return_value)
 
     def product_states(
         self,
         product_ids: typing.List[hexbytes.HexBytes],
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> typing.List[ProductState]:
         """Binding for `productStates` on the SystemViewer contract.
 
         Parameters
         ----------
         product_ids : typing.List[hexbytes.HexBytes]
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
@@ -357,19 +542,27 @@ class SystemViewer:
         """
         return_value = self._contract.functions.productStates(
             product_ids,
-        ).call()
+        ).call(block_identifier=block_identifier)
         return [ProductState(return_value_elem) for return_value_elem in return_value]
 
     def proxiable_uuid(
         self,
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> hexbytes.HexBytes:
         """Binding for `proxiableUUID` on the SystemViewer contract.
+
+        Parameters
+        ----------
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
         hexbytes.HexBytes
         """
-        return_value = self._contract.functions.proxiableUUID().call()
+        return_value = self._contract.functions.proxiableUUID().call(
+            block_identifier=block_identifier
+        )
         return hexbytes.HexBytes(return_value)
 
     def renounce_ownership(
@@ -429,6 +622,7 @@ class SystemViewer:
         self,
         collateral_asset: eth_typing.ChecksumAddress,
         accounts: typing.List[eth_typing.ChecksumAddress],
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> typing.List[UserMarginAccountData]:
         """Binding for `userMarginDataByCollateralAsset` on the SystemViewer contract.
 
@@ -436,6 +630,8 @@ class SystemViewer:
         ----------
         collateral_asset : eth_typing.ChecksumAddress
         accounts : typing.List[eth_typing.ChecksumAddress]
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
@@ -444,7 +640,7 @@ class SystemViewer:
         return_value = self._contract.functions.userMarginDataByCollateralAsset(
             collateral_asset,
             accounts,
-        ).call()
+        ).call(block_identifier=block_identifier)
         return [
             UserMarginAccountData(
                 eth_typing.ChecksumAddress(return_value_elem[0]),
@@ -469,6 +665,7 @@ class SystemViewer:
         self,
         collateral_assets: typing.List[eth_typing.ChecksumAddress],
         accounts: typing.List[eth_typing.ChecksumAddress],
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> typing.List[UserMarginAccountData]:
         """Binding for `userMarginDataByCollateralAssets` on the SystemViewer contract.
 
@@ -476,6 +673,8 @@ class SystemViewer:
         ----------
         collateral_assets : typing.List[eth_typing.ChecksumAddress]
         accounts : typing.List[eth_typing.ChecksumAddress]
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
@@ -484,7 +683,7 @@ class SystemViewer:
         return_value = self._contract.functions.userMarginDataByCollateralAssets(
             collateral_assets,
             accounts,
-        ).call()
+        ).call(block_identifier=block_identifier)
         return [
             UserMarginAccountData(
                 eth_typing.ChecksumAddress(return_value_elem[0]),
@@ -508,12 +707,15 @@ class SystemViewer:
     def valuations(
         self,
         product_ids: typing.List[hexbytes.HexBytes],
+        block_identifier: types.BlockIdentifier = "latest",
     ) -> typing.List[int]:
         """Binding for `valuations` on the SystemViewer contract.
 
         Parameters
         ----------
         product_ids : typing.List[hexbytes.HexBytes]
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
@@ -521,7 +723,7 @@ class SystemViewer:
         """
         return_value = self._contract.functions.valuations(
             product_ids,
-        ).call()
+        ).call(block_identifier=block_identifier)
         return [int(return_value_elem) for return_value_elem in return_value]
 
 
@@ -529,637 +731,658 @@ ABI = typing.cast(
     eth_typing.ABI,
     [
         {
-            "inputs": [
-                {"internalType": "address", "name": "target", "type": "address"}
-            ],
-            "name": "AddressEmptyCode",
-            "type": "error",
-        },
-        {
-            "inputs": [
-                {"internalType": "address", "name": "implementation", "type": "address"}
-            ],
-            "name": "ERC1967InvalidImplementation",
-            "type": "error",
-        },
-        {"inputs": [], "name": "ERC1967NonPayable", "type": "error"},
-        {"inputs": [], "name": "FailedCall", "type": "error"},
-        {"inputs": [], "name": "InvalidInitialization", "type": "error"},
-        {
-            "inputs": [{"internalType": "string", "name": "reason", "type": "string"}],
-            "name": "InvalidParameters",
-            "type": "error",
-        },
-        {"inputs": [], "name": "NotInitializing", "type": "error"},
-        {
-            "inputs": [{"internalType": "address", "name": "owner", "type": "address"}],
-            "name": "OwnableInvalidOwner",
-            "type": "error",
-        },
-        {
-            "inputs": [
-                {"internalType": "address", "name": "account", "type": "address"}
-            ],
-            "name": "OwnableUnauthorizedAccount",
-            "type": "error",
-        },
-        {"inputs": [], "name": "UUPSUnauthorizedCallContext", "type": "error"},
-        {
-            "inputs": [{"internalType": "bytes32", "name": "slot", "type": "bytes32"}],
-            "name": "UUPSUnsupportedProxiableUUID",
-            "type": "error",
-        },
-        {
-            "anonymous": False,
-            "inputs": [
-                {
-                    "indexed": False,
-                    "internalType": "uint64",
-                    "name": "version",
-                    "type": "uint64",
-                }
-            ],
-            "name": "Initialized",
-            "type": "event",
-        },
-        {
-            "anonymous": False,
-            "inputs": [
-                {
-                    "indexed": True,
-                    "internalType": "address",
-                    "name": "previousOwner",
-                    "type": "address",
-                },
-                {
-                    "indexed": True,
-                    "internalType": "address",
-                    "name": "newOwner",
-                    "type": "address",
-                },
-            ],
-            "name": "OwnershipTransferred",
-            "type": "event",
-        },
-        {
-            "anonymous": False,
-            "inputs": [
-                {
-                    "indexed": True,
-                    "internalType": "address",
-                    "name": "implementation",
-                    "type": "address",
-                }
-            ],
-            "name": "Upgraded",
-            "type": "event",
-        },
-        {
-            "inputs": [],
+            "type": "function",
             "name": "UPGRADE_INTERFACE_VERSION",
-            "outputs": [{"internalType": "string", "name": "", "type": "string"}],
-            "stateMutability": "view",
-            "type": "function",
-        },
-        {
             "inputs": [],
-            "name": "clearing",
-            "outputs": [
-                {
-                    "internalType": "contract IClearingDiamond",
-                    "name": "",
-                    "type": "address",
-                }
-            ],
+            "outputs": [{"name": "", "type": "string", "internalType": "string"}],
             "stateMutability": "view",
-            "type": "function",
         },
         {
+            "type": "function",
+            "name": "clearing",
+            "inputs": [],
+            "outputs": [{"name": "", "type": "address", "internalType": "address"}],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
+            "name": "initialize",
             "inputs": [
+                {"name": "_clearing", "type": "address", "internalType": "address"},
                 {
-                    "internalType": "contract IClearingDiamond",
-                    "name": "_clearing",
-                    "type": "address",
-                },
-                {
-                    "internalType": "contract IProductRegistry",
                     "name": "_productRegistry",
                     "type": "address",
+                    "internalType": "contract IProductRegistry",
                 },
                 {
-                    "internalType": "contract IMarginAccountRegistry",
                     "name": "_marginAccountRegistry",
                     "type": "address",
+                    "internalType": "contract IMarginAccountRegistry",
                 },
             ],
-            "name": "initialize",
             "outputs": [],
             "stateMutability": "nonpayable",
-            "type": "function",
         },
         {
+            "type": "function",
+            "name": "maeByCollateralAsset",
             "inputs": [
                 {
-                    "internalType": "address",
                     "name": "collateralAsset",
                     "type": "address",
+                    "internalType": "address",
                 },
-                {"internalType": "address[]", "name": "accounts", "type": "address[]"},
+                {"name": "accounts", "type": "address[]", "internalType": "address[]"},
             ],
-            "name": "maeByCollateralAsset",
             "outputs": [
-                {"internalType": "int256[]", "name": "results", "type": "int256[]"}
+                {"name": "results", "type": "int256[]", "internalType": "int256[]"}
             ],
             "stateMutability": "view",
-            "type": "function",
         },
         {
+            "type": "function",
+            "name": "maeByCollateralAssets",
             "inputs": [
                 {
-                    "internalType": "address[]",
                     "name": "collateralAssets",
                     "type": "address[]",
+                    "internalType": "address[]",
                 },
-                {"internalType": "address[]", "name": "accounts", "type": "address[]"},
+                {"name": "accounts", "type": "address[]", "internalType": "address[]"},
             ],
-            "name": "maeByCollateralAssets",
             "outputs": [
-                {"internalType": "int256[]", "name": "results", "type": "int256[]"}
+                {"name": "results", "type": "int256[]", "internalType": "int256[]"}
             ],
             "stateMutability": "view",
-            "type": "function",
         },
         {
+            "type": "function",
+            "name": "maeChecks",
             "inputs": [
+                {"name": "accounts", "type": "address[]", "internalType": "address[]"},
                 {
-                    "internalType": "address",
-                    "name": "collateralAsset",
-                    "type": "address",
-                },
-                {"internalType": "address[]", "name": "accounts", "type": "address[]"},
-                {
-                    "components": [
-                        {
-                            "internalType": "bytes32",
-                            "name": "positionId",
-                            "type": "bytes32",
-                        },
-                        {
-                            "internalType": "int256",
-                            "name": "quantity",
-                            "type": "int256",
-                        },
-                        {"internalType": "uint256", "name": "price", "type": "uint256"},
-                    ],
-                    "internalType": "struct IMarginAccount.Settlement[]",
                     "name": "settlements",
                     "type": "tuple[]",
+                    "internalType": "struct Settlement[]",
+                    "components": [
+                        {
+                            "name": "productId",
+                            "type": "bytes32",
+                            "internalType": "bytes32",
+                        },
+                        {
+                            "name": "quantity",
+                            "type": "int256",
+                            "internalType": "int256",
+                        },
+                        {"name": "price", "type": "int256", "internalType": "int256"},
+                    ],
                 },
             ],
-            "name": "maeChecksByCollateralAsset",
             "outputs": [
-                {"internalType": "bool[]", "name": "results", "type": "bool[]"},
-                {"internalType": "int256[]", "name": "maeAfter", "type": "int256[]"},
-                {"internalType": "uint256[]", "name": "mmuAfter", "type": "uint256[]"},
+                {"name": "results", "type": "bool[]", "internalType": "bool[]"},
+                {"name": "maeAfter", "type": "int256[]", "internalType": "int256[]"},
+                {"name": "mmuAfter", "type": "uint256[]", "internalType": "uint256[]"},
             ],
             "stateMutability": "view",
-            "type": "function",
         },
         {
-            "inputs": [],
+            "type": "function",
             "name": "marginAccountRegistry",
+            "inputs": [],
             "outputs": [
                 {
-                    "internalType": "contract IMarginAccountRegistry",
                     "name": "",
                     "type": "address",
+                    "internalType": "contract IMarginAccountRegistry",
                 }
             ],
             "stateMutability": "view",
-            "type": "function",
         },
         {
-            "inputs": [],
+            "type": "function",
             "name": "owner",
-            "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+            "inputs": [],
+            "outputs": [{"name": "", "type": "address", "internalType": "address"}],
             "stateMutability": "view",
-            "type": "function",
         },
         {
+            "type": "function",
+            "name": "positionQuantitiesByProductId",
+            "inputs": [
+                {"name": "productId", "type": "bytes32", "internalType": "bytes32"},
+                {"name": "accounts", "type": "address[]", "internalType": "address[]"},
+            ],
+            "outputs": [
+                {"name": "quantity", "type": "int256[]", "internalType": "int256[]"}
+            ],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
+            "name": "positionQuantitiesByProductIds",
             "inputs": [
                 {
-                    "internalType": "address",
+                    "name": "productIds",
+                    "type": "bytes32[]",
+                    "internalType": "bytes32[]",
+                },
+                {"name": "accounts", "type": "address[]", "internalType": "address[]"},
+            ],
+            "outputs": [
+                {"name": "quantity", "type": "int256[]", "internalType": "int256[]"}
+            ],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
+            "name": "positionsByCollateralAsset",
+            "inputs": [
+                {
                     "name": "collateralAsset",
                     "type": "address",
+                    "internalType": "address",
                 },
-                {"internalType": "address[]", "name": "accounts", "type": "address[]"},
+                {"name": "accounts", "type": "address[]", "internalType": "address[]"},
             ],
-            "name": "positionsByCollateralAsset",
             "outputs": [
                 {
-                    "components": [
-                        {
-                            "internalType": "bytes32",
-                            "name": "positionId",
-                            "type": "bytes32",
-                        },
-                        {
-                            "internalType": "int256",
-                            "name": "quantity",
-                            "type": "int256",
-                        },
-                        {
-                            "internalType": "int256",
-                            "name": "costBasis",
-                            "type": "int256",
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "maintenanceMargin",
-                            "type": "uint256",
-                        },
-                        {"internalType": "int256", "name": "pnl", "type": "int256"},
-                    ],
-                    "internalType": "struct IMarginAccount.PositionData[][]",
                     "name": "results",
                     "type": "tuple[][]",
+                    "internalType": "struct PositionData[][]",
+                    "components": [
+                        {
+                            "name": "productId",
+                            "type": "bytes32",
+                            "internalType": "bytes32",
+                        },
+                        {
+                            "name": "quantity",
+                            "type": "int256",
+                            "internalType": "int256",
+                        },
+                        {
+                            "name": "costBasis",
+                            "type": "int256",
+                            "internalType": "int256",
+                        },
+                        {
+                            "name": "maintenanceMargin",
+                            "type": "uint256",
+                            "internalType": "uint256",
+                        },
+                        {"name": "pnl", "type": "int256", "internalType": "int256"},
+                    ],
                 }
             ],
             "stateMutability": "view",
-            "type": "function",
         },
         {
+            "type": "function",
+            "name": "positionsByCollateralAssets",
             "inputs": [
                 {
-                    "internalType": "address[]",
                     "name": "collateralAssets",
                     "type": "address[]",
+                    "internalType": "address[]",
                 },
-                {"internalType": "address[]", "name": "accounts", "type": "address[]"},
+                {"name": "accounts", "type": "address[]", "internalType": "address[]"},
             ],
-            "name": "positionsByCollateralAssets",
             "outputs": [
                 {
-                    "components": [
-                        {
-                            "internalType": "bytes32",
-                            "name": "positionId",
-                            "type": "bytes32",
-                        },
-                        {
-                            "internalType": "int256",
-                            "name": "quantity",
-                            "type": "int256",
-                        },
-                        {
-                            "internalType": "int256",
-                            "name": "costBasis",
-                            "type": "int256",
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "maintenanceMargin",
-                            "type": "uint256",
-                        },
-                        {"internalType": "int256", "name": "pnl", "type": "int256"},
-                    ],
-                    "internalType": "struct IMarginAccount.PositionData[][]",
                     "name": "results",
                     "type": "tuple[][]",
+                    "internalType": "struct PositionData[][]",
+                    "components": [
+                        {
+                            "name": "productId",
+                            "type": "bytes32",
+                            "internalType": "bytes32",
+                        },
+                        {
+                            "name": "quantity",
+                            "type": "int256",
+                            "internalType": "int256",
+                        },
+                        {
+                            "name": "costBasis",
+                            "type": "int256",
+                            "internalType": "int256",
+                        },
+                        {
+                            "name": "maintenanceMargin",
+                            "type": "uint256",
+                            "internalType": "uint256",
+                        },
+                        {"name": "pnl", "type": "int256", "internalType": "int256"},
+                    ],
                 }
             ],
             "stateMutability": "view",
-            "type": "function",
         },
         {
-            "inputs": [
-                {"internalType": "bytes32[]", "name": "productIds", "type": "bytes32[]"}
-            ],
+            "type": "function",
             "name": "productDetails",
+            "inputs": [
+                {"name": "productIds", "type": "bytes32[]", "internalType": "bytes32[]"}
+            ],
             "outputs": [
                 {
-                    "components": [
-                        {
-                            "components": [
-                                {
-                                    "internalType": "address",
-                                    "name": "builder",
-                                    "type": "address",
-                                },
-                                {
-                                    "internalType": "string",
-                                    "name": "symbol",
-                                    "type": "string",
-                                },
-                                {
-                                    "internalType": "string",
-                                    "name": "description",
-                                    "type": "string",
-                                },
-                            ],
-                            "internalType": "struct IProductRegistry.ProductMetadata",
-                            "name": "metadata",
-                            "type": "tuple",
-                        },
-                        {
-                            "components": [
-                                {
-                                    "internalType": "address",
-                                    "name": "oracleAddress",
-                                    "type": "address",
-                                },
-                                {
-                                    "internalType": "uint8",
-                                    "name": "fsvDecimals",
-                                    "type": "uint8",
-                                },
-                                {
-                                    "internalType": "int256",
-                                    "name": "fspAlpha",
-                                    "type": "int256",
-                                },
-                                {
-                                    "internalType": "int256",
-                                    "name": "fspBeta",
-                                    "type": "int256",
-                                },
-                                {
-                                    "internalType": "bytes",
-                                    "name": "fsvCalldata",
-                                    "type": "bytes",
-                                },
-                            ],
-                            "internalType": "struct IProductRegistry.OracleSpecification",
-                            "name": "oracleSpec",
-                            "type": "tuple",
-                        },
-                        {
-                            "internalType": "string",
-                            "name": "priceQuotation",
-                            "type": "string",
-                        },
-                        {
-                            "internalType": "address",
-                            "name": "collateralAsset",
-                            "type": "address",
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "startTime",
-                            "type": "uint256",
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "earliestFSPSubmissionTime",
-                            "type": "uint256",
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "unitValue",
-                            "type": "uint256",
-                        },
-                        {
-                            "internalType": "uint16",
-                            "name": "initialMarginRequirement",
-                            "type": "uint16",
-                        },
-                        {
-                            "internalType": "uint16",
-                            "name": "maintenanceMarginRequirement",
-                            "type": "uint16",
-                        },
-                        {
-                            "internalType": "uint64",
-                            "name": "auctionBounty",
-                            "type": "uint64",
-                        },
-                        {
-                            "internalType": "uint32",
-                            "name": "tradeoutInterval",
-                            "type": "uint32",
-                        },
-                        {"internalType": "uint8", "name": "tickSize", "type": "uint8"},
-                        {
-                            "internalType": "string",
-                            "name": "extendedMetadata",
-                            "type": "string",
-                        },
-                    ],
-                    "internalType": "struct IProductRegistry.Product[]",
                     "name": "details",
                     "type": "tuple[]",
+                    "internalType": "struct PredictionProductV1[]",
+                    "components": [
+                        {
+                            "name": "base",
+                            "type": "tuple",
+                            "internalType": "struct BaseProduct",
+                            "components": [
+                                {
+                                    "name": "metadata",
+                                    "type": "tuple",
+                                    "internalType": "struct ProductMetadata",
+                                    "components": [
+                                        {
+                                            "name": "builder",
+                                            "type": "address",
+                                            "internalType": "address",
+                                        },
+                                        {
+                                            "name": "symbol",
+                                            "type": "string",
+                                            "internalType": "string",
+                                        },
+                                        {
+                                            "name": "description",
+                                            "type": "string",
+                                            "internalType": "string",
+                                        },
+                                    ],
+                                },
+                                {
+                                    "name": "oracleSpec",
+                                    "type": "tuple",
+                                    "internalType": "struct OracleSpecification",
+                                    "components": [
+                                        {
+                                            "name": "oracleAddress",
+                                            "type": "address",
+                                            "internalType": "address",
+                                        },
+                                        {
+                                            "name": "fsvDecimals",
+                                            "type": "uint8",
+                                            "internalType": "uint8",
+                                        },
+                                        {
+                                            "name": "fspAlpha",
+                                            "type": "int256",
+                                            "internalType": "int256",
+                                        },
+                                        {
+                                            "name": "fspBeta",
+                                            "type": "int256",
+                                            "internalType": "int256",
+                                        },
+                                        {
+                                            "name": "fsvCalldata",
+                                            "type": "bytes",
+                                            "internalType": "bytes",
+                                        },
+                                    ],
+                                },
+                                {
+                                    "name": "collateralAsset",
+                                    "type": "address",
+                                    "internalType": "address",
+                                },
+                                {
+                                    "name": "startTime",
+                                    "type": "uint256",
+                                    "internalType": "uint256",
+                                },
+                                {
+                                    "name": "pointValue",
+                                    "type": "uint256",
+                                    "internalType": "uint256",
+                                },
+                                {
+                                    "name": "priceDecimals",
+                                    "type": "uint8",
+                                    "internalType": "uint8",
+                                },
+                                {
+                                    "name": "extendedMetadata",
+                                    "type": "string",
+                                    "internalType": "string",
+                                },
+                            ],
+                        },
+                        {
+                            "name": "expirySpec",
+                            "type": "tuple",
+                            "internalType": "struct ExpirySpecification",
+                            "components": [
+                                {
+                                    "name": "earliestFSPSubmissionTime",
+                                    "type": "uint256",
+                                    "internalType": "uint256",
+                                },
+                                {
+                                    "name": "tradeoutInterval",
+                                    "type": "uint256",
+                                    "internalType": "uint256",
+                                },
+                            ],
+                        },
+                        {
+                            "name": "maxPrice",
+                            "type": "int256",
+                            "internalType": "int256",
+                        },
+                        {
+                            "name": "minPrice",
+                            "type": "int256",
+                            "internalType": "int256",
+                        },
+                    ],
                 }
             ],
             "stateMutability": "view",
-            "type": "function",
         },
         {
-            "inputs": [],
+            "type": "function",
             "name": "productRegistry",
+            "inputs": [],
             "outputs": [
                 {
-                    "internalType": "contract IProductRegistry",
                     "name": "",
                     "type": "address",
+                    "internalType": "contract IProductRegistry",
                 }
             ],
             "stateMutability": "view",
-            "type": "function",
         },
         {
-            "inputs": [
-                {"internalType": "bytes32[]", "name": "productIds", "type": "bytes32[]"}
-            ],
+            "type": "function",
             "name": "productStates",
+            "inputs": [
+                {"name": "productIds", "type": "bytes32[]", "internalType": "bytes32[]"}
+            ],
             "outputs": [
                 {
-                    "internalType": "enum ProductState[]",
                     "name": "states",
                     "type": "uint8[]",
+                    "internalType": "enum ProductState[]",
                 }
             ],
             "stateMutability": "view",
-            "type": "function",
         },
         {
-            "inputs": [],
+            "type": "function",
             "name": "proxiableUUID",
-            "outputs": [{"internalType": "bytes32", "name": "", "type": "bytes32"}],
-            "stateMutability": "view",
-            "type": "function",
-        },
-        {
             "inputs": [],
+            "outputs": [{"name": "", "type": "bytes32", "internalType": "bytes32"}],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
             "name": "renounceOwnership",
+            "inputs": [],
             "outputs": [],
             "stateMutability": "nonpayable",
-            "type": "function",
         },
         {
-            "inputs": [
-                {"internalType": "address", "name": "newOwner", "type": "address"}
-            ],
+            "type": "function",
             "name": "transferOwnership",
+            "inputs": [
+                {"name": "newOwner", "type": "address", "internalType": "address"}
+            ],
             "outputs": [],
             "stateMutability": "nonpayable",
-            "type": "function",
         },
         {
+            "type": "function",
+            "name": "upgradeToAndCall",
             "inputs": [
                 {
-                    "internalType": "address",
                     "name": "newImplementation",
                     "type": "address",
+                    "internalType": "address",
                 },
-                {"internalType": "bytes", "name": "data", "type": "bytes"},
+                {"name": "data", "type": "bytes", "internalType": "bytes"},
             ],
-            "name": "upgradeToAndCall",
             "outputs": [],
             "stateMutability": "payable",
-            "type": "function",
         },
         {
+            "type": "function",
+            "name": "userMarginDataByCollateralAsset",
             "inputs": [
                 {
-                    "internalType": "address",
                     "name": "collateralAsset",
                     "type": "address",
+                    "internalType": "address",
                 },
-                {"internalType": "address[]", "name": "accounts", "type": "address[]"},
+                {"name": "accounts", "type": "address[]", "internalType": "address[]"},
             ],
-            "name": "userMarginDataByCollateralAsset",
             "outputs": [
                 {
-                    "components": [
-                        {
-                            "internalType": "address",
-                            "name": "collateralAsset",
-                            "type": "address",
-                        },
-                        {
-                            "internalType": "address",
-                            "name": "marginAccountId",
-                            "type": "address",
-                        },
-                        {"internalType": "int256", "name": "mae", "type": "int256"},
-                        {"internalType": "uint256", "name": "mmu", "type": "uint256"},
-                        {
-                            "components": [
-                                {
-                                    "internalType": "bytes32",
-                                    "name": "positionId",
-                                    "type": "bytes32",
-                                },
-                                {
-                                    "internalType": "int256",
-                                    "name": "quantity",
-                                    "type": "int256",
-                                },
-                                {
-                                    "internalType": "int256",
-                                    "name": "costBasis",
-                                    "type": "int256",
-                                },
-                                {
-                                    "internalType": "uint256",
-                                    "name": "maintenanceMargin",
-                                    "type": "uint256",
-                                },
-                                {
-                                    "internalType": "int256",
-                                    "name": "pnl",
-                                    "type": "int256",
-                                },
-                            ],
-                            "internalType": "struct IMarginAccount.PositionData[]",
-                            "name": "positions",
-                            "type": "tuple[]",
-                        },
-                    ],
-                    "internalType": "struct ISystemViewer.UserMarginAccountData[]",
                     "name": "data",
                     "type": "tuple[]",
+                    "internalType": "struct ISystemViewer.UserMarginAccountData[]",
+                    "components": [
+                        {
+                            "name": "collateralAsset",
+                            "type": "address",
+                            "internalType": "address",
+                        },
+                        {
+                            "name": "marginAccountId",
+                            "type": "address",
+                            "internalType": "address",
+                        },
+                        {"name": "mae", "type": "int256", "internalType": "int256"},
+                        {"name": "mmu", "type": "uint256", "internalType": "uint256"},
+                        {
+                            "name": "positions",
+                            "type": "tuple[]",
+                            "internalType": "struct PositionData[]",
+                            "components": [
+                                {
+                                    "name": "productId",
+                                    "type": "bytes32",
+                                    "internalType": "bytes32",
+                                },
+                                {
+                                    "name": "quantity",
+                                    "type": "int256",
+                                    "internalType": "int256",
+                                },
+                                {
+                                    "name": "costBasis",
+                                    "type": "int256",
+                                    "internalType": "int256",
+                                },
+                                {
+                                    "name": "maintenanceMargin",
+                                    "type": "uint256",
+                                    "internalType": "uint256",
+                                },
+                                {
+                                    "name": "pnl",
+                                    "type": "int256",
+                                    "internalType": "int256",
+                                },
+                            ],
+                        },
+                    ],
                 }
             ],
             "stateMutability": "view",
-            "type": "function",
         },
         {
+            "type": "function",
+            "name": "userMarginDataByCollateralAssets",
             "inputs": [
                 {
-                    "internalType": "address[]",
                     "name": "collateralAssets",
                     "type": "address[]",
+                    "internalType": "address[]",
                 },
-                {"internalType": "address[]", "name": "accounts", "type": "address[]"},
+                {"name": "accounts", "type": "address[]", "internalType": "address[]"},
             ],
-            "name": "userMarginDataByCollateralAssets",
             "outputs": [
                 {
-                    "components": [
-                        {
-                            "internalType": "address",
-                            "name": "collateralAsset",
-                            "type": "address",
-                        },
-                        {
-                            "internalType": "address",
-                            "name": "marginAccountId",
-                            "type": "address",
-                        },
-                        {"internalType": "int256", "name": "mae", "type": "int256"},
-                        {"internalType": "uint256", "name": "mmu", "type": "uint256"},
-                        {
-                            "components": [
-                                {
-                                    "internalType": "bytes32",
-                                    "name": "positionId",
-                                    "type": "bytes32",
-                                },
-                                {
-                                    "internalType": "int256",
-                                    "name": "quantity",
-                                    "type": "int256",
-                                },
-                                {
-                                    "internalType": "int256",
-                                    "name": "costBasis",
-                                    "type": "int256",
-                                },
-                                {
-                                    "internalType": "uint256",
-                                    "name": "maintenanceMargin",
-                                    "type": "uint256",
-                                },
-                                {
-                                    "internalType": "int256",
-                                    "name": "pnl",
-                                    "type": "int256",
-                                },
-                            ],
-                            "internalType": "struct IMarginAccount.PositionData[]",
-                            "name": "positions",
-                            "type": "tuple[]",
-                        },
-                    ],
-                    "internalType": "struct ISystemViewer.UserMarginAccountData[]",
                     "name": "data",
                     "type": "tuple[]",
+                    "internalType": "struct ISystemViewer.UserMarginAccountData[]",
+                    "components": [
+                        {
+                            "name": "collateralAsset",
+                            "type": "address",
+                            "internalType": "address",
+                        },
+                        {
+                            "name": "marginAccountId",
+                            "type": "address",
+                            "internalType": "address",
+                        },
+                        {"name": "mae", "type": "int256", "internalType": "int256"},
+                        {"name": "mmu", "type": "uint256", "internalType": "uint256"},
+                        {
+                            "name": "positions",
+                            "type": "tuple[]",
+                            "internalType": "struct PositionData[]",
+                            "components": [
+                                {
+                                    "name": "productId",
+                                    "type": "bytes32",
+                                    "internalType": "bytes32",
+                                },
+                                {
+                                    "name": "quantity",
+                                    "type": "int256",
+                                    "internalType": "int256",
+                                },
+                                {
+                                    "name": "costBasis",
+                                    "type": "int256",
+                                    "internalType": "int256",
+                                },
+                                {
+                                    "name": "maintenanceMargin",
+                                    "type": "uint256",
+                                    "internalType": "uint256",
+                                },
+                                {
+                                    "name": "pnl",
+                                    "type": "int256",
+                                    "internalType": "int256",
+                                },
+                            ],
+                        },
+                    ],
                 }
             ],
             "stateMutability": "view",
-            "type": "function",
         },
         {
-            "inputs": [
-                {"internalType": "bytes32[]", "name": "productIds", "type": "bytes32[]"}
-            ],
+            "type": "function",
             "name": "valuations",
+            "inputs": [
+                {"name": "productIds", "type": "bytes32[]", "internalType": "bytes32[]"}
+            ],
             "outputs": [
-                {"internalType": "uint256[]", "name": "prices", "type": "uint256[]"}
+                {"name": "prices", "type": "int256[]", "internalType": "int256[]"}
             ],
             "stateMutability": "view",
-            "type": "function",
+        },
+        {
+            "type": "event",
+            "name": "Initialized",
+            "inputs": [
+                {
+                    "name": "version",
+                    "type": "uint64",
+                    "indexed": False,
+                    "internalType": "uint64",
+                }
+            ],
+            "anonymous": False,
+        },
+        {
+            "type": "event",
+            "name": "OwnershipTransferred",
+            "inputs": [
+                {
+                    "name": "previousOwner",
+                    "type": "address",
+                    "indexed": True,
+                    "internalType": "address",
+                },
+                {
+                    "name": "newOwner",
+                    "type": "address",
+                    "indexed": True,
+                    "internalType": "address",
+                },
+            ],
+            "anonymous": False,
+        },
+        {
+            "type": "event",
+            "name": "Upgraded",
+            "inputs": [
+                {
+                    "name": "implementation",
+                    "type": "address",
+                    "indexed": True,
+                    "internalType": "address",
+                }
+            ],
+            "anonymous": False,
+        },
+        {
+            "type": "error",
+            "name": "AddressEmptyCode",
+            "inputs": [
+                {"name": "target", "type": "address", "internalType": "address"}
+            ],
+        },
+        {
+            "type": "error",
+            "name": "ERC1967InvalidImplementation",
+            "inputs": [
+                {"name": "implementation", "type": "address", "internalType": "address"}
+            ],
+        },
+        {"type": "error", "name": "ERC1967NonPayable", "inputs": []},
+        {"type": "error", "name": "FailedCall", "inputs": []},
+        {"type": "error", "name": "InvalidInitialization", "inputs": []},
+        {
+            "type": "error",
+            "name": "InvalidParameters",
+            "inputs": [{"name": "reason", "type": "string", "internalType": "string"}],
+        },
+        {"type": "error", "name": "NotInitializing", "inputs": []},
+        {
+            "type": "error",
+            "name": "OwnableInvalidOwner",
+            "inputs": [{"name": "owner", "type": "address", "internalType": "address"}],
+        },
+        {
+            "type": "error",
+            "name": "OwnableUnauthorizedAccount",
+            "inputs": [
+                {"name": "account", "type": "address", "internalType": "address"}
+            ],
+        },
+        {"type": "error", "name": "UUPSUnauthorizedCallContext", "inputs": []},
+        {
+            "type": "error",
+            "name": "UUPSUnsupportedProxiableUUID",
+            "inputs": [{"name": "slot", "type": "bytes32", "internalType": "bytes32"}],
         },
     ],
 )

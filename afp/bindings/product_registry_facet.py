@@ -1,4 +1,4 @@
-"""ProductRegistry contract binding and data structures."""
+"""ProductRegistryFacet contract binding and data structures."""
 
 # This module has been generated using pyabigen v0.2.16
 
@@ -11,7 +11,6 @@ from web3 import types
 from web3.contract import contract
 
 from .types import (
-    ProductState,
     ExpirySpecification,
     ProductMetadata,
     OracleSpecification,
@@ -22,14 +21,14 @@ from .types import (
 )
 
 
-class ProductRegistry:
-    """ProductRegistry contract binding.
+class ProductRegistryFacet:
+    """ProductRegistryFacet contract binding.
 
     Parameters
     ----------
     w3 : web3.Web3
     address : eth_typing.ChecksumAddress
-        The address of a deployed ProductRegistry contract.
+        The address of a deployed ProductRegistryFacet contract.
     """
 
     _contract: contract.Contract
@@ -44,72 +43,12 @@ class ProductRegistry:
             abi=ABI,
         )
 
-    @property
-    def Initialized(self) -> contract.ContractEvent:
-        """Binding for `event Initialized` on the ProductRegistry contract."""
-        return self._contract.events.Initialized
-
-    @property
-    def OwnershipTransferred(self) -> contract.ContractEvent:
-        """Binding for `event OwnershipTransferred` on the ProductRegistry contract."""
-        return self._contract.events.OwnershipTransferred
-
-    @property
-    def ProductRegistered(self) -> contract.ContractEvent:
-        """Binding for `event ProductRegistered` on the ProductRegistry contract."""
-        return self._contract.events.ProductRegistered
-
-    @property
-    def Upgraded(self) -> contract.ContractEvent:
-        """Binding for `event Upgraded` on the ProductRegistry contract."""
-        return self._contract.events.Upgraded
-
-    def upgrade_interface_version(
-        self,
-        block_identifier: types.BlockIdentifier = "latest",
-    ) -> str:
-        """Binding for `UPGRADE_INTERFACE_VERSION` on the ProductRegistry contract.
-
-        Parameters
-        ----------
-        block_identifier : web3.types.BlockIdentifier
-            The block identifier, defaults to the latest block.
-
-        Returns
-        -------
-        str
-        """
-        return_value = self._contract.functions.UPGRADE_INTERFACE_VERSION().call(
-            block_identifier=block_identifier
-        )
-        return str(return_value)
-
-    def clearing(
-        self,
-        block_identifier: types.BlockIdentifier = "latest",
-    ) -> eth_typing.ChecksumAddress:
-        """Binding for `clearing` on the ProductRegistry contract.
-
-        Parameters
-        ----------
-        block_identifier : web3.types.BlockIdentifier
-            The block identifier, defaults to the latest block.
-
-        Returns
-        -------
-        eth_typing.ChecksumAddress
-        """
-        return_value = self._contract.functions.clearing().call(
-            block_identifier=block_identifier
-        )
-        return eth_typing.ChecksumAddress(return_value)
-
-    def collateral_asset(
+    def expiry_specification(
         self,
         product_id: hexbytes.HexBytes,
         block_identifier: types.BlockIdentifier = "latest",
-    ) -> eth_typing.ChecksumAddress:
-        """Binding for `collateralAsset` on the ProductRegistry contract.
+    ) -> ExpirySpecification:
+        """Binding for `expirySpecification` on the ProductRegistryFacet contract.
 
         Parameters
         ----------
@@ -119,41 +58,19 @@ class ProductRegistry:
 
         Returns
         -------
-        eth_typing.ChecksumAddress
+        ExpirySpecification
         """
-        return_value = self._contract.functions.collateralAsset(
+        return_value = self._contract.functions.expirySpecification(
             product_id,
         ).call(block_identifier=block_identifier)
-        return eth_typing.ChecksumAddress(return_value)
-
-    def earliest_fsp_submission_time(
-        self,
-        product_id: hexbytes.HexBytes,
-        block_identifier: types.BlockIdentifier = "latest",
-    ) -> int:
-        """Binding for `earliestFSPSubmissionTime` on the ProductRegistry contract.
-
-        Parameters
-        ----------
-        product_id : hexbytes.HexBytes
-        block_identifier : web3.types.BlockIdentifier
-            The block identifier, defaults to the latest block.
-
-        Returns
-        -------
-        int
-        """
-        return_value = self._contract.functions.earliestFSPSubmissionTime(
-            product_id,
-        ).call(block_identifier=block_identifier)
-        return int(return_value)
+        return ExpirySpecification(int(return_value[0]), int(return_value[1]))
 
     def futures_product_v1(
         self,
         product_id: hexbytes.HexBytes,
         block_identifier: types.BlockIdentifier = "latest",
     ) -> FuturesProductV1:
-        """Binding for `futuresProductV1` on the ProductRegistry contract.
+        """Binding for `futuresProductV1` on the ProductRegistryFacet contract.
 
         Parameters
         ----------
@@ -197,7 +114,7 @@ class ProductRegistry:
         product: BaseProduct,
         block_identifier: types.BlockIdentifier = "latest",
     ) -> hexbytes.HexBytes:
-        """Binding for `id` on the ProductRegistry contract.
+        """Binding for `id` on the ProductRegistryFacet contract.
 
         Parameters
         ----------
@@ -232,75 +149,12 @@ class ProductRegistry:
         ).call(block_identifier=block_identifier)
         return hexbytes.HexBytes(return_value)
 
-    def initialize(
-        self,
-        clearing_: eth_typing.ChecksumAddress,
-    ) -> contract.ContractFunction:
-        """Binding for `initialize` on the ProductRegistry contract.
-
-        Parameters
-        ----------
-        clearing_ : eth_typing.ChecksumAddress
-
-        Returns
-        -------
-        web3.contract.contract.ContractFunction
-            A contract function instance to be sent in a transaction.
-        """
-        return self._contract.functions.initialize(
-            clearing_,
-        )
-
-    def max_price(
-        self,
-        product_id: hexbytes.HexBytes,
-        block_identifier: types.BlockIdentifier = "latest",
-    ) -> int:
-        """Binding for `maxPrice` on the ProductRegistry contract.
-
-        Parameters
-        ----------
-        product_id : hexbytes.HexBytes
-        block_identifier : web3.types.BlockIdentifier
-            The block identifier, defaults to the latest block.
-
-        Returns
-        -------
-        int
-        """
-        return_value = self._contract.functions.maxPrice(
-            product_id,
-        ).call(block_identifier=block_identifier)
-        return int(return_value)
-
-    def min_price(
-        self,
-        product_id: hexbytes.HexBytes,
-        block_identifier: types.BlockIdentifier = "latest",
-    ) -> int:
-        """Binding for `minPrice` on the ProductRegistry contract.
-
-        Parameters
-        ----------
-        product_id : hexbytes.HexBytes
-        block_identifier : web3.types.BlockIdentifier
-            The block identifier, defaults to the latest block.
-
-        Returns
-        -------
-        int
-        """
-        return_value = self._contract.functions.minPrice(
-            product_id,
-        ).call(block_identifier=block_identifier)
-        return int(return_value)
-
     def mmr(
         self,
         product_id: hexbytes.HexBytes,
         block_identifier: types.BlockIdentifier = "latest",
     ) -> int:
-        """Binding for `mmr` on the ProductRegistry contract.
+        """Binding for `mmr` on the ProductRegistryFacet contract.
 
         Parameters
         ----------
@@ -317,82 +171,12 @@ class ProductRegistry:
         ).call(block_identifier=block_identifier)
         return int(return_value)
 
-    def oracle_specification(
-        self,
-        product_id: hexbytes.HexBytes,
-        block_identifier: types.BlockIdentifier = "latest",
-    ) -> OracleSpecification:
-        """Binding for `oracleSpecification` on the ProductRegistry contract.
-
-        Parameters
-        ----------
-        product_id : hexbytes.HexBytes
-        block_identifier : web3.types.BlockIdentifier
-            The block identifier, defaults to the latest block.
-
-        Returns
-        -------
-        OracleSpecification
-        """
-        return_value = self._contract.functions.oracleSpecification(
-            product_id,
-        ).call(block_identifier=block_identifier)
-        return OracleSpecification(
-            eth_typing.ChecksumAddress(return_value[0]),
-            int(return_value[1]),
-            int(return_value[2]),
-            int(return_value[3]),
-            hexbytes.HexBytes(return_value[4]),
-        )
-
-    def owner(
-        self,
-        block_identifier: types.BlockIdentifier = "latest",
-    ) -> eth_typing.ChecksumAddress:
-        """Binding for `owner` on the ProductRegistry contract.
-
-        Parameters
-        ----------
-        block_identifier : web3.types.BlockIdentifier
-            The block identifier, defaults to the latest block.
-
-        Returns
-        -------
-        eth_typing.ChecksumAddress
-        """
-        return_value = self._contract.functions.owner().call(
-            block_identifier=block_identifier
-        )
-        return eth_typing.ChecksumAddress(return_value)
-
-    def point_value(
-        self,
-        product_id: hexbytes.HexBytes,
-        block_identifier: types.BlockIdentifier = "latest",
-    ) -> int:
-        """Binding for `pointValue` on the ProductRegistry contract.
-
-        Parameters
-        ----------
-        product_id : hexbytes.HexBytes
-        block_identifier : web3.types.BlockIdentifier
-            The block identifier, defaults to the latest block.
-
-        Returns
-        -------
-        int
-        """
-        return_value = self._contract.functions.pointValue(
-            product_id,
-        ).call(block_identifier=block_identifier)
-        return int(return_value)
-
     def prediction_product_v1(
         self,
         product_id: hexbytes.HexBytes,
         block_identifier: types.BlockIdentifier = "latest",
     ) -> PredictionProductV1:
-        """Binding for `predictionProductV1` on the ProductRegistry contract.
+        """Binding for `predictionProductV1` on the ProductRegistryFacet contract.
 
         Parameters
         ----------
@@ -437,7 +221,7 @@ class ProductRegistry:
         product_id: hexbytes.HexBytes,
         block_identifier: types.BlockIdentifier = "latest",
     ) -> typing.Tuple[int, BaseProduct]:
-        """Binding for `products` on the ProductRegistry contract.
+        """Binding for `products` on the ProductRegistryFacet contract.
 
         Parameters
         ----------
@@ -476,31 +260,11 @@ class ProductRegistry:
             ),
         )
 
-    def proxiable_uuid(
-        self,
-        block_identifier: types.BlockIdentifier = "latest",
-    ) -> hexbytes.HexBytes:
-        """Binding for `proxiableUUID` on the ProductRegistry contract.
-
-        Parameters
-        ----------
-        block_identifier : web3.types.BlockIdentifier
-            The block identifier, defaults to the latest block.
-
-        Returns
-        -------
-        hexbytes.HexBytes
-        """
-        return_value = self._contract.functions.proxiableUUID().call(
-            block_identifier=block_identifier
-        )
-        return hexbytes.HexBytes(return_value)
-
     def register_future_product(
         self,
         product: FuturesProductV1,
     ) -> contract.ContractFunction:
-        """Binding for `registerFutureProduct` on the ProductRegistry contract.
+        """Binding for `registerFutureProduct` on the ProductRegistryFacet contract.
 
         Parameters
         ----------
@@ -544,7 +308,7 @@ class ProductRegistry:
         self,
         product: PredictionProductV1,
     ) -> contract.ContractFunction:
-        """Binding for `registerPredictionProduct` on the ProductRegistry contract.
+        """Binding for `registerPredictionProduct` on the ProductRegistryFacet contract.
 
         Parameters
         ----------
@@ -585,46 +349,12 @@ class ProductRegistry:
             ),
         )
 
-    def renounce_ownership(
-        self,
-    ) -> contract.ContractFunction:
-        """Binding for `renounceOwnership` on the ProductRegistry contract.
-
-        Returns
-        -------
-        web3.contract.contract.ContractFunction
-            A contract function instance to be sent in a transaction.
-        """
-        return self._contract.functions.renounceOwnership()
-
     def state(
         self,
         product_id: hexbytes.HexBytes,
         block_identifier: types.BlockIdentifier = "latest",
-    ) -> ProductState:
-        """Binding for `state` on the ProductRegistry contract.
-
-        Parameters
-        ----------
-        product_id : hexbytes.HexBytes
-        block_identifier : web3.types.BlockIdentifier
-            The block identifier, defaults to the latest block.
-
-        Returns
-        -------
-        ProductState
-        """
-        return_value = self._contract.functions.state(
-            product_id,
-        ).call(block_identifier=block_identifier)
-        return ProductState(return_value)
-
-    def tick_size(
-        self,
-        product_id: hexbytes.HexBytes,
-        block_identifier: types.BlockIdentifier = "latest",
     ) -> int:
-        """Binding for `tickSize` on the ProductRegistry contract.
+        """Binding for `state` on the ProductRegistryFacet contract.
 
         Parameters
         ----------
@@ -636,51 +366,32 @@ class ProductRegistry:
         -------
         int
         """
-        return_value = self._contract.functions.tickSize(
+        return_value = self._contract.functions.state(
             product_id,
         ).call(block_identifier=block_identifier)
         return int(return_value)
 
-    def transfer_ownership(
+    def type_of(
         self,
-        new_owner: eth_typing.ChecksumAddress,
-    ) -> contract.ContractFunction:
-        """Binding for `transferOwnership` on the ProductRegistry contract.
+        product_id: hexbytes.HexBytes,
+        block_identifier: types.BlockIdentifier = "latest",
+    ) -> int:
+        """Binding for `typeOf` on the ProductRegistryFacet contract.
 
         Parameters
         ----------
-        new_owner : eth_typing.ChecksumAddress
+        product_id : hexbytes.HexBytes
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
 
         Returns
         -------
-        web3.contract.contract.ContractFunction
-            A contract function instance to be sent in a transaction.
+        int
         """
-        return self._contract.functions.transferOwnership(
-            new_owner,
-        )
-
-    def upgrade_to_and_call(
-        self,
-        new_implementation: eth_typing.ChecksumAddress,
-        data: hexbytes.HexBytes,
-    ) -> contract.ContractFunction:
-        """Binding for `upgradeToAndCall` on the ProductRegistry contract.
-
-        Parameters
-        ----------
-        new_implementation : eth_typing.ChecksumAddress
-        data : hexbytes.HexBytes
-
-        Returns
-        -------
-        web3.contract.contract.ContractFunction
-            A contract function instance to be sent in a transaction.
-        """
-        return self._contract.functions.upgradeToAndCall(
-            new_implementation,
-            data,
-        )
+        return_value = self._contract.functions.typeOf(
+            product_id,
+        ).call(block_identifier=block_identifier)
+        return int(return_value)
 
 
 ABI = typing.cast(
@@ -688,40 +399,29 @@ ABI = typing.cast(
     [
         {
             "type": "function",
-            "name": "UPGRADE_INTERFACE_VERSION",
-            "inputs": [],
-            "outputs": [{"name": "", "type": "string", "internalType": "string"}],
-            "stateMutability": "view",
-        },
-        {
-            "type": "function",
-            "name": "clearing",
-            "inputs": [],
+            "name": "expirySpecification",
+            "inputs": [
+                {"name": "productId", "type": "bytes32", "internalType": "bytes32"}
+            ],
             "outputs": [
                 {
                     "name": "",
-                    "type": "address",
-                    "internalType": "contract IProductRegistryFacet",
+                    "type": "tuple",
+                    "internalType": "struct ExpirySpecification",
+                    "components": [
+                        {
+                            "name": "earliestFSPSubmissionTime",
+                            "type": "uint256",
+                            "internalType": "uint256",
+                        },
+                        {
+                            "name": "tradeoutInterval",
+                            "type": "uint256",
+                            "internalType": "uint256",
+                        },
+                    ],
                 }
             ],
-            "stateMutability": "view",
-        },
-        {
-            "type": "function",
-            "name": "collateralAsset",
-            "inputs": [
-                {"name": "productId", "type": "bytes32", "internalType": "bytes32"}
-            ],
-            "outputs": [{"name": "", "type": "address", "internalType": "address"}],
-            "stateMutability": "view",
-        },
-        {
-            "type": "function",
-            "name": "earliestFSPSubmissionTime",
-            "inputs": [
-                {"name": "productId", "type": "bytes32", "internalType": "bytes32"}
-            ],
-            "outputs": [{"name": "", "type": "uint256", "internalType": "uint256"}],
             "stateMutability": "view",
         },
         {
@@ -953,96 +653,11 @@ ABI = typing.cast(
                 }
             ],
             "outputs": [{"name": "", "type": "bytes32", "internalType": "bytes32"}],
-            "stateMutability": "view",
-        },
-        {
-            "type": "function",
-            "name": "initialize",
-            "inputs": [
-                {
-                    "name": "clearing_",
-                    "type": "address",
-                    "internalType": "contract IProductRegistryFacet",
-                }
-            ],
-            "outputs": [],
-            "stateMutability": "nonpayable",
-        },
-        {
-            "type": "function",
-            "name": "maxPrice",
-            "inputs": [
-                {"name": "productId", "type": "bytes32", "internalType": "bytes32"}
-            ],
-            "outputs": [{"name": "", "type": "int256", "internalType": "int256"}],
-            "stateMutability": "view",
-        },
-        {
-            "type": "function",
-            "name": "minPrice",
-            "inputs": [
-                {"name": "productId", "type": "bytes32", "internalType": "bytes32"}
-            ],
-            "outputs": [{"name": "", "type": "int256", "internalType": "int256"}],
-            "stateMutability": "view",
+            "stateMutability": "pure",
         },
         {
             "type": "function",
             "name": "mmr",
-            "inputs": [
-                {"name": "productId", "type": "bytes32", "internalType": "bytes32"}
-            ],
-            "outputs": [{"name": "", "type": "uint256", "internalType": "uint256"}],
-            "stateMutability": "view",
-        },
-        {
-            "type": "function",
-            "name": "oracleSpecification",
-            "inputs": [
-                {"name": "productId", "type": "bytes32", "internalType": "bytes32"}
-            ],
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "tuple",
-                    "internalType": "struct OracleSpecification",
-                    "components": [
-                        {
-                            "name": "oracleAddress",
-                            "type": "address",
-                            "internalType": "address",
-                        },
-                        {
-                            "name": "fsvDecimals",
-                            "type": "uint8",
-                            "internalType": "uint8",
-                        },
-                        {
-                            "name": "fspAlpha",
-                            "type": "int256",
-                            "internalType": "int256",
-                        },
-                        {"name": "fspBeta", "type": "int256", "internalType": "int256"},
-                        {
-                            "name": "fsvCalldata",
-                            "type": "bytes",
-                            "internalType": "bytes",
-                        },
-                    ],
-                }
-            ],
-            "stateMutability": "view",
-        },
-        {
-            "type": "function",
-            "name": "owner",
-            "inputs": [],
-            "outputs": [{"name": "", "type": "address", "internalType": "address"}],
-            "stateMutability": "view",
-        },
-        {
-            "type": "function",
-            "name": "pointValue",
             "inputs": [
                 {"name": "productId", "type": "bytes32", "internalType": "bytes32"}
             ],
@@ -1274,13 +889,6 @@ ABI = typing.cast(
                     ],
                 },
             ],
-            "stateMutability": "view",
-        },
-        {
-            "type": "function",
-            "name": "proxiableUUID",
-            "inputs": [],
-            "outputs": [{"name": "", "type": "bytes32", "internalType": "bytes32"}],
             "stateMutability": "view",
         },
         {
@@ -1548,13 +1156,6 @@ ABI = typing.cast(
         },
         {
             "type": "function",
-            "name": "renounceOwnership",
-            "inputs": [],
-            "outputs": [],
-            "stateMutability": "nonpayable",
-        },
-        {
-            "type": "function",
             "name": "state",
             "inputs": [
                 {"name": "productId", "type": "bytes32", "internalType": "bytes32"}
@@ -1566,135 +1167,72 @@ ABI = typing.cast(
         },
         {
             "type": "function",
-            "name": "tickSize",
+            "name": "typeOf",
             "inputs": [
                 {"name": "productId", "type": "bytes32", "internalType": "bytes32"}
             ],
-            "outputs": [{"name": "", "type": "uint256", "internalType": "uint256"}],
+            "outputs": [
+                {"name": "", "type": "uint8", "internalType": "enum ProductType"}
+            ],
             "stateMutability": "view",
         },
         {
-            "type": "function",
-            "name": "transferOwnership",
-            "inputs": [
-                {"name": "newOwner", "type": "address", "internalType": "address"}
-            ],
-            "outputs": [],
-            "stateMutability": "nonpayable",
-        },
-        {
-            "type": "function",
-            "name": "upgradeToAndCall",
-            "inputs": [
-                {
-                    "name": "newImplementation",
-                    "type": "address",
-                    "internalType": "address",
-                },
-                {"name": "data", "type": "bytes", "internalType": "bytes"},
-            ],
-            "outputs": [],
-            "stateMutability": "payable",
-        },
-        {
-            "type": "event",
-            "name": "Initialized",
-            "inputs": [
-                {
-                    "name": "version",
-                    "type": "uint64",
-                    "indexed": False,
-                    "internalType": "uint64",
-                }
-            ],
-            "anonymous": False,
-        },
-        {
-            "type": "event",
-            "name": "OwnershipTransferred",
-            "inputs": [
-                {
-                    "name": "previousOwner",
-                    "type": "address",
-                    "indexed": True,
-                    "internalType": "address",
-                },
-                {
-                    "name": "newOwner",
-                    "type": "address",
-                    "indexed": True,
-                    "internalType": "address",
-                },
-            ],
-            "anonymous": False,
-        },
-        {
-            "type": "event",
-            "name": "ProductRegistered",
-            "inputs": [
-                {
-                    "name": "builder",
-                    "type": "address",
-                    "indexed": True,
-                    "internalType": "address",
-                },
-                {
-                    "name": "productId",
-                    "type": "bytes32",
-                    "indexed": False,
-                    "internalType": "bytes32",
-                },
-            ],
-            "anonymous": False,
-        },
-        {
-            "type": "event",
-            "name": "Upgraded",
-            "inputs": [
-                {
-                    "name": "implementation",
-                    "type": "address",
-                    "indexed": True,
-                    "internalType": "address",
-                }
-            ],
-            "anonymous": False,
-        },
-        {
             "type": "error",
-            "name": "AddressEmptyCode",
+            "name": "InvalidFieldAccess",
             "inputs": [
-                {"name": "target", "type": "address", "internalType": "address"}
+                {
+                    "name": "productType",
+                    "type": "uint8",
+                    "internalType": "enum ProductType",
+                },
+                {"name": "field", "type": "string", "internalType": "string"},
             ],
         },
         {
             "type": "error",
-            "name": "ERC1967InvalidImplementation",
+            "name": "InvalidPriceRange",
             "inputs": [
-                {"name": "implementation", "type": "address", "internalType": "address"}
+                {"name": "minPrice", "type": "int256", "internalType": "int256"},
+                {"name": "maxPrice", "type": "int256", "internalType": "int256"},
             ],
         },
-        {"type": "error", "name": "ERC1967NonPayable", "inputs": []},
-        {"type": "error", "name": "FailedCall", "inputs": []},
-        {"type": "error", "name": "InvalidInitialization", "inputs": []},
-        {"type": "error", "name": "NotInitializing", "inputs": []},
         {
             "type": "error",
-            "name": "OwnableInvalidOwner",
-            "inputs": [{"name": "owner", "type": "address", "internalType": "address"}],
+            "name": "InvalidProductId",
+            "inputs": [
+                {"name": "productId", "type": "bytes32", "internalType": "bytes32"}
+            ],
         },
         {
             "type": "error",
-            "name": "OwnableUnauthorizedAccount",
+            "name": "InvalidStartTime",
+            "inputs": [
+                {"name": "startTime", "type": "uint256", "internalType": "uint256"},
+                {
+                    "name": "blockTimestamp",
+                    "type": "uint256",
+                    "internalType": "uint256",
+                },
+            ],
+        },
+        {
+            "type": "error",
+            "name": "NotImplemented",
+            "inputs": [{"name": "feature", "type": "string", "internalType": "string"}],
+        },
+        {
+            "type": "error",
+            "name": "ProductExists",
+            "inputs": [
+                {"name": "productId", "type": "bytes32", "internalType": "bytes32"}
+            ],
+        },
+        {
+            "type": "error",
+            "name": "Unauthorized",
             "inputs": [
                 {"name": "account", "type": "address", "internalType": "address"}
             ],
-        },
-        {"type": "error", "name": "UUPSUnauthorizedCallContext", "inputs": []},
-        {
-            "type": "error",
-            "name": "UUPSUnsupportedProxiableUUID",
-            "inputs": [{"name": "slot", "type": "bytes32", "internalType": "bytes32"}],
         },
     ],
 )
