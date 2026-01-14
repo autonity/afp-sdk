@@ -78,9 +78,9 @@ def validate_limit_price(
 def validate_price_limits(
     min_price: Decimal, max_price: Decimal
 ) -> tuple[Decimal, Decimal]:
-    if min_price > max_price:
+    if min_price >= max_price:
         raise ValueError(
-            f"Minimum price {min_price} is greater than maximum price {max_price}"
+            "The minimum product price should be less than the maximum product price"
         )
     return (min_price, max_price)
 
