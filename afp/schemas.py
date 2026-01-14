@@ -102,6 +102,8 @@ class ExchangeProduct(Model):
     tick_size: int
     collateral_asset: str
     listing_state: ListingState
+    min_price: Decimal
+    max_price: Decimal
 
     def __str__(self) -> str:
         return self.id

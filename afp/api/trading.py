@@ -88,7 +88,11 @@ class Trading(ExchangeAPI):
             trading_protocol_id=self._trading_protocol_id,
             product_id=product.id,
             limit_price=validators.validate_limit_price(
-                Decimal(limit_price), product.tick_size, rounding
+                Decimal(limit_price),
+                product.min_price,
+                product.max_price,
+                product.tick_size,
+                rounding,
             ),
             quantity=quantity,
             max_trading_fee_rate=max_trading_fee_rate,
