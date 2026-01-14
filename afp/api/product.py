@@ -172,12 +172,18 @@ class Product(ClearingSystemAPI):
     ### Transactions ###
 
     @convert_web3_error(PRODUCT_REGISTRY_ABI, CLEARING_DIAMOND_ABI)
-    def register(self, product_spec: PredictionProductV1) -> Transaction:
+    def register(
+        self, product_spec: PredictionProductV1, initial_builder_stake: Decimal
+    ) -> Transaction:
         """Submits a product specification to the clearing system.
 
         Parameters
         ----------
         product_spec : afp.schemas.ProductSpec
+            The product specification.
+        initial_builder_stake : Decimal
+            Registration stake (product maintenance fee) in units of the collateral
+            asset.
 
         Returns
         -------
@@ -194,7 +200,8 @@ class Product(ClearingSystemAPI):
         )
         return self._transact(
             product_registry_contract.register_prediction_product(
-                self._convert_product_specification(product_spec, decimals)
+                self._convert_product_specification(product_spec, decimals),
+                int(initial_builder_stake * 10**decimals),
             )
         )
 
