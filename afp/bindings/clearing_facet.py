@@ -10,6 +10,7 @@ import web3
 from web3 import types
 from web3.contract import contract
 
+
 from .types import Trade
 
 
@@ -476,6 +477,13 @@ ABI = typing.cast(
             "name": "InvalidIntent",
             "inputs": [
                 {"name": "parameter", "type": "string", "internalType": "string"}
+            ],
+        },
+        {
+            "type": "error",
+            "name": "InvalidParameter",
+            "inputs": [
+                {"name": "paramName", "type": "string", "internalType": "string"}
             ],
         },
         {

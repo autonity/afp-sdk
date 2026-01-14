@@ -48,12 +48,22 @@ class FinalSettlementConfig:
 
 
 @dataclass
+class ProductConfig:
+    """Port of `struct ProductConfig` on the AdminFacet contract."""
+
+    clearing_payout_ratio: int
+    maintenance_deposit_interval: int
+    min_product_maintenance_fee: int
+
+
+@dataclass
 class Config:
     """Port of `struct Config` on the AdminFacet contract."""
 
     clearing_config: ClearingConfig
     mark_price_config: MarkPriceConfig
     final_settlement_config: FinalSettlementConfig
+    product_config: ProductConfig
 
 
 @dataclass

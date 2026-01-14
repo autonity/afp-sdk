@@ -9,7 +9,14 @@ import web3
 from web3 import types
 from web3.contract import contract
 
-from .types import ClearingConfig, MarkPriceConfig, FinalSettlementConfig, Config
+
+from .types import (
+    ClearingConfig,
+    MarkPriceConfig,
+    FinalSettlementConfig,
+    ProductConfig,
+    Config,
+)
 
 
 class AdminFacet:
@@ -131,6 +138,11 @@ class AdminFacet:
             ClearingConfig(int(return_value[0][0]), int(return_value[0][1])),
             MarkPriceConfig(int(return_value[1][0])),
             FinalSettlementConfig(int(return_value[2][0]), int(return_value[2][1])),
+            ProductConfig(
+                int(return_value[3][0]),
+                int(return_value[3][1]),
+                int(return_value[3][2]),
+            ),
         )
 
     def get_margin_account_registry(
@@ -304,6 +316,11 @@ class AdminFacet:
                     config_.final_settlement_config.closeout_fee_rate,
                     config_.final_settlement_config.closeout_reward_rate,
                 ),
+                (
+                    config_.product_config.clearing_payout_ratio,
+                    config_.product_config.maintenance_deposit_interval,
+                    config_.product_config.min_product_maintenance_fee,
+                ),
             ),
         )
 
@@ -445,6 +462,28 @@ ABI = typing.cast(
                                 },
                             ],
                         },
+                        {
+                            "name": "productConfig",
+                            "type": "tuple",
+                            "internalType": "struct ProductConfig",
+                            "components": [
+                                {
+                                    "name": "clearingPayoutRatio",
+                                    "type": "uint32",
+                                    "internalType": "uint32",
+                                },
+                                {
+                                    "name": "maintenanceDepositInterval",
+                                    "type": "uint32",
+                                    "internalType": "uint32",
+                                },
+                                {
+                                    "name": "minProductMaintenanceFee",
+                                    "type": "uint64",
+                                    "internalType": "uint64",
+                                },
+                            ],
+                        },
                     ],
                 }
             ],
@@ -578,6 +617,28 @@ ABI = typing.cast(
                                 },
                             ],
                         },
+                        {
+                            "name": "productConfig",
+                            "type": "tuple",
+                            "internalType": "struct ProductConfig",
+                            "components": [
+                                {
+                                    "name": "clearingPayoutRatio",
+                                    "type": "uint32",
+                                    "internalType": "uint32",
+                                },
+                                {
+                                    "name": "maintenanceDepositInterval",
+                                    "type": "uint32",
+                                    "internalType": "uint32",
+                                },
+                                {
+                                    "name": "minProductMaintenanceFee",
+                                    "type": "uint64",
+                                    "internalType": "uint64",
+                                },
+                            ],
+                        },
                     ],
                 }
             ],
@@ -696,6 +757,28 @@ ABI = typing.cast(
                                 },
                             ],
                         },
+                        {
+                            "name": "productConfig",
+                            "type": "tuple",
+                            "internalType": "struct ProductConfig",
+                            "components": [
+                                {
+                                    "name": "clearingPayoutRatio",
+                                    "type": "uint32",
+                                    "internalType": "uint32",
+                                },
+                                {
+                                    "name": "maintenanceDepositInterval",
+                                    "type": "uint32",
+                                    "internalType": "uint32",
+                                },
+                                {
+                                    "name": "minProductMaintenanceFee",
+                                    "type": "uint64",
+                                    "internalType": "uint64",
+                                },
+                            ],
+                        },
                     ],
                 },
                 {
@@ -750,6 +833,28 @@ ABI = typing.cast(
                                 },
                             ],
                         },
+                        {
+                            "name": "productConfig",
+                            "type": "tuple",
+                            "internalType": "struct ProductConfig",
+                            "components": [
+                                {
+                                    "name": "clearingPayoutRatio",
+                                    "type": "uint32",
+                                    "internalType": "uint32",
+                                },
+                                {
+                                    "name": "maintenanceDepositInterval",
+                                    "type": "uint32",
+                                    "internalType": "uint32",
+                                },
+                                {
+                                    "name": "minProductMaintenanceFee",
+                                    "type": "uint64",
+                                    "internalType": "uint64",
+                                },
+                            ],
+                        },
                     ],
                 },
             ],
@@ -773,6 +878,13 @@ ABI = typing.cast(
                 },
             ],
             "anonymous": False,
+        },
+        {
+            "type": "error",
+            "name": "InvalidParameter",
+            "inputs": [
+                {"name": "paramName", "type": "string", "internalType": "string"}
+            ],
         },
     ],
 )

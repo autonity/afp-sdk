@@ -84,6 +84,25 @@ class ProductRegistry:
         )
         return str(return_value)
 
+    def claim_builder_rewards(
+        self,
+        product_id: hexbytes.HexBytes,
+    ) -> contract.ContractFunction:
+        """Binding for `claimBuilderRewards` on the ProductRegistry contract.
+
+        Parameters
+        ----------
+        product_id : hexbytes.HexBytes
+
+        Returns
+        -------
+        web3.contract.contract.ContractFunction
+            A contract function instance to be sent in a transaction.
+        """
+        return self._contract.functions.claimBuilderRewards(
+            product_id,
+        )
+
     def clearing(
         self,
         block_identifier: types.BlockIdentifier = "latest",
@@ -231,6 +250,28 @@ class ProductRegistry:
             ),
         ).call(block_identifier=block_identifier)
         return hexbytes.HexBytes(return_value)
+
+    def increase_builder_stake(
+        self,
+        product_id: hexbytes.HexBytes,
+        fee: int,
+    ) -> contract.ContractFunction:
+        """Binding for `increaseBuilderStake` on the ProductRegistry contract.
+
+        Parameters
+        ----------
+        product_id : hexbytes.HexBytes
+        fee : int
+
+        Returns
+        -------
+        web3.contract.contract.ContractFunction
+            A contract function instance to be sent in a transaction.
+        """
+        return self._contract.functions.increaseBuilderStake(
+            product_id,
+            fee,
+        )
 
     def initialize(
         self,
@@ -432,6 +473,50 @@ class ProductRegistry:
             int(return_value[3]),
         )
 
+    def price_decimals(
+        self,
+        product_id: hexbytes.HexBytes,
+        block_identifier: types.BlockIdentifier = "latest",
+    ) -> int:
+        """Binding for `priceDecimals` on the ProductRegistry contract.
+
+        Parameters
+        ----------
+        product_id : hexbytes.HexBytes
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
+
+        Returns
+        -------
+        int
+        """
+        return_value = self._contract.functions.priceDecimals(
+            product_id,
+        ).call(block_identifier=block_identifier)
+        return int(return_value)
+
+    def product_treasury(
+        self,
+        product_id: hexbytes.HexBytes,
+        block_identifier: types.BlockIdentifier = "latest",
+    ) -> eth_typing.ChecksumAddress:
+        """Binding for `productTreasury` on the ProductRegistry contract.
+
+        Parameters
+        ----------
+        product_id : hexbytes.HexBytes
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
+
+        Returns
+        -------
+        eth_typing.ChecksumAddress
+        """
+        return_value = self._contract.functions.productTreasury(
+            product_id,
+        ).call(block_identifier=block_identifier)
+        return eth_typing.ChecksumAddress(return_value)
+
     def products(
         self,
         product_id: hexbytes.HexBytes,
@@ -499,12 +584,14 @@ class ProductRegistry:
     def register_future_product(
         self,
         product: FuturesProductV1,
+        initial_builder_stake: int,
     ) -> contract.ContractFunction:
         """Binding for `registerFutureProduct` on the ProductRegistry contract.
 
         Parameters
         ----------
         product : FuturesProductV1
+        initial_builder_stake : int
 
         Returns
         -------
@@ -538,17 +625,20 @@ class ProductRegistry:
                 ),
                 (product.margin_spec.imr, product.margin_spec.mmr),
             ),
+            initial_builder_stake,
         )
 
     def register_prediction_product(
         self,
         product: PredictionProductV1,
+        initial_builder_stake: int,
     ) -> contract.ContractFunction:
         """Binding for `registerPredictionProduct` on the ProductRegistry contract.
 
         Parameters
         ----------
         product : PredictionProductV1
+        initial_builder_stake : int
 
         Returns
         -------
@@ -583,6 +673,7 @@ class ProductRegistry:
                 product.max_price,
                 product.min_price,
             ),
+            initial_builder_stake,
         )
 
     def renounce_ownership(
@@ -692,6 +783,15 @@ ABI = typing.cast(
             "inputs": [],
             "outputs": [{"name": "", "type": "string", "internalType": "string"}],
             "stateMutability": "view",
+        },
+        {
+            "type": "function",
+            "name": "claimBuilderRewards",
+            "inputs": [
+                {"name": "productId", "type": "bytes32", "internalType": "bytes32"}
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable",
         },
         {
             "type": "function",
@@ -957,6 +1057,16 @@ ABI = typing.cast(
         },
         {
             "type": "function",
+            "name": "increaseBuilderStake",
+            "inputs": [
+                {"name": "productId", "type": "bytes32", "internalType": "bytes32"},
+                {"name": "fee", "type": "uint256", "internalType": "uint256"},
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable",
+        },
+        {
+            "type": "function",
             "name": "initialize",
             "inputs": [
                 {
@@ -1177,6 +1287,24 @@ ABI = typing.cast(
                     ],
                 }
             ],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
+            "name": "priceDecimals",
+            "inputs": [
+                {"name": "productId", "type": "bytes32", "internalType": "bytes32"}
+            ],
+            "outputs": [{"name": "", "type": "uint256", "internalType": "uint256"}],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
+            "name": "productTreasury",
+            "inputs": [
+                {"name": "productId", "type": "bytes32", "internalType": "bytes32"}
+            ],
+            "outputs": [{"name": "", "type": "address", "internalType": "address"}],
             "stateMutability": "view",
         },
         {
@@ -1413,7 +1541,12 @@ ABI = typing.cast(
                             ],
                         },
                     ],
-                }
+                },
+                {
+                    "name": "initialBuilderStake",
+                    "type": "uint256",
+                    "internalType": "uint256",
+                },
             ],
             "outputs": [{"name": "", "type": "bytes32", "internalType": "bytes32"}],
             "stateMutability": "nonpayable",
@@ -1541,7 +1674,12 @@ ABI = typing.cast(
                             "internalType": "int256",
                         },
                     ],
-                }
+                },
+                {
+                    "name": "initialBuilderStake",
+                    "type": "uint256",
+                    "internalType": "uint256",
+                },
             ],
             "outputs": [{"name": "", "type": "bytes32", "internalType": "bytes32"}],
             "stateMutability": "nonpayable",

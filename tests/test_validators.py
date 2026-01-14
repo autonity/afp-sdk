@@ -102,7 +102,7 @@ def test_validate_limit_price__max_price_breach():
 
 
 def test_validate_price_limits__pass():
-    validators.validate_price_limits(Decimal("0.11"), Decimal("0.11"))
+    validators.validate_price_limits(Decimal("0.11"), Decimal("0.12"))
 
 
 def test_validate_price_limits__error():
