@@ -116,9 +116,9 @@ class ExchangeProductFilter(PaginationFilter):
 class IntentData(Model):
     trading_protocol_id: str
     product_id: str
-    limit_price: Annotated[Decimal, Field(gt=0)]
+    limit_price: Decimal
     quantity: Annotated[int, Field(gt=0)]
-    max_trading_fee_rate: Annotated[Decimal, Field(ge=0)]
+    max_trading_fee_rate: Decimal
     side: OrderSide
     good_until_time: Timestamp
     nonce: int
