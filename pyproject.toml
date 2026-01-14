@@ -74,8 +74,8 @@ doc-gen = [
 ]
 
 [tool.pyright]
+include = ["./afp", "./examples", "./tests"]
 strict = ["./afp", "./examples"]
-exclude = ["./tests", "./.venv"]
 
 [tool.uv]
 package = true
