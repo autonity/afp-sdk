@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 from functools import partial
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, Self
 
 import inflection
 from pydantic import (
@@ -13,6 +13,7 @@ from pydantic import (
     Field,
     PlainSerializer,
     computed_field,
+    model_validator,
 )
 
 from . import validators
@@ -240,10 +241,15 @@ class Position(Model):
     pnl: Decimal
 
 
-# Builder API
+# Product API
 
 
-class OracleSpec(Model):
+class ExpirySpecification(Model):
+    earliest_fsp_submission_time: Timestamp
+    tradeout_interval: Annotated[int, Field(ge=0)]
+
+
+class OracleSpecification(Model):
     oracle_address: Annotated[str, AfterValidator(validators.validate_address)]
     fsv_decimals: Annotated[int, Field(ge=0, lt=256)]  # uint8
     fsp_alpha: Decimal
@@ -257,24 +263,29 @@ class ProductMetadata(Model):
     description: str
 
 
-class ProductSpec(Model):
+class BaseProduct(Model):
     id: str
     metadata: ProductMetadata
-    oracle_spec: OracleSpec
-    start_time: Timestamp
-    earliest_fsp_submission_time: Timestamp
+    oracle_spec: OracleSpecification
     collateral_asset: Annotated[str, AfterValidator(validators.validate_address)]
-    price_quotation: str
-    tick_size: Annotated[int, Field(ge=0)]
-    unit_value: Annotated[Decimal, Field(gt=0)]
-    initial_margin_requirement: Annotated[Decimal, Field(gt=0)]
-    maintenance_margin_requirement: Annotated[Decimal, Field(gt=0)]
-    auction_bounty: Annotated[Decimal, Field(ge=0, le=1)]
-    tradeout_interval: Annotated[int, Field(ge=0)]
+    start_time: Timestamp
+    point_value: Annotated[Decimal, Field(gt=0)]
+    price_decimals: Annotated[int, Field(ge=0)]
     extended_metadata: str = ""
 
     def __str__(self) -> str:
         return self.id
+
+
+class PredictionProductV1(BaseProduct):
+    expiry_spec: ExpirySpecification
+    min_price: Decimal
+    max_price: Decimal
+
+    @model_validator(mode="after")
+    def validate_price_limits(self) -> Self:
+        validators.validate_price_limits(self.min_price, self.max_price)
+        return self
 
 
 # Liquidation API

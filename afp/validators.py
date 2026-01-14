@@ -75,6 +75,16 @@ def validate_limit_price(
     return value.quantize(Decimal("10") ** -tick_size, rounding=rounding)
 
 
+def validate_price_limits(
+    min_price: Decimal, max_price: Decimal
+) -> tuple[Decimal, Decimal]:
+    if min_price > max_price:
+        raise ValueError(
+            f"Minimum price {min_price} is greater than maximum price {max_price}"
+        )
+    return (min_price, max_price)
+
+
 def verify_collateral_asset(w3: Web3, address: str) -> ChecksumAddress:
     address = validate_address(address)
     if len(w3.eth.get_code(address)) == 0:

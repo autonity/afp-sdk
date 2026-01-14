@@ -26,7 +26,7 @@ def test_timestamp_conversion():
 
 
 def test_validate_hexstr32__pass():
-    assert validators.validate_hexstr32(
+    validators.validate_hexstr32(
         "0xe50c0a9639bdec3c05484a4e912650e63039fd5032f4050b1d1cdd0dd0efb61b"
     )
 
@@ -99,3 +99,12 @@ def test_validate_limit_price__max_price_breach():
         validators.validate_limit_price(
             Decimal("1.25"), Decimal("1"), Decimal("1.24"), 2
         )
+
+
+def test_validate_price_limits__pass():
+    validators.validate_price_limits(Decimal("0.11"), Decimal("0.11"))
+
+
+def test_validate_price_limits__error():
+    with pytest.raises(ValueError):
+        validators.validate_price_limits(Decimal("0.11"), Decimal("0.10"))

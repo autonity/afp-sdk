@@ -8,9 +8,11 @@ from web3 import Web3
 
 from .. import constants, hashing, validators
 from ..bindings import (
+    BaseProduct,
     ClearingDiamond,
-    OracleSpecification,
-    Product as OnChainProduct,
+    ExpirySpecification as OnChainExpirySpecification,
+    OracleSpecification as OnChainOracleSpecification,
+    PredictionProductV1 as OnChainPredictionProductV1,
     ProductMetadata as OnChainProductMetadata,
     ProductRegistry,
 )
@@ -19,7 +21,13 @@ from ..bindings.facade import CLEARING_DIAMOND_ABI
 from ..bindings.product_registry import ABI as PRODUCT_REGISTRY_ABI
 from ..decorators import convert_web3_error
 from ..exceptions import NotFoundError
-from ..schemas import OracleSpec, ProductMetadata, ProductSpec, Transaction
+from ..schemas import (
+    ExpirySpecification,
+    OracleSpecification,
+    PredictionProductV1,
+    ProductMetadata,
+    Transaction,
+)
 from .base import ClearingSystemAPI
 
 
@@ -38,18 +46,17 @@ class Product(ClearingSystemAPI):
         fsp_alpha: Decimal,
         fsp_beta: Decimal,
         fsv_calldata: str,
-        start_time: datetime,
-        earliest_fsp_submission_time: datetime,
         collateral_asset: str,
-        tick_size: int,
-        unit_value: Decimal,
-        initial_margin_requirement: Decimal,
-        maintenance_margin_requirement: Decimal,
-        auction_bounty: Decimal,
+        start_time: datetime,
+        point_value: Decimal,
+        price_decimals: int,
+        earliest_fsp_submission_time: datetime,
         tradeout_interval: int,
+        min_price: Decimal,
+        max_price: Decimal,
         extended_metadata: str = "",
         oracle_address: str | None = None,
-    ) -> ProductSpec:
+    ) -> PredictionProductV1:
         """Creates a product specification with the given product data.
 
         The builder account's address is derived from the private key; the price
@@ -61,29 +68,25 @@ class Product(ClearingSystemAPI):
         description : str
         fsv_decimals: int
         fsp_alpha: Decimal
-        fsp_beta: int
+        fsp_beta: Decimal
         fsv_calldata: str
-        start_time : datetime
-        earliest_fsp_submission_time : datetime
         collateral_asset : str
-        tick_size : int
-        unit_value : Decimal
-        initial_margin_requirement : Decimal
-        maintenance_margin_requirement : Decimal
-        auction_bounty : Decimal
+        start_time : datetime
+        point_value : Decimal
+        price_decimals : int
+        earliest_fsp_submission_time : datetime
         tradeout_interval : int
+        min_price : Decimal
+        max_price : Decimal
         extended_metadata : str, optional
         oracle_address: str, optional
 
         Returns
         -------
-        afp.schemas.ProductSpec
+        afp.schemas.PredictionProductV1
         """
         if oracle_address is None:
             oracle_address = self._config.oracle_provider_address
-
-        erc20_contract = ERC20(self._w3, Web3.to_checksum_address(collateral_asset))
-        price_quotation = erc20_contract.symbol()
 
         # Verify contracts
         collateral_asset = validators.verify_collateral_asset(
@@ -95,35 +98,35 @@ class Product(ClearingSystemAPI):
             hashing.generate_product_id(self._authenticator.address, symbol)
         )
 
-        return ProductSpec(
+        return PredictionProductV1(
             id=product_id,
             metadata=ProductMetadata(
                 builder_id=self._authenticator.address,
                 symbol=symbol,
                 description=description,
             ),
-            oracle_spec=OracleSpec(
+            oracle_spec=OracleSpecification(
                 oracle_address=oracle_address,
                 fsv_decimals=fsv_decimals,
                 fsp_alpha=fsp_alpha,
                 fsp_beta=fsp_beta,
                 fsv_calldata=fsv_calldata,
             ),
-            price_quotation=price_quotation,
             collateral_asset=collateral_asset,
             start_time=start_time,
-            earliest_fsp_submission_time=earliest_fsp_submission_time,
-            tick_size=tick_size,
-            unit_value=unit_value,
-            initial_margin_requirement=initial_margin_requirement,
-            maintenance_margin_requirement=maintenance_margin_requirement,
-            auction_bounty=auction_bounty,
-            tradeout_interval=tradeout_interval,
+            point_value=point_value,
+            price_decimals=price_decimals,
             extended_metadata=extended_metadata,
+            expiry_spec=ExpirySpecification(
+                earliest_fsp_submission_time=earliest_fsp_submission_time,
+                tradeout_interval=tradeout_interval,
+            ),
+            min_price=min_price,
+            max_price=max_price,
         )
 
     @convert_web3_error()
-    def parse(self, spec: dict[str, Any]) -> ProductSpec:
+    def parse(self, spec: dict[str, Any]) -> PredictionProductV1:
         """Creates a product specification from a dictionary.
 
         The dictionary must follow the schema of the afp.schemas.ProductSpec model.
@@ -131,20 +134,18 @@ class Product(ClearingSystemAPI):
         Parameters
         ----------
         spec : dict
-            A dictionary that follows the schema of the afp.schemas.ProductSpec model.
+            A dictionary that follows the schema of the afp.schemas.PredictionProductV1
+            model.
 
         Returns
         -------
-        afp.schemas.ProductSpec
+        afp.schemas.PredictionProductV1
         """
         # Set default values
         if spec["oracle_spec"].get("oracle_address") is None:
             spec["oracle_spec"]["oracle_address"] = self._config.oracle_provider_address
         if spec["metadata"].get("builder_id") is None:
             spec["metadata"]["builder_id"] = self._authenticator.address
-        if spec.get("price_quotation") is None:
-            erc20_contract = ERC20(self._w3, spec["collateral_asset"])
-            spec["price_quotation"] = erc20_contract.symbol()
 
         # Verify contracts
         spec["collateral_asset"] = validators.verify_collateral_asset(
@@ -161,12 +162,12 @@ class Product(ClearingSystemAPI):
             )
         )
 
-        return ProductSpec.model_validate(spec)
+        return PredictionProductV1.model_validate(spec)
 
     ### Transactions ###
 
     @convert_web3_error(PRODUCT_REGISTRY_ABI)
-    def register(self, product_spec: ProductSpec) -> Transaction:
+    def register(self, product_spec: PredictionProductV1) -> Transaction:
         """Submits a product specification to the clearing system.
 
         Parameters
@@ -187,7 +188,7 @@ class Product(ClearingSystemAPI):
             self._w3, self._config.product_registry_address
         )
         return self._transact(
-            product_registry_contract.register(
+            product_registry_contract.register_prediction_product(
                 self._convert_product_specification(product_spec, decimals)
             )
         )
@@ -274,42 +275,42 @@ class Product(ClearingSystemAPI):
 
     @staticmethod
     def _convert_product_specification(
-        product: ProductSpec, decimals: int
-    ) -> OnChainProduct:
-        return OnChainProduct(
-            metadata=OnChainProductMetadata(
-                builder=cast(ChecksumAddress, product.metadata.builder_id),
-                symbol=product.metadata.symbol,
-                description=product.metadata.description,
-            ),
-            oracle_spec=OracleSpecification(
-                oracle_address=cast(
-                    ChecksumAddress, product.oracle_spec.oracle_address
+        product: PredictionProductV1, decimals: int
+    ) -> OnChainPredictionProductV1:
+        return OnChainPredictionProductV1(
+            base=BaseProduct(
+                metadata=OnChainProductMetadata(
+                    builder=cast(ChecksumAddress, product.metadata.builder_id),
+                    symbol=product.metadata.symbol,
+                    description=product.metadata.description,
                 ),
-                fsv_decimals=product.oracle_spec.fsv_decimals,
-                fsp_alpha=int(
-                    product.oracle_spec.fsp_alpha * constants.FULL_PRECISION_MULTIPLIER
+                oracle_spec=OnChainOracleSpecification(
+                    oracle_address=cast(
+                        ChecksumAddress, product.oracle_spec.oracle_address
+                    ),
+                    fsv_decimals=product.oracle_spec.fsv_decimals,
+                    fsp_alpha=int(
+                        product.oracle_spec.fsp_alpha
+                        * constants.FULL_PRECISION_MULTIPLIER
+                    ),
+                    fsp_beta=int(
+                        product.oracle_spec.fsp_beta
+                        * 10**product.oracle_spec.fsv_decimals
+                    ),
+                    fsv_calldata=HexBytes(product.oracle_spec.fsv_calldata),
                 ),
-                fsp_beta=int(
-                    product.oracle_spec.fsp_beta * 10**product.oracle_spec.fsv_decimals
+                collateral_asset=cast(ChecksumAddress, product.collateral_asset),
+                start_time=int(product.start_time.timestamp()),
+                point_value=int(product.point_value * 10**decimals),
+                price_decimals=product.price_decimals,
+                extended_metadata=product.extended_metadata,
+            ),
+            expiry_spec=OnChainExpirySpecification(
+                earliest_fsp_submission_time=int(
+                    product.expiry_spec.earliest_fsp_submission_time.timestamp()
                 ),
-                fsv_calldata=HexBytes(product.oracle_spec.fsv_calldata),
+                tradeout_interval=product.expiry_spec.tradeout_interval,
             ),
-            price_quotation=product.price_quotation,
-            collateral_asset=cast(ChecksumAddress, product.collateral_asset),
-            start_time=int(product.start_time.timestamp()),
-            earliest_fsp_submission_time=int(
-                product.earliest_fsp_submission_time.timestamp()
-            ),
-            tick_size=product.tick_size,
-            unit_value=int(product.unit_value * 10**decimals),
-            initial_margin_requirement=int(
-                product.initial_margin_requirement * constants.RATE_MULTIPLIER
-            ),
-            maintenance_margin_requirement=int(
-                product.maintenance_margin_requirement * constants.RATE_MULTIPLIER
-            ),
-            auction_bounty=int(product.auction_bounty * constants.RATE_MULTIPLIER),
-            tradeout_interval=product.tradeout_interval,
-            extended_metadata=product.extended_metadata,
+            max_price=int(product.max_price * 10**product.price_decimals),
+            min_price=int(product.min_price * 10**product.price_decimals),
         )
