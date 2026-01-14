@@ -24,7 +24,7 @@ defaults = SimpleNamespace(
     PRIVATE_KEY=os.getenv("AFP_PRIVATE_KEY", None),
     # Venue parameters
     EXCHANGE_URL=os.getenv(
-        "AFP_EXCHANGE_URL", "https://afp-exchange-stable.up.railway.app"
+        "AFP_EXCHANGE_URL", "https://exchange-server-next.up.railway.app/"
     ),
     # Blockchain parameters
     RPC_URL=os.getenv("AFP_RPC_URL", None),
@@ -37,19 +37,19 @@ defaults = SimpleNamespace(
     TIMEOUT_SECONDS=int(os.getenv("AFP_TIMEOUT_SECONDS", 10)),
     # Clearing System parameters
     CLEARING_DIAMOND_ADDRESS=os.getenv(
-        "AFP_CLEARING_DIAMOND_ADDRESS", "0x5B5411F1548254d25360d71FE40cFc1cC983B2A2"
+        "AFP_CLEARING_DIAMOND_ADDRESS", "0x6Dc8cd65B03e0462C4D5E954b924ec86D3408FE7"
     ),
     MARGIN_ACCOUNT_REGISTRY_ADDRESS=os.getenv(
         "AFP_MARGIN_ACCOUNT_REGISTRY_ADDRESS",
-        "0x99f4FA9Cdce7AD227eB84907936a8FeF2095D846",
+        "0x801cCa84bcb57418044c882Dfb4B03cc35bE848f",
     ),
     ORACLE_PROVIDER_ADDRESS=os.getenv(
-        "AFP_ORACLE_PROVIDER_ADDRESS", "0xF2A2A27da33D30B4BF38D7e186E7B0b1e964e55c"
+        "AFP_ORACLE_PROVIDER_ADDRESS", "0x72EeD9f7286292f119089F56e3068a3A931FCD49"
     ),
     PRODUCT_REGISTRY_ADDRESS=os.getenv(
-        "AFP_PRODUCT_REGISTRY_ADDRESS", "0x86B3829471929B115367DA0958f56A6AB844b08e"
+        "AFP_PRODUCT_REGISTRY_ADDRESS", "0xab792A6e84c5A22C7A27FEd904AB83ca2fbA4c5e"
     ),
     SYSTEM_VIEWER_ADDRESS=os.getenv(
-        "AFP_SYSTEM_VIEWER_ADDRESS", "0xfF2DFcC44a95cce96E03EfC33C65c8Be671Bae5B"
+        "AFP_SYSTEM_VIEWER_ADDRESS", "0xF2F903B8956Ca6868E165989A9ebEEE72F4D3e3F"
     ),
 )
