@@ -1,8 +1,5 @@
 """Typed bindings around the smart contracts of the Autonomous Futures Protocol."""
 
-from .auctioneer_facet import AuctionConfig, AuctionData, BidData
-from .bankruptcy_facet import LAAData, PositionLossData
-from .clearing_facet import ClearingConfig, Config, Intent, IntentData, Side, Trade
 from .facade import (
     ClearingDiamond,
     MarginAccountRegistry,
@@ -10,15 +7,28 @@ from .facade import (
     ProductRegistry,
     SystemViewer,
 )
-from .margin_account import MarginAccount, PositionData, Settlement
-from .product_registry import (
+from .margin_account import MarginAccount
+from .types import (
+    BaseProduct,
+    ClearingConfig,
+    Config,
+    ExpirySpecification,
+    FinalSettlementConfig,
+    FuturesProductV1,
+    Intent,
+    IntentData,
+    MarginData,
+    MarginSpecification,
+    MarkPriceConfig,
     OracleSpecification,
-    Product,
+    PositionData,
+    PredictionProductV1,
     ProductMetadata,
     ProductState,
+    Settlement,
+    Side,
+    Trade,
 )
-from .system_viewer import UserMarginAccountData
-from .trading_protocol import TradingProtocol
 
 __all__ = (
     # Contract bindings
@@ -28,24 +38,26 @@ __all__ = (
     "OracleProvider",
     "ProductRegistry",
     "SystemViewer",
-    "TradingProtocol",
     # Structures
-    "AuctionConfig",
-    "AuctionData",
-    "BidData",
+    "BaseProduct",
     "ClearingConfig",
     "Config",
+    "ExpirySpecification",
+    "FinalSettlementConfig",
+    "FuturesProductV1",
     "Intent",
     "IntentData",
-    "LAAData",
+    "MarginData",
+    "MarginSpecification",
+    "MarkPriceConfig",
     "OracleSpecification",
     "PositionData",
-    "PositionLossData",
-    "Product",
+    "PredictionProductV1",
     "ProductMetadata",
+    "ProductState",
     "Settlement",
+    "Side",
     "Trade",
-    "UserMarginAccountData",
     # Enumerations
     "ProductState",
     "Side",

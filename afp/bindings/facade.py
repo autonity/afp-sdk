@@ -5,14 +5,15 @@ from eth_typing.evm import ChecksumAddress
 from web3 import Web3
 
 from . import (
-    auctioneer_facet,
-    bankruptcy_facet,
+    admin_facet,
     clearing_facet,
     final_settlement_facet,
+    margin_account_facet,
     margin_account_registry,
     mark_price_tracker_facet,
     oracle_provider,
     product_registry,
+    product_registry_facet,
     system_viewer,
 )
 from ..constants import defaults
@@ -23,21 +24,23 @@ from ..constants import defaults
 
 CLEARING_DIAMOND_ABI = list(
     chain(
-        auctioneer_facet.ABI,
-        bankruptcy_facet.ABI,
+        admin_facet.ABI,
         clearing_facet.ABI,
         final_settlement_facet.ABI,
+        margin_account_facet.ABI,
         mark_price_tracker_facet.ABI,
+        product_registry_facet.ABI,
     )
 )
 
 
 class ClearingDiamond(
-    auctioneer_facet.AuctioneerFacet,
-    bankruptcy_facet.BankruptcyFacet,
+    admin_facet.AdminFacet,
     clearing_facet.ClearingFacet,
     final_settlement_facet.FinalSettlementFacet,
+    margin_account_facet.MarginAccountFacet,
     mark_price_tracker_facet.MarkPriceTrackerFacet,
+    product_registry_facet.ProductRegistryFacet,
 ):
     """ClearingDiamond contract binding.
 
