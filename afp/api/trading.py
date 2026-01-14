@@ -26,6 +26,9 @@ from ..schemas import (
 from .base import ExchangeAPI
 
 
+NULL_ADDRESS = "0x0000000000000000000000000000000000000000"
+
+
 class Trading(ExchangeAPI):
     """API for trading in the AutEx exchange."""
 
@@ -99,7 +102,7 @@ class Trading(ExchangeAPI):
             side=OrderSide(side.upper()),
             good_until_time=good_until_time,
             nonce=self._generate_nonce(),
-            referral=referral,
+            referral=(referral if referral is not None else NULL_ADDRESS),
         )
         intent_hash = hashing.generate_intent_hash(
             intent_data=intent_data,

@@ -21,6 +21,7 @@ def test_generate_intent_hash():
         side=OrderSide.ASK,
         good_until_time=datetime.fromisoformat("2030-01-01T12:00:00Z"),
         nonce=42,
+        referral="0x0000000000000000000000000000000000000000",
     )
     margin_account_id = cast(
         ChecksumAddress, "0x51541B823f9C28e8E43E18c0F0d50B405FCB8aD4"
