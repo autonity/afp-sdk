@@ -120,6 +120,7 @@ class IntentData(Model):
     side: OrderSide
     good_until_time: Timestamp
     nonce: int
+    referral: Annotated[str | None, AfterValidator(validators.validate_address)] = None
 
 
 class Intent(Model):
