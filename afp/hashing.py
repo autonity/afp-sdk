@@ -6,15 +6,15 @@ from hexbytes import HexBytes
 from web3 import Web3
 
 from . import constants
-from .bindings import clearing_facet
+from .bindings import Side as OnChainSide
 from .schemas import IntentData, OrderSide
 
 
 NULL_ADDRESS = cast(ChecksumAddress, "0x0000000000000000000000000000000000000000")
 
 ORDER_SIDE_MAPPING: dict[OrderSide, int] = {
-    OrderSide.BID: clearing_facet.Side.BID.value,
-    OrderSide.ASK: clearing_facet.Side.ASK.value,
+    OrderSide.BID: OnChainSide.BID.value,
+    OrderSide.ASK: OnChainSide.ASK.value,
 }
 
 

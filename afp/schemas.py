@@ -286,21 +286,3 @@ class PredictionProductV1(BaseProduct):
     def validate_price_limits(self) -> Self:
         validators.validate_price_limits(self.min_price, self.max_price)
         return self
-
-
-# Liquidation API
-
-
-class Bid(Model):
-    product_id: Annotated[str, AfterValidator(validators.validate_hexstr32)]
-    price: Annotated[Decimal, Field(gt=0)]
-    quantity: Annotated[int, Field(gt=0)]
-    side: OrderSide
-
-
-class AuctionData(Model):
-    start_block: int
-    margin_account_equity_at_initiation: Decimal
-    maintenance_margin_used_at_initiation: Decimal
-    margin_account_equity_now: Decimal
-    maintenance_margin_used_now: Decimal
