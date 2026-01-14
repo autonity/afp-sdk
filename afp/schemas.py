@@ -264,7 +264,6 @@ class ProductMetadata(Model):
 
 
 class BaseProduct(Model):
-    id: str
     metadata: ProductMetadata
     oracle_spec: OracleSpecification
     collateral_asset: Annotated[str, AfterValidator(validators.validate_address)]
@@ -273,11 +272,10 @@ class BaseProduct(Model):
     price_decimals: Annotated[int, Field(ge=0)]
     extended_metadata: str = ""
 
-    def __str__(self) -> str:
-        return self.id
 
-
-class PredictionProductV1(BaseProduct):
+class PredictionProductV1(Model):
+    id: str
+    base: BaseProduct
     expiry_spec: ExpirySpecification
     min_price: Decimal
     max_price: Decimal
@@ -286,3 +284,6 @@ class PredictionProductV1(BaseProduct):
     def validate_price_limits(self) -> Self:
         validators.validate_price_limits(self.min_price, self.max_price)
         return self
+
+    def __str__(self) -> str:
+        return self.id
