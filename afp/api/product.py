@@ -22,11 +22,8 @@ from ..bindings.product_registry import ABI as PRODUCT_REGISTRY_ABI
 from ..decorators import convert_web3_error
 from ..exceptions import NotFoundError
 from ..schemas import (
-    BaseProduct,
-    ExpirySpecification,
-    OracleSpecification,
+    PredictionProduct,
     PredictionProductV1,
-    ProductMetadata,
     Transaction,
 )
 from .base import ClearingSystemAPI
@@ -35,95 +32,9 @@ from .base import ClearingSystemAPI
 class Product(ClearingSystemAPI):
     """API for managing products."""
 
-    ### Factories ###
+    ### Product Specification ###
 
-    @convert_web3_error()
-    def create(
-        self,
-        *,
-        symbol: str,
-        description: str,
-        fsv_decimals: int,
-        fsp_alpha: Decimal,
-        fsp_beta: Decimal,
-        fsv_calldata: str,
-        collateral_asset: str,
-        start_time: datetime,
-        point_value: Decimal,
-        price_decimals: int,
-        earliest_fsp_submission_time: datetime,
-        tradeout_interval: int,
-        min_price: Decimal,
-        max_price: Decimal,
-        extended_metadata: str = "",
-        oracle_address: str | None = None,
-    ) -> PredictionProductV1:
-        """Creates a product specification with the given product data.
-
-        The builder account's address is derived from the private key.
-
-        Parameters
-        ----------
-        symbol : str
-        description : str
-        fsv_decimals: int
-        fsp_alpha: Decimal
-        fsp_beta: Decimal
-        fsv_calldata: str
-        collateral_asset : str
-        start_time : datetime
-        point_value : Decimal
-        price_decimals : int
-        earliest_fsp_submission_time : datetime
-        tradeout_interval : int
-        min_price : Decimal
-        max_price : Decimal
-        extended_metadata : str, optional
-        oracle_address: str, optional
-
-        Returns
-        -------
-        afp.schemas.PredictionProductV1
-        """
-        if oracle_address is None:
-            oracle_address = self._config.oracle_provider_address
-
-        # Verify contracts
-        collateral_asset = validators.verify_collateral_asset(
-            self._w3, collateral_asset
-        )
-        oracle_address = validators.verify_oracle(self._w3, oracle_address)
-
-        return PredictionProductV1(
-            base=BaseProduct(
-                metadata=ProductMetadata(
-                    builder=self._authenticator.address,
-                    symbol=symbol,
-                    description=description,
-                ),
-                oracle_spec=OracleSpecification(
-                    oracle_address=oracle_address,
-                    fsv_decimals=fsv_decimals,
-                    fsp_alpha=fsp_alpha,
-                    fsp_beta=fsp_beta,
-                    fsv_calldata=fsv_calldata,
-                ),
-                collateral_asset=collateral_asset,
-                start_time=start_time,
-                point_value=point_value,
-                price_decimals=price_decimals,
-                extended_metadata=extended_metadata,
-            ),
-            expiry_spec=ExpirySpecification(
-                earliest_fsp_submission_time=earliest_fsp_submission_time,
-                tradeout_interval=tradeout_interval,
-            ),
-            min_price=min_price,
-            max_price=max_price,
-        )
-
-    @convert_web3_error()
-    def parse(self, dct: dict[str, Any]) -> PredictionProductV1:
+    def parse(self, dct: dict[str, Any]) -> PredictionProduct:
         """Creates a product specification from a dictionary.
 
         The dictionary must follow the schema of the afp.schemas.ProductSpec model.
@@ -131,36 +42,20 @@ class Product(ClearingSystemAPI):
         Parameters
         ----------
         spec : dict
-            A dictionary that follows the PredictionProductV1 v0.2 JSON schema.
+            A dictionary that follows the PredictionProduct schema.
 
         Returns
         -------
         afp.schemas.PredictionProductV1
         """
-        # Set default values
-        if dct["base"]["oracleSpec"].get("oracleAddress") is None:
-            dct["base"]["oracleSpec"]["oracleAddress"] = (
-                self._config.oracle_provider_address
-            )
-        if dct["base"]["metadata"].get("builder") is None:
-            dct["base"]["metadata"]["builder"] = self._authenticator.address
+        return PredictionProduct.model_validate(dct)
 
-        # Verify contracts
-        dct["base"]["collateralAsset"] = validators.verify_collateral_asset(
-            self._w3, dct["base"].get("collateralAsset")
-        )
-        dct["base"]["oracleSpec"]["oracleAddress"] = validators.verify_oracle(
-            self._w3, dct["base"]["oracleSpec"].get("oracleAddress")
-        )
-
-        return PredictionProductV1.model_validate(dct)
-
-    def dump(self, product_spec: PredictionProductV1) -> dict[str, Any]:
+    def dump(self, product_spec: PredictionProduct) -> dict[str, Any]:
         """Creates a dictionary from a product specification.
 
         Parameters
         ----------
-        product_spec : PredictionProductV1
+        product_spec : PredictionProduct
 
         Returns
         -------
@@ -168,14 +63,14 @@ class Product(ClearingSystemAPI):
         """
         return product_spec.model_dump(by_alias=True)
 
-    def id(self, product_spec: PredictionProductV1) -> str:
+    def id(self, product_spec: PredictionProduct) -> str:
         """Generates the product ID for a product specification.
 
         This is the ID that the product will get after successful registration.
 
         Parameters
         ----------
-        product_spec : afp.schemas.PredictionProductV1
+        product_spec : afp.schemas.PredictionProduct
             The product specification.
 
         Returns
@@ -184,8 +79,8 @@ class Product(ClearingSystemAPI):
         """
         return Web3.to_hex(
             hashing.generate_product_id(
-                cast(ChecksumAddress, product_spec.base.metadata.builder),
-                product_spec.base.metadata.symbol,
+                cast(ChecksumAddress, product_spec.product.base.metadata.builder),
+                product_spec.product.base.metadata.symbol,
             )
         )
 
@@ -193,13 +88,13 @@ class Product(ClearingSystemAPI):
 
     @convert_web3_error(PRODUCT_REGISTRY_ABI, CLEARING_DIAMOND_ABI)
     def register(
-        self, product_spec: PredictionProductV1, initial_builder_stake: Decimal
+        self, product_spec: PredictionProduct, initial_builder_stake: Decimal
     ) -> Transaction:
         """Submits a product specification to the clearing system.
 
         Parameters
         ----------
-        product_spec : afp.schemas.PredictionProductV1
+        product_spec : afp.schemas.PredictionProduct
             The product specification.
         initial_builder_stake : Decimal
             Registration stake (product maintenance fee) in units of the collateral
@@ -210,8 +105,16 @@ class Product(ClearingSystemAPI):
         afp.schemas.Transaction
             Transaction parameters.
         """
+        # Verify contracts exist
+        validators.verify_collateral_asset(
+            self._w3, product_spec.product.base.collateral_asset
+        )
+        validators.verify_oracle(
+            self._w3, product_spec.product.base.oracle_spec.oracle_address
+        )
+
         erc20_contract = ERC20(
-            self._w3, cast(ChecksumAddress, product_spec.base.collateral_asset)
+            self._w3, cast(ChecksumAddress, product_spec.product.base.collateral_asset)
         )
         decimals = erc20_contract.decimals()
 
@@ -220,7 +123,7 @@ class Product(ClearingSystemAPI):
         )
         return self._transact(
             product_registry_contract.register_prediction_product(
-                self._convert_product_specification(product_spec, decimals),
+                self._convert_product_specification(product_spec.product, decimals),
                 int(initial_builder_stake * 10**decimals),
             )
         )
