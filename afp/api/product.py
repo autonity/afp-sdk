@@ -97,7 +97,7 @@ class Product(ClearingSystemAPI):
         return PredictionProductV1(
             base=BaseProduct(
                 metadata=ProductMetadata(
-                    builder_id=self._authenticator.address,
+                    builder=self._authenticator.address,
                     symbol=symbol,
                     description=description,
                 ),
@@ -142,8 +142,8 @@ class Product(ClearingSystemAPI):
             dct["base"]["oracleSpec"]["oracleAddress"] = (
                 self._config.oracle_provider_address
             )
-        if dct["base"]["metadata"].get("builderId") is None:
-            dct["base"]["metadata"]["builderId"] = self._authenticator.address
+        if dct["base"]["metadata"].get("builder") is None:
+            dct["base"]["metadata"]["builder"] = self._authenticator.address
 
         # Verify contracts
         dct["base"]["collateralAsset"] = validators.verify_collateral_asset(
@@ -184,7 +184,7 @@ class Product(ClearingSystemAPI):
         """
         return Web3.to_hex(
             hashing.generate_product_id(
-                cast(ChecksumAddress, product_spec.base.metadata.builder_id),
+                cast(ChecksumAddress, product_spec.base.metadata.builder),
                 product_spec.base.metadata.symbol,
             )
         )
@@ -312,7 +312,7 @@ class Product(ClearingSystemAPI):
         return OnChainPredictionProductV1(
             base=OnChainBaseProduct(
                 metadata=OnChainProductMetadata(
-                    builder=cast(ChecksumAddress, product.base.metadata.builder_id),
+                    builder=cast(ChecksumAddress, product.base.metadata.builder),
                     symbol=product.base.metadata.symbol,
                     description=product.base.metadata.description,
                 ),

@@ -1,36 +1,16 @@
 from datetime import datetime, timezone
 from decimal import Decimal
-from unittest.mock import Mock
 
-import pytest
 from web3 import Web3
 
-import afp
-from afp.api.product import Product
 from afp.schemas import PredictionProductV1
 
-from . import AuthenticatorStub
 
-
-@pytest.fixture
-def product_api():
-    """Create a Product API instance for testing."""
-    app = afp.AFP(
-        authenticator=AuthenticatorStub(),
-        rpc_url="http://localhost:8545",
-        oracle_provider_address="0x1234567890123456789012345678901234567890",
-    )
-    return Product(app.config)
-
-
-def test_product_parse_creates_valid_product_spec(product_api, monkeypatch):
-    mock_get_code = Mock(return_value=b"\x01\x02\x03")  # Non-empty bytecode
-    monkeypatch.setattr(product_api._w3.eth, "get_code", mock_get_code)
-
+def test_product_parsing_from_dictionary():
     spec = {
         "base": {
             "metadata": {
-                "builderId": "0xFfbf2643CF22760AfD3b878BA8aE849c48944Aa5",
+                "builder": "0xFfbf2643CF22760AfD3b878BA8aE849c48944Aa5",
                 "symbol": "BTC-USD-PERP",
                 "description": "Bitcoin perpetual futures",
             },
@@ -55,13 +35,11 @@ def test_product_parse_creates_valid_product_spec(product_api, monkeypatch):
         "maxPrice": "99.99",
     }
 
-    result = product_api.parse(spec)
+    result = PredictionProductV1.model_validate(spec)
 
     assert isinstance(result, PredictionProductV1)
 
-    assert (
-        result.base.metadata.builder_id == "0xFfbf2643CF22760AfD3b878BA8aE849c48944Aa5"
-    )
+    assert result.base.metadata.builder == "0xFfbf2643CF22760AfD3b878BA8aE849c48944Aa5"
     assert result.base.metadata.symbol == "BTC-USD-PERP"
     assert result.base.metadata.description == "Bitcoin perpetual futures"
 

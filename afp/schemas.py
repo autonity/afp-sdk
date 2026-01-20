@@ -24,6 +24,7 @@ from .enums import ListingState, OrderSide, OrderState, OrderType, TradeState
 Timestamp = Annotated[
     datetime,
     BeforeValidator(validators.ensure_datetime),
+    AfterValidator(validators.validate_non_negative_timestamp),
     PlainSerializer(validators.ensure_timestamp, return_type=int, when_used="json"),
 ]
 
@@ -251,14 +252,14 @@ class ExpirySpecification(Model):
 
 class OracleSpecification(Model):
     oracle_address: Annotated[str, AfterValidator(validators.validate_address)]
-    fsv_decimals: Annotated[int, Field(ge=0, lt=256)]  # uint8
+    fsv_decimals: Annotated[int, Field(ge=0, le=255)]  # uint8
     fsp_alpha: Decimal
     fsp_beta: Decimal
     fsv_calldata: Annotated[str, AfterValidator(validators.validate_hexstr)]
 
 
 class ProductMetadata(Model):
-    builder_id: Annotated[str, AfterValidator(validators.validate_address)]
+    builder: Annotated[str, AfterValidator(validators.validate_address)]
     symbol: str
     description: str
 
@@ -268,8 +269,8 @@ class BaseProduct(Model):
     oracle_spec: OracleSpecification
     collateral_asset: Annotated[str, AfterValidator(validators.validate_address)]
     start_time: Timestamp
-    point_value: Annotated[Decimal, Field(gt=0)]
-    price_decimals: Annotated[int, Field(ge=0)]
+    point_value: Decimal
+    price_decimals: Annotated[int, Field(ge=0, le=255)]
     extended_metadata: str = ""
 
 
@@ -283,3 +284,81 @@ class PredictionProductV1(Model):
     def validate_price_limits(self) -> Self:
         validators.validate_price_limits(self.min_price, self.max_price)
         return self
+
+
+class ApiSpec(Model):
+    standard: Literal["JSONPath", "GraphQL"]
+    spec_variant: Literal["underlying-history", "product-fsv"]
+
+
+class ApiSpecJSONPath(ApiSpec):
+    url: Annotated[str, Field(min_length=1, max_length=2083)]
+    date_path: str
+    value_path: str
+    auth_param_location: Literal["query", "header", "none"] = "none"
+    auth_param_name: str | None = None
+    auth_param_prefix: str | None = None
+    continuation_token_param: str | None = None
+    continuation_token_path: str | None = None
+    date_format_custom: str | None = None
+    date_format_type: Literal["iso_8601", "unix_timestamp", "custom"] = "iso_8601"
+    headers: dict[str, str] | None = None
+    max_pages: Annotated[int | None, Field(ge=1)] = 10
+    timestamp_scale: Annotated[int | float, Field(ge=1)] = 1
+    timezone: str = "UTC"
+
+
+class BaseCaseResolution(Model):
+    fsp_resolution: Annotated[str, Field(min_length=1)]
+
+
+class EdgeCase(Model):
+    condition: Annotated[str, Field(min_length=1)]
+    fsp_resolution: Annotated[str, Field(min_length=1)]
+
+
+class OutcomeSpaceEvent(Model):
+    description: Annotated[str, Field(min_length=1)]
+    outcome_statement: Annotated[str, Field(min_length=1)]
+    base_case: BaseCaseResolution
+    category: str | None = None
+    expected_resolution_date: str | None = None
+    tags: list[str]
+    edge_cases: list[EdgeCase]
+
+
+class OutcomeSpaceTimeSeries(Model):
+    description: Annotated[str, Field(min_length=1)]
+    outcome_statement: Annotated[str, Field(min_length=1)]
+    base_case: BaseCaseResolution
+    frequency: Literal["daily", "weekly", "monthly", "quarterly", "yearly"]
+    units: Annotated[str, Field(min_length=1)]
+    source_name: Annotated[str, Field(min_length=1)]
+    source_uri: Annotated[str, Field(min_length=1, max_length=2083)]
+    edge_cases: list[EdgeCase]
+    history_api_spec: ApiSpecJSONPath | ApiSpec | None = None
+
+
+class OutcomePointEvent(Model):
+    outcome: Annotated[str, Field(min_length=1)]
+
+
+class OutcomePointTimeSeries(Model):
+    reference_date: str
+    release_date: str | None = None
+
+
+class OracleConfig(Model):
+    description: Annotated[str, Field(min_length=1)]
+    project_url: Annotated[str | None, Field(min_length=1, max_length=2083)] = None
+
+
+class OracleConfigPrototype1(OracleConfig):
+    evaluation_api_spec: ApiSpecJSONPath | ApiSpec
+
+
+class PredictionProduct(Model):
+    product: PredictionProductV1
+    outcome_space: OutcomeSpaceTimeSeries | OutcomeSpaceEvent
+    outcome_point: OutcomePointTimeSeries | OutcomePointEvent
+    oracle_config: OracleConfigPrototype1 | OracleConfig | None = None

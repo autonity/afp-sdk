@@ -27,6 +27,12 @@ def validate_timedelta(value: timedelta) -> timedelta:
     return value
 
 
+def validate_non_negative_timestamp(value: datetime) -> datetime:
+    if value.timestamp() < 0:
+        raise ValueError(f"{value} should be a non-negative timestamp")
+    return value
+
+
 def validate_hexstr(value: str, length: int | None = None) -> str:
     value = str(value)
     if not value.startswith("0x"):
