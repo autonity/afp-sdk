@@ -60,8 +60,7 @@ class Product(ClearingSystemAPI):
     ) -> PredictionProductV1:
         """Creates a product specification with the given product data.
 
-        The builder account's address is derived from the private key; the price
-        quotation symbol is retrieved from the collateral asset.
+        The builder account's address is derived from the private key.
 
         Parameters
         ----------
@@ -95,12 +94,7 @@ class Product(ClearingSystemAPI):
         )
         oracle_address = validators.verify_oracle(self._w3, oracle_address)
 
-        product_id = Web3.to_hex(
-            hashing.generate_product_id(self._authenticator.address, symbol)
-        )
-
         return PredictionProductV1(
-            id=product_id,
             base=BaseProduct(
                 metadata=ProductMetadata(
                     builder_id=self._authenticator.address,
@@ -129,7 +123,7 @@ class Product(ClearingSystemAPI):
         )
 
     @convert_web3_error()
-    def parse(self, spec: dict[str, Any]) -> PredictionProductV1:
+    def parse(self, dct: dict[str, Any]) -> PredictionProductV1:
         """Creates a product specification from a dictionary.
 
         The dictionary must follow the schema of the afp.schemas.ProductSpec model.
@@ -144,30 +138,43 @@ class Product(ClearingSystemAPI):
         afp.schemas.PredictionProductV1
         """
         # Set default values
-        if spec["base"]["oracleSpec"].get("oracleAddress") is None:
-            spec["base"]["oracleSpec"]["oracleAddress"] = (
+        if dct["base"]["oracleSpec"].get("oracleAddress") is None:
+            dct["base"]["oracleSpec"]["oracleAddress"] = (
                 self._config.oracle_provider_address
             )
-        if spec["base"]["metadata"].get("builderId") is None:
-            spec["base"]["metadata"]["builderId"] = self._authenticator.address
+        if dct["base"]["metadata"].get("builderId") is None:
+            dct["base"]["metadata"]["builderId"] = self._authenticator.address
 
         # Verify contracts
-        spec["base"]["collateralAsset"] = validators.verify_collateral_asset(
-            self._w3, spec["base"]["collateralAsset"]
+        dct["base"]["collateralAsset"] = validators.verify_collateral_asset(
+            self._w3, dct["base"].get("collateralAsset")
         )
-        spec["base"]["oracleSpec"]["oracleAddress"] = validators.verify_oracle(
-            self._w3, spec["base"]["oracleSpec"]["oracleAddress"]
+        dct["base"]["oracleSpec"]["oracleAddress"] = validators.verify_oracle(
+            self._w3, dct["base"]["oracleSpec"].get("oracleAddress")
         )
 
-        # Generate ID
-        spec["id"] = Web3.to_hex(
+        return PredictionProductV1.model_validate(dct)
+
+    def id(self, product_spec: PredictionProductV1) -> str:
+        """Generates the product ID for a product specification.
+
+        This is the ID that the product will get after successful registration.
+
+        Parameters
+        ----------
+        product_spec : afp.schemas.PredictionProductV1
+            The product specification.
+
+        Returns
+        -------
+        str
+        """
+        return Web3.to_hex(
             hashing.generate_product_id(
-                spec["base"]["metadata"]["builderId"],
-                spec["base"]["metadata"]["symbol"],
+                cast(ChecksumAddress, product_spec.base.metadata.builder_id),
+                product_spec.base.metadata.symbol,
             )
         )
-
-        return PredictionProductV1.model_validate(spec)
 
     ### Transactions ###
 
@@ -179,7 +186,7 @@ class Product(ClearingSystemAPI):
 
         Parameters
         ----------
-        product_spec : afp.schemas.ProductSpec
+        product_spec : afp.schemas.PredictionProductV1
             The product specification.
         initial_builder_stake : Decimal
             Registration stake (product maintenance fee) in units of the collateral

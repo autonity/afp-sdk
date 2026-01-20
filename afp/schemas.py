@@ -274,7 +274,6 @@ class BaseProduct(Model):
 
 
 class PredictionProductV1(Model):
-    id: str
     base: BaseProduct
     expiry_spec: ExpirySpecification
     min_price: Decimal
@@ -284,6 +283,3 @@ class PredictionProductV1(Model):
     def validate_price_limits(self) -> Self:
         validators.validate_price_limits(self.min_price, self.max_price)
         return self
-
-    def __str__(self) -> str:
-        return self.id
