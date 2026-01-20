@@ -155,6 +155,19 @@ class Product(ClearingSystemAPI):
 
         return PredictionProductV1.model_validate(dct)
 
+    def dump(self, product_spec: PredictionProductV1) -> dict[str, Any]:
+        """Creates a dictionary from a product specification.
+
+        Parameters
+        ----------
+        product_spec : PredictionProductV1
+
+        Returns
+        -------
+        dict
+        """
+        return product_spec.model_dump(by_alias=True)
+
     def id(self, product_spec: PredictionProductV1) -> str:
         """Generates the product ID for a product specification.
 
