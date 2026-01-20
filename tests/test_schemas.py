@@ -1,4 +1,5 @@
-from afp.schemas import Model, PaginationFilter
+from afp.dtos import PaginationFilter
+from afp.schemas import Model
 
 
 class Person(Model):

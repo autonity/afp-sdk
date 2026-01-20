@@ -1,7 +1,7 @@
 from .. import validators
 from ..decorators import refresh_token_on_expiry
 from ..enums import ListingState
-from ..schemas import ExchangeProductListingSubmission, ExchangeProductUpdateSubmission
+from ..dtos import ExchangeProductListingSubmission, ExchangeProductUpdateSubmission
 from .base import ExchangeAPI
 
 

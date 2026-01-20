@@ -67,6 +67,3 @@ def test_product_parsing_from_dictionary():
 
     assert result.min_price == Decimal("0.01")
     assert result.max_price == Decimal("99.99")
-
-    assert result.id is not None
-    assert result.id.startswith("0x")

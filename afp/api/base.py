@@ -13,9 +13,10 @@ from web3.types import TxParams
 from ..auth import Authenticator
 from ..config import Config
 from ..bindings.erc20 import ERC20
+from ..dtos import LoginSubmission
 from ..exceptions import ConfigurationError
 from ..exchange import ExchangeClient
-from ..schemas import LoginSubmission, Transaction
+from ..schemas import Transaction
 
 
 class BaseAPI(ABC):
