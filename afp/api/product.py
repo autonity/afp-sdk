@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Any, cast
+from typing import Any, Type, cast
 
 from eth_typing.evm import ChecksumAddress
 from hexbytes import HexBytes
@@ -33,7 +33,9 @@ class Product(ClearingSystemAPI):
 
     ### Product Specification ###
 
-    def parse(self, dct: dict[str, Any]) -> PredictionProduct:
+    def parse[T: Type[PredictionProduct | PredictionProductV1]](
+        self, dct: dict[str, Any], schema: T = PredictionProduct
+    ) -> T:
         """Creates a product specification from a dictionary.
 
         The dictionary must follow the schema of the afp.schemas.ProductSpec model.
@@ -42,19 +44,23 @@ class Product(ClearingSystemAPI):
         ----------
         spec : dict
             A dictionary that follows the PredictionProduct schema.
+        schema : type
+            afp.schemas.PredictionProduct or afp.schemas.PredictionProductV1
 
         Returns
         -------
-        afp.schemas.PredictionProductV1
+        afp.schemas.PredictionProduct or afp.schemas.PredictionProductV1
         """
-        return PredictionProduct.model_validate(dct)
+        return schema.model_validate(dct)
 
-    def dump(self, product_spec: PredictionProduct) -> dict[str, Any]:
+    def dump(
+        self, product_spec: PredictionProduct | PredictionProductV1
+    ) -> dict[str, Any]:
         """Creates a dictionary from a product specification.
 
         Parameters
         ----------
-        product_spec : PredictionProduct
+        product_spec : afp.schemas.PredictionProduct or afp.schemas.PredictionProductV1
 
         Returns
         -------
@@ -62,24 +68,30 @@ class Product(ClearingSystemAPI):
         """
         return product_spec.model_dump(by_alias=True)
 
-    def id(self, product_spec: PredictionProduct) -> str:
+    def id(self, product_spec: PredictionProduct | PredictionProductV1) -> str:
         """Generates the product ID for a product specification.
 
         This is the ID that the product will get after successful registration.
 
         Parameters
         ----------
-        product_spec : afp.schemas.PredictionProduct
+        product_spec : afp.schemas.PredictionProduct or afp.schemas.PredictionProductV1
             The product specification.
 
         Returns
         -------
         str
         """
+        product = (
+            product_spec
+            if isinstance(product_spec, PredictionProductV1)
+            else product_spec.product
+        )
+
         return Web3.to_hex(
             hashing.generate_product_id(
-                cast(ChecksumAddress, product_spec.product.base.metadata.builder),
-                product_spec.product.base.metadata.symbol,
+                cast(ChecksumAddress, product.base.metadata.builder),
+                product.base.metadata.symbol,
             )
         )
 
@@ -87,14 +99,19 @@ class Product(ClearingSystemAPI):
 
     @convert_web3_error(PRODUCT_REGISTRY_ABI, CLEARING_DIAMOND_ABI)
     def register(
-        self, product_spec: PredictionProduct, initial_builder_stake: Decimal
+        self,
+        product_spec: PredictionProduct | PredictionProductV1,
+        initial_builder_stake: Decimal,
     ) -> Transaction:
         """Submits a product specification to the clearing system.
 
+        The extended metadata should already be pinned to IPFS and the CID should be
+        specified in the afp.schemas.BaseProduct object in the product specification.
+
         Parameters
         ----------
-        product_spec : afp.schemas.PredictionProduct
-            The product specification.
+        product_spec : afp.schemas.PredictionProduct or afp.schemas.PredictionProductV1
+            The product specification with or without extended metadata.
         initial_builder_stake : Decimal
             Registration stake (product maintenance fee) in units of the collateral
             asset.
@@ -104,16 +121,18 @@ class Product(ClearingSystemAPI):
         afp.schemas.Transaction
             Transaction parameters.
         """
-        # Verify contracts exist
-        validators.verify_collateral_asset(
-            self._w3, product_spec.product.base.collateral_asset
-        )
-        validators.verify_oracle(
-            self._w3, product_spec.product.base.oracle_spec.oracle_address
+        product = (
+            product_spec
+            if isinstance(product_spec, PredictionProductV1)
+            else product_spec.product
         )
 
+        # Verify contracts exist
+        validators.verify_collateral_asset(self._w3, product.base.collateral_asset)
+        validators.verify_oracle(self._w3, product.base.oracle_spec.oracle_address)
+
         erc20_contract = ERC20(
-            self._w3, cast(ChecksumAddress, product_spec.product.base.collateral_asset)
+            self._w3, cast(ChecksumAddress, product.base.collateral_asset)
         )
         decimals = erc20_contract.decimals()
 
@@ -122,7 +141,7 @@ class Product(ClearingSystemAPI):
         )
         return self._transact(
             product_registry_contract.register_prediction_product(
-                self._convert_product_specification(product_spec.product, decimals),
+                self._convert_product_specification(product, decimals),
                 int(initial_builder_stake * 10**decimals),
             )
         )
