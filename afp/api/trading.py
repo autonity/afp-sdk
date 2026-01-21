@@ -8,20 +8,17 @@ from web3 import Web3
 from .. import hashing, validators
 from ..constants import DEFAULT_BATCH_SIZE
 from ..decorators import refresh_token_on_expiry
+from ..dtos import ExchangeProductFilter, OrderFilter, OrderFillFilter, OrderSubmission
 from ..enums import OrderSide, OrderState, OrderType, TradeState
 from ..schemas import (
     ExchangeProduct,
-    ExchangeProductFilter,
     Intent,
     IntentData,
     MarketDepthData,
     OHLCVItem,
     Order,
-    OrderFilter,
     OrderCancellationData,
     OrderFill,
-    OrderFillFilter,
-    OrderSubmission,
 )
 from .base import ExchangeAPI
 

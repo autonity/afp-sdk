@@ -6,6 +6,16 @@ import requests
 from requests import Response, Session
 
 from . import constants
+from .dtos import (
+    ExchangeParameters,
+    ExchangeProductFilter,
+    ExchangeProductListingSubmission,
+    ExchangeProductUpdateSubmission,
+    LoginSubmission,
+    OrderFilter,
+    OrderFillFilter,
+    OrderSubmission,
+)
 from .exceptions import (
     AuthenticationError,
     AuthorizationError,
@@ -15,19 +25,11 @@ from .exceptions import (
     ValidationError,
 )
 from .schemas import (
-    ExchangeParameters,
     ExchangeProduct,
-    ExchangeProductFilter,
-    ExchangeProductListingSubmission,
-    ExchangeProductUpdateSubmission,
-    LoginSubmission,
     MarketDepthData,
     OHLCVItem,
     Order,
-    OrderFilter,
     OrderFill,
-    OrderFillFilter,
-    OrderSubmission,
 )
 
 

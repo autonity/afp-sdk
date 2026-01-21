@@ -28,9 +28,9 @@ def generate_intent_hash(
         "uint256",  # nonce
         "address",  # trading_protocol_id
         "bytes32",  # product_id
-        "uint256",  # limit_price
+        "int256",  # limit_price
         "uint256",  # quantity
-        "uint256",  # max_trading_fee_rate
+        "uint32",  # max_trading_fee_rate
         "uint256",  # good_until_time
         "uint8",  # side
         "address",  # referral

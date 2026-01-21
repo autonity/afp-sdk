@@ -1,3 +1,5 @@
+"""AFP data structures."""
+
 from datetime import datetime
 from decimal import Decimal
 from functools import partial
@@ -7,16 +9,16 @@ import inflection
 from pydantic import (
     AfterValidator,
     AliasGenerator,
+    AnyUrl,
     BaseModel,
     BeforeValidator,
     ConfigDict,
     Field,
     PlainSerializer,
-    computed_field,
     model_validator,
 )
 
-from . import validators
+from . import constants, validators
 from .enums import ListingState, OrderSide, OrderState, OrderType, TradeState
 
 
@@ -24,80 +26,38 @@ from .enums import ListingState, OrderSide, OrderState, OrderType, TradeState
 Timestamp = Annotated[
     datetime,
     BeforeValidator(validators.ensure_datetime),
+    AfterValidator(validators.validate_non_negative_timestamp),
     PlainSerializer(validators.ensure_timestamp, return_type=int, when_used="json"),
 ]
 
 
 class Model(BaseModel):
-    model_config = ConfigDict(
-        alias_generator=AliasGenerator(
-            alias=partial(inflection.camelize, uppercase_first_letter=False),
-        ),
-        frozen=True,
-        populate_by_name=True,
-    )
+    """Base immutable schema."""
+
+    model_config = ConfigDict(frozen=True)
 
     # Change the default value of by_alias to True
     def model_dump_json(self, by_alias: bool = True, **kwargs: Any) -> str:
         return super().model_dump_json(by_alias=by_alias, **kwargs)
 
 
-class PaginationFilter(Model):
-    batch: Annotated[None | int, Field(gt=0, exclude=True)]
-    batch_size: Annotated[None | int, Field(gt=0, exclude=True)]
-    newest_first: Annotated[None | bool, Field(exclude=True)]
+class AliasedModel(Model):
+    """Schema that converts property names from snake case to camel case for
+    serialization.
+    """
 
-    @computed_field
-    @property
-    def page(self) -> None | int:
-        return self.batch
-
-    @computed_field
-    @property
-    def page_size(self) -> None | int:
-        return self.batch_size
-
-    @computed_field
-    @property
-    def sort(self) -> None | Literal["ASC", "DESC"]:
-        match self.newest_first:
-            case None:
-                return None
-            case True:
-                return "DESC"
-            case False:
-                return "ASC"
-
-
-# Authentication
-
-
-class LoginSubmission(Model):
-    message: str
-    signature: str
-
-
-class ExchangeParameters(Model):
-    trading_protocol_id: str
-    maker_trading_fee_rate: Decimal
-    taker_trading_fee_rate: Decimal
-
-
-# Admin API
-
-
-class ExchangeProductListingSubmission(Model):
-    id: Annotated[str, AfterValidator(validators.validate_hexstr32)]
-
-
-class ExchangeProductUpdateSubmission(Model):
-    listing_state: ListingState
+    model_config = Model.model_config | ConfigDict(
+        alias_generator=AliasGenerator(
+            alias=partial(inflection.camelize, uppercase_first_letter=False),
+        ),
+        populate_by_name=True,
+    )
 
 
 # Trading API
 
 
-class ExchangeProduct(Model):
+class ExchangeProduct(AliasedModel):
     id: str
     symbol: str
     tick_size: int
@@ -110,23 +70,22 @@ class ExchangeProduct(Model):
         return self.id
 
 
-class ExchangeProductFilter(PaginationFilter):
-    pass
-
-
-class IntentData(Model):
+class IntentData(AliasedModel):
     trading_protocol_id: str
     product_id: str
     limit_price: Decimal
     quantity: Annotated[int, Field(gt=0)]
-    max_trading_fee_rate: Decimal
+    max_trading_fee_rate: Annotated[
+        Decimal,
+        Field(le=Decimal((2**32 - 1) / constants.FEE_RATE_MULTIPLIER)),  # uint32
+    ]
     side: OrderSide
     good_until_time: Timestamp
     nonce: int
     referral: Annotated[str, AfterValidator(validators.validate_address)]
 
 
-class Intent(Model):
+class Intent(AliasedModel):
     hash: str
     margin_account_id: str
     intent_account_id: str
@@ -134,7 +93,7 @@ class Intent(Model):
     data: IntentData
 
 
-class Order(Model):
+class Order(AliasedModel):
     id: str
     type: OrderType
     timestamp: Timestamp
@@ -143,35 +102,14 @@ class Order(Model):
     intent: Intent
 
 
-class OrderFilter(PaginationFilter):
-    intent_account_id: str
-    product_id: None | Annotated[str, AfterValidator(validators.validate_hexstr32)]
-    type: None | OrderType
-    states: Annotated[list[OrderState], Field(exclude=True)]
-    side: None | OrderSide
-    start: None | Timestamp
-    end: None | Timestamp
-
-    @computed_field
-    @property
-    def state(self) -> str | None:
-        return ",".join(self.states) if self.states else None
-
-
-class OrderCancellationData(Model):
+class OrderCancellationData(AliasedModel):
     intent_hash: Annotated[str, AfterValidator(validators.validate_hexstr32)]
     nonce: int
     intent_account_id: str
     signature: str
 
 
-class OrderSubmission(Model):
-    type: OrderType
-    intent: Intent | None = None
-    cancellation_data: OrderCancellationData | None = None
-
-
-class Trade(Model):
+class Trade(AliasedModel):
     # Convert ID from int to str for backward compatibility
     id: Annotated[str, BeforeValidator(str)]
     product_id: str
@@ -182,7 +120,7 @@ class Trade(Model):
     rejection_reason: str | None
 
 
-class OrderFill(Model):
+class OrderFill(AliasedModel):
     order: Order
     trade: Trade
     quantity: int
@@ -190,32 +128,18 @@ class OrderFill(Model):
     trading_fee_rate: Decimal
 
 
-class OrderFillFilter(PaginationFilter):
-    intent_account_id: str
-    product_id: None | Annotated[str, AfterValidator(validators.validate_hexstr32)]
-    intent_hash: None | Annotated[str, AfterValidator(validators.validate_hexstr32)]
-    start: None | Timestamp
-    end: None | Timestamp
-    trade_states: Annotated[list[TradeState], Field(exclude=True)]
-
-    @computed_field
-    @property
-    def trade_state(self) -> str | None:
-        return ",".join(self.trade_states) if self.trade_states else None
-
-
-class MarketDepthItem(Model):
+class MarketDepthItem(AliasedModel):
     price: Decimal
     quantity: int
 
 
-class MarketDepthData(Model):
+class MarketDepthData(AliasedModel):
     product_id: str
     bids: list[MarketDepthItem]
     asks: list[MarketDepthItem]
 
 
-class OHLCVItem(Model):
+class OHLCVItem(AliasedModel):
     timestamp: Timestamp
     open: Decimal
     high: Decimal
@@ -224,7 +148,7 @@ class OHLCVItem(Model):
     volume: int
 
 
-# Clearing API
+# Margin Account API
 
 
 class Transaction(Model):
@@ -244,37 +168,36 @@ class Position(Model):
 # Product API
 
 
-class ExpirySpecification(Model):
+class ExpirySpecification(AliasedModel):
     earliest_fsp_submission_time: Timestamp
     tradeout_interval: Annotated[int, Field(ge=0)]
 
 
-class OracleSpecification(Model):
+class OracleSpecification(AliasedModel):
     oracle_address: Annotated[str, AfterValidator(validators.validate_address)]
-    fsv_decimals: Annotated[int, Field(ge=0, lt=256)]  # uint8
+    fsv_decimals: Annotated[int, Field(ge=0, le=255)]  # uint8
     fsp_alpha: Decimal
     fsp_beta: Decimal
     fsv_calldata: Annotated[str, AfterValidator(validators.validate_hexstr)]
 
 
-class ProductMetadata(Model):
-    builder_id: Annotated[str, AfterValidator(validators.validate_address)]
+class ProductMetadata(AliasedModel):
+    builder: Annotated[str, AfterValidator(validators.validate_address)]
     symbol: str
     description: str
 
 
-class BaseProduct(Model):
+class BaseProduct(AliasedModel):
     metadata: ProductMetadata
     oracle_spec: OracleSpecification
     collateral_asset: Annotated[str, AfterValidator(validators.validate_address)]
     start_time: Timestamp
-    point_value: Annotated[Decimal, Field(gt=0)]
-    price_decimals: Annotated[int, Field(ge=0)]
+    point_value: Decimal
+    price_decimals: Annotated[int, Field(ge=0, le=255)]
     extended_metadata: str = ""
 
 
-class PredictionProductV1(Model):
-    id: str
+class PredictionProductV1(AliasedModel):
     base: BaseProduct
     expiry_spec: ExpirySpecification
     min_price: Decimal
@@ -285,5 +208,100 @@ class PredictionProductV1(Model):
         validators.validate_price_limits(self.min_price, self.max_price)
         return self
 
-    def __str__(self) -> str:
-        return self.id
+
+class ApiSpec(Model):
+    standard: Literal["JSONPath", "GraphQL"]
+    spec_variant: Literal["underlying-history", "product-fsv"] | None = None
+
+
+class ApiSpecJSONPath(ApiSpec):
+    standard: Literal["JSONPath"] = "JSONPath"  # type: ignore
+    url: Annotated[
+        AnyUrl,
+        Field(min_length=1, max_length=2083),
+        AfterValidator(validators.verify_url),
+    ]
+    date_path: str
+    value_path: str
+    auth_param_location: Literal["query", "header", "none"] = "none"
+    auth_param_name: str | None = None
+    auth_param_prefix: str | None = None
+    continuation_token_param: str | None = None
+    continuation_token_path: str | None = None
+    date_format_custom: str | None = None
+    date_format_type: Literal["iso_8601", "unix_timestamp", "custom"] = "iso_8601"
+    headers: dict[str, str] | None = None
+    max_pages: Annotated[int | None, Field(ge=1)] = 10
+    timestamp_scale: Annotated[int | float, Field(ge=1)] = 1
+    timezone: Annotated[
+        str,
+        Field(pattern=r"^[A-Za-z][A-Za-z0-9_+-]*(/[A-Za-z][A-Za-z0-9_+-]*)*$"),
+    ] = "UTC"
+
+
+class BaseCaseResolution(Model):
+    condition: Annotated[str, Field(min_length=1)]
+    fsp_resolution: Annotated[str, Field(min_length=1)]
+
+
+class EdgeCase(Model):
+    condition: Annotated[str, Field(min_length=1)]
+    fsp_resolution: Annotated[str, Field(min_length=1)]
+
+
+class OutcomeSpace(Model):
+    description: Annotated[str, Field(min_length=1)]
+    base_case: BaseCaseResolution
+    edge_cases: list[EdgeCase]
+
+
+class OutcomeSpaceScalar(OutcomeSpace):
+    units: Annotated[str, Field(min_length=1)]
+    source_name: Annotated[str, Field(min_length=1)]
+    source_uri: Annotated[
+        AnyUrl,
+        Field(min_length=1, max_length=2083),
+        AfterValidator(validators.verify_url),
+    ]
+
+
+class OutcomeSpaceTimeSeries(OutcomeSpaceScalar):
+    frequency: Literal["daily", "weekly", "monthly", "quarterly", "yearly"]
+    history_api_spec: ApiSpecJSONPath | ApiSpec | None = None
+
+
+class OutcomePoint(Model):
+    pass
+
+
+class OutcomePointScalar(OutcomePoint):
+    pass
+
+
+class OutcomePointEvent(OutcomePoint):
+    outcome: Annotated[str, Field(min_length=1)]
+
+
+class OutcomePointTimeSeries(OutcomePointScalar):
+    reference_date: str
+    release_date: str | None = None
+
+
+class OracleConfig(Model):
+    description: Annotated[str, Field(min_length=1)]
+    project_url: Annotated[
+        AnyUrl | None,
+        Field(min_length=1, max_length=2083),
+        AfterValidator(validators.verify_url),
+    ] = None
+
+
+class OracleConfigPrototype1(OracleConfig):
+    evaluation_api_spec: ApiSpecJSONPath | ApiSpec
+
+
+class PredictionProduct(Model):
+    product: PredictionProductV1
+    outcome_space: OutcomeSpace
+    outcome_point: OutcomePoint
+    oracle_config: OracleConfig | None = None

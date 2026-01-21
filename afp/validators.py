@@ -1,12 +1,13 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
 
+import requests
 from binascii import Error
 from eth_typing.evm import ChecksumAddress
 from hexbytes import HexBytes
 from web3 import Web3
 
-from .exceptions import NotFoundError
+from .exceptions import NotFoundError, ValidationError
 
 
 def ensure_timestamp(value: int | float | datetime) -> int:
@@ -24,6 +25,12 @@ def ensure_datetime(value: int | float | str) -> datetime:
 def validate_timedelta(value: timedelta) -> timedelta:
     if value.total_seconds() < 0:
         raise ValueError(f"{value} should be positive")
+    return value
+
+
+def validate_non_negative_timestamp(value: datetime) -> datetime:
+    if value.timestamp() < 0:
+        raise ValueError(f"{value} should be a non-negative timestamp")
     return value
 
 
@@ -88,12 +95,20 @@ def validate_price_limits(
 def verify_collateral_asset(w3: Web3, address: str) -> ChecksumAddress:
     address = validate_address(address)
     if len(w3.eth.get_code(address)) == 0:
-        raise NotFoundError(f"No ERC20 token found at address {address}")
+        raise NotFoundError(f"No contract found at collateral asset address {address}")
     return address
 
 
 def verify_oracle(w3: Web3, address: str) -> ChecksumAddress:
     address = validate_address(address)
     if len(w3.eth.get_code(address)) == 0:
-        raise ValueError(f"No contract found at oracle address {address}")
+        raise NotFoundError(f"No contract found at oracle address {address}")
     return address
+
+
+def verify_url(value: str) -> str:
+    try:
+        requests.head(value)
+    except requests.RequestException as ex:
+        raise ValidationError(f"Not possible to connect to URL {value}") from ex
+    return value

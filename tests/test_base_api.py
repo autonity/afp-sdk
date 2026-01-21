@@ -13,9 +13,9 @@ import afp
 from afp.api.base import BaseAPI, ClearingSystemAPI, ExchangeAPI
 from afp.bindings import MarginAccount
 from afp.constants import defaults
+from afp.dtos import ExchangeParameters
 from afp.exceptions import ConfigurationError
 from afp.exchange import ExchangeClient
-from afp.schemas import ExchangeParameters
 
 from . import NULL_ADDRESS, AuthenticatorStub
 
