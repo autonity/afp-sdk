@@ -7,10 +7,10 @@ from pydantic import AfterValidator, Field, computed_field
 
 from . import validators
 from .enums import ListingState, OrderSide, OrderState, OrderType, TradeState
-from .schemas import Intent, Model, OrderCancellationData, Timestamp
+from .schemas import AliasedModel, Intent, OrderCancellationData, Timestamp
 
 
-class PaginationFilter(Model):
+class PaginationFilter(AliasedModel):
     batch: Annotated[None | int, Field(gt=0, exclude=True)]
     batch_size: Annotated[None | int, Field(gt=0, exclude=True)]
     newest_first: Annotated[None | bool, Field(exclude=True)]
@@ -40,12 +40,12 @@ class PaginationFilter(Model):
 # Authentication
 
 
-class LoginSubmission(Model):
+class LoginSubmission(AliasedModel):
     message: str
     signature: str
 
 
-class ExchangeParameters(Model):
+class ExchangeParameters(AliasedModel):
     trading_protocol_id: str
     maker_trading_fee_rate: Decimal
     taker_trading_fee_rate: Decimal
@@ -54,11 +54,11 @@ class ExchangeParameters(Model):
 # Admin API
 
 
-class ExchangeProductListingSubmission(Model):
+class ExchangeProductListingSubmission(AliasedModel):
     id: Annotated[str, AfterValidator(validators.validate_hexstr32)]
 
 
-class ExchangeProductUpdateSubmission(Model):
+class ExchangeProductUpdateSubmission(AliasedModel):
     listing_state: ListingState
 
 
@@ -84,7 +84,7 @@ class OrderFilter(PaginationFilter):
         return ",".join(self.states) if self.states else None
 
 
-class OrderSubmission(Model):
+class OrderSubmission(AliasedModel):
     type: OrderType
     intent: Intent | None = None
     cancellation_data: OrderCancellationData | None = None

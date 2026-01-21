@@ -32,23 +32,32 @@ Timestamp = Annotated[
 
 
 class Model(BaseModel):
-    model_config = ConfigDict(
-        alias_generator=AliasGenerator(
-            alias=partial(inflection.camelize, uppercase_first_letter=False),
-        ),
-        frozen=True,
-        populate_by_name=True,
-    )
+    """Base immutable schema."""
+
+    model_config = ConfigDict(frozen=True)
 
     # Change the default value of by_alias to True
     def model_dump_json(self, by_alias: bool = True, **kwargs: Any) -> str:
         return super().model_dump_json(by_alias=by_alias, **kwargs)
 
 
+class AliasedModel(Model):
+    """Schema that converts property names from snake case to camel case for
+    serialization.
+    """
+
+    model_config = Model.model_config | ConfigDict(
+        alias_generator=AliasGenerator(
+            alias=partial(inflection.camelize, uppercase_first_letter=False),
+        ),
+        populate_by_name=True,
+    )
+
+
 # Trading API
 
 
-class ExchangeProduct(Model):
+class ExchangeProduct(AliasedModel):
     id: str
     symbol: str
     tick_size: int
@@ -61,7 +70,7 @@ class ExchangeProduct(Model):
         return self.id
 
 
-class IntentData(Model):
+class IntentData(AliasedModel):
     trading_protocol_id: str
     product_id: str
     limit_price: Decimal
@@ -76,7 +85,7 @@ class IntentData(Model):
     referral: Annotated[str, AfterValidator(validators.validate_address)]
 
 
-class Intent(Model):
+class Intent(AliasedModel):
     hash: str
     margin_account_id: str
     intent_account_id: str
@@ -84,7 +93,7 @@ class Intent(Model):
     data: IntentData
 
 
-class Order(Model):
+class Order(AliasedModel):
     id: str
     type: OrderType
     timestamp: Timestamp
@@ -93,14 +102,14 @@ class Order(Model):
     intent: Intent
 
 
-class OrderCancellationData(Model):
+class OrderCancellationData(AliasedModel):
     intent_hash: Annotated[str, AfterValidator(validators.validate_hexstr32)]
     nonce: int
     intent_account_id: str
     signature: str
 
 
-class Trade(Model):
+class Trade(AliasedModel):
     # Convert ID from int to str for backward compatibility
     id: Annotated[str, BeforeValidator(str)]
     product_id: str
@@ -111,7 +120,7 @@ class Trade(Model):
     rejection_reason: str | None
 
 
-class OrderFill(Model):
+class OrderFill(AliasedModel):
     order: Order
     trade: Trade
     quantity: int
@@ -119,18 +128,18 @@ class OrderFill(Model):
     trading_fee_rate: Decimal
 
 
-class MarketDepthItem(Model):
+class MarketDepthItem(AliasedModel):
     price: Decimal
     quantity: int
 
 
-class MarketDepthData(Model):
+class MarketDepthData(AliasedModel):
     product_id: str
     bids: list[MarketDepthItem]
     asks: list[MarketDepthItem]
 
 
-class OHLCVItem(Model):
+class OHLCVItem(AliasedModel):
     timestamp: Timestamp
     open: Decimal
     high: Decimal
@@ -139,7 +148,7 @@ class OHLCVItem(Model):
     volume: int
 
 
-# Clearing API
+# Margin Account API
 
 
 class Transaction(Model):
@@ -159,12 +168,12 @@ class Position(Model):
 # Product API
 
 
-class ExpirySpecification(Model):
+class ExpirySpecification(AliasedModel):
     earliest_fsp_submission_time: Timestamp
     tradeout_interval: Annotated[int, Field(ge=0)]
 
 
-class OracleSpecification(Model):
+class OracleSpecification(AliasedModel):
     oracle_address: Annotated[str, AfterValidator(validators.validate_address)]
     fsv_decimals: Annotated[int, Field(ge=0, le=255)]  # uint8
     fsp_alpha: Decimal
@@ -172,13 +181,13 @@ class OracleSpecification(Model):
     fsv_calldata: Annotated[str, AfterValidator(validators.validate_hexstr)]
 
 
-class ProductMetadata(Model):
+class ProductMetadata(AliasedModel):
     builder: Annotated[str, AfterValidator(validators.validate_address)]
     symbol: str
     description: str
 
 
-class BaseProduct(Model):
+class BaseProduct(AliasedModel):
     metadata: ProductMetadata
     oracle_spec: OracleSpecification
     collateral_asset: Annotated[str, AfterValidator(validators.validate_address)]
@@ -188,7 +197,7 @@ class BaseProduct(Model):
     extended_metadata: str = ""
 
 
-class PredictionProductV1(Model):
+class PredictionProductV1(AliasedModel):
     base: BaseProduct
     expiry_spec: ExpirySpecification
     min_price: Decimal

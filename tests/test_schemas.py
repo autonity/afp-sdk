@@ -1,10 +1,22 @@
+from pydantic import ValidationError
+
 from afp.dtos import PaginationFilter
-from afp.schemas import Model
+from afp.schemas import AliasedModel
 
 
-class Person(Model):
+class Person(AliasedModel):
     first_name: str
     last_name: str
+
+
+def test_schema_immutability():
+    person = Person(first_name="Foo", last_name="Bar")
+    try:
+        person.first_name = "Baz"
+    except ValidationError:
+        pass
+    else:
+        assert False
 
 
 def test_schema_aliasing__from_json():
