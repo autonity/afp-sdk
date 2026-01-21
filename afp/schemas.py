@@ -9,6 +9,7 @@ import inflection
 from pydantic import (
     AfterValidator,
     AliasGenerator,
+    AnyUrl,
     BaseModel,
     BeforeValidator,
     ConfigDict,
@@ -202,8 +203,12 @@ class ApiSpec(Model):
 
 
 class ApiSpecJSONPath(ApiSpec):
-    standard: Literal["JSONPath"] = "JSONPath"
-    url: Annotated[str, Field(min_length=1, max_length=2083)]
+    standard: Literal["JSONPath"] = "JSONPath"  # type: ignore
+    url: Annotated[
+        AnyUrl,
+        Field(min_length=1, max_length=2083),
+        AfterValidator(validators.verify_url),
+    ]
     date_path: str
     value_path: str
     auth_param_location: Literal["query", "header", "none"] = "none"
@@ -235,13 +240,17 @@ class EdgeCase(Model):
 class OutcomeSpace(Model):
     description: Annotated[str, Field(min_length=1)]
     base_case: BaseCaseResolution
-    edge_cases: list[EdgeCase] = Field(default_factory=list)
+    edge_cases: list[EdgeCase]
 
 
 class OutcomeSpaceScalar(OutcomeSpace):
     units: Annotated[str, Field(min_length=1)]
     source_name: Annotated[str, Field(min_length=1)]
-    source_uri: Annotated[str, Field(min_length=1, max_length=2083)]
+    source_uri: Annotated[
+        AnyUrl,
+        Field(min_length=1, max_length=2083),
+        AfterValidator(validators.verify_url),
+    ]
 
 
 class OutcomeSpaceTimeSeries(OutcomeSpaceScalar):
@@ -268,7 +277,11 @@ class OutcomePointTimeSeries(OutcomePointScalar):
 
 class OracleConfig(Model):
     description: Annotated[str, Field(min_length=1)]
-    project_url: Annotated[str | None, Field(min_length=1, max_length=2083)] = None
+    project_url: Annotated[
+        AnyUrl | None,
+        Field(min_length=1, max_length=2083),
+        AfterValidator(validators.verify_url),
+    ] = None
 
 
 class OracleConfigPrototype1(OracleConfig):
@@ -277,8 +290,6 @@ class OracleConfigPrototype1(OracleConfig):
 
 class PredictionProduct(Model):
     product: PredictionProductV1
-    outcome_space: OutcomeSpaceTimeSeries | OutcomeSpaceScalar | OutcomeSpace
-    outcome_point: (
-        OutcomePointTimeSeries | OutcomePointEvent | OutcomePointScalar | OutcomePoint
-    )
-    oracle_config: OracleConfigPrototype1 | OracleConfig | None = None
+    outcome_space: OutcomeSpace
+    outcome_point: OutcomePoint
+    oracle_config: OracleConfig | None = None

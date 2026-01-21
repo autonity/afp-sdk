@@ -1,12 +1,13 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
 
+import requests
 from binascii import Error
 from eth_typing.evm import ChecksumAddress
 from hexbytes import HexBytes
 from web3 import Web3
 
-from .exceptions import NotFoundError
+from .exceptions import NotFoundError, ValidationError
 
 
 def ensure_timestamp(value: int | float | datetime) -> int:
@@ -103,3 +104,11 @@ def verify_oracle(w3: Web3, address: str) -> ChecksumAddress:
     if len(w3.eth.get_code(address)) == 0:
         raise NotFoundError(f"No contract found at oracle address {address}")
     return address
+
+
+def verify_url(value: str) -> str:
+    try:
+        requests.head(value)
+    except requests.RequestException as ex:
+        raise ValidationError(f"Not possible to connect to URL {value}") from ex
+    return value
