@@ -1,3 +1,27 @@
+## [v0.6.0] - 2026-01-22
+
+### Added
+
+- Add Python 3.14 support ([#45](https://github.com/autonity/afp-sdk/pull/45))
+- Add Prediction Product schemas to `afp.schemas` module for product creation ([#45](https://github.com/autonity/afp-sdk/pull/45))
+- Add `Product.pin()` method for extended metadata IPFS upload an pinning ([#46](https://github.com/autonity/afp-sdk/pull/46))
+- Add `Product.validate()` and `Product.validate_json()` methods for importing and validating product specifications ([#46](https://github.com/autonity/afp-sdk/pull/46))
+- Add `Product.dump()` and `Product.dump_json()` methods for exporting product specifications ([#46](https://github.com/autonity/afp-sdk/pull/46))
+- Add `Product.get()` method for downloading product specifications from Autonity & IPFS ([#46](https://github.com/autonity/afp-sdk/pull/46))
+
+### Changed
+
+- Update `Product.register()` method signature with the `initial_builder_stake` attribute ([#45](https://github.com/autonity/afp-sdk/pull/45))
+- Update the AutEx exchange interface ([#42](https://github.com/autonity/afp-sdk/pull/42))
+- Update contract bindings for the updated Clearing System interface ([#42](https://github.com/autonity/afp-sdk/pull/42))
+- Update default contract addresses ([5948faa](https://github.com/autonity/afp-sdk/commit/5948faa1882a1ee1237936525df6534043b30f03))
+
+### Removed
+
+- Remove Python 3.11 support ([#45](https://github.com/autonity/afp-sdk/pull/45))
+- Remove the `Product.create()` method ([#45](https://github.com/autonity/afp-sdk/pull/45))
+- Remove deprecated methods `Trading.open_orders()`, `Product.create_product()`, `Product.register_product()` and `Product.product_state()` ([#41](https://github.com/autonity/afp-sdk/pull/41))
+
 ## [v0.5.4] - 2025-11-05
 
 ### Added
@@ -78,6 +102,7 @@
 
 _First public release for Forecastathon._
 
+[v0.6.0]: https://github.com/autonity/afp-sdk/releases/tag/v0.6.0
 [v0.5.4]: https://github.com/autonity/afp-sdk/releases/tag/v0.5.4
 [v0.5.3]: https://github.com/autonity/afp-sdk/releases/tag/v0.5.3
 [v0.5.2]: https://github.com/autonity/afp-sdk/releases/tag/v0.5.2
