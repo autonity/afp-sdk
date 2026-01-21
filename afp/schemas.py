@@ -198,10 +198,11 @@ class PredictionProductV1(Model):
 
 class ApiSpec(Model):
     standard: Literal["JSONPath", "GraphQL"]
-    spec_variant: Literal["underlying-history", "product-fsv"]
+    spec_variant: Literal["underlying-history", "product-fsv"] | None = None
 
 
 class ApiSpecJSONPath(ApiSpec):
+    standard: Literal["JSONPath"] = "JSONPath"
     url: Annotated[str, Field(min_length=1, max_length=2083)]
     date_path: str
     value_path: str
@@ -215,10 +216,14 @@ class ApiSpecJSONPath(ApiSpec):
     headers: dict[str, str] | None = None
     max_pages: Annotated[int | None, Field(ge=1)] = 10
     timestamp_scale: Annotated[int | float, Field(ge=1)] = 1
-    timezone: str = "UTC"
+    timezone: Annotated[
+        str,
+        Field(pattern=r"^[A-Za-z][A-Za-z0-9_+-]*(/[A-Za-z][A-Za-z0-9_+-]*)*$"),
+    ] = "UTC"
 
 
 class BaseCaseResolution(Model):
+    condition: Annotated[str, Field(min_length=1)]
     fsp_resolution: Annotated[str, Field(min_length=1)]
 
 
@@ -227,33 +232,36 @@ class EdgeCase(Model):
     fsp_resolution: Annotated[str, Field(min_length=1)]
 
 
-class OutcomeSpaceEvent(Model):
+class OutcomeSpace(Model):
     description: Annotated[str, Field(min_length=1)]
-    outcome_statement: Annotated[str, Field(min_length=1)]
     base_case: BaseCaseResolution
-    category: str | None = None
-    expected_resolution_date: str | None = None
-    tags: list[str]
-    edge_cases: list[EdgeCase]
+    edge_cases: list[EdgeCase] = Field(default_factory=list)
 
 
-class OutcomeSpaceTimeSeries(Model):
-    description: Annotated[str, Field(min_length=1)]
-    outcome_statement: Annotated[str, Field(min_length=1)]
-    base_case: BaseCaseResolution
-    frequency: Literal["daily", "weekly", "monthly", "quarterly", "yearly"]
+class OutcomeSpaceScalar(OutcomeSpace):
     units: Annotated[str, Field(min_length=1)]
     source_name: Annotated[str, Field(min_length=1)]
     source_uri: Annotated[str, Field(min_length=1, max_length=2083)]
-    edge_cases: list[EdgeCase]
+
+
+class OutcomeSpaceTimeSeries(OutcomeSpaceScalar):
+    frequency: Literal["daily", "weekly", "monthly", "quarterly", "yearly"]
     history_api_spec: ApiSpecJSONPath | ApiSpec | None = None
 
 
-class OutcomePointEvent(Model):
+class OutcomePoint(Model):
+    pass
+
+
+class OutcomePointScalar(OutcomePoint):
+    pass
+
+
+class OutcomePointEvent(OutcomePoint):
     outcome: Annotated[str, Field(min_length=1)]
 
 
-class OutcomePointTimeSeries(Model):
+class OutcomePointTimeSeries(OutcomePointScalar):
     reference_date: str
     release_date: str | None = None
 
@@ -269,6 +277,8 @@ class OracleConfigPrototype1(OracleConfig):
 
 class PredictionProduct(Model):
     product: PredictionProductV1
-    outcome_space: OutcomeSpaceTimeSeries | OutcomeSpaceEvent
-    outcome_point: OutcomePointTimeSeries | OutcomePointEvent
+    outcome_space: OutcomeSpaceTimeSeries | OutcomeSpaceScalar | OutcomeSpace
+    outcome_point: (
+        OutcomePointTimeSeries | OutcomePointEvent | OutcomePointScalar | OutcomePoint
+    )
     oracle_config: OracleConfigPrototype1 | OracleConfig | None = None
