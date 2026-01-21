@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 from typing import Any, Type, cast
 
@@ -20,7 +21,14 @@ from ..bindings.facade import CLEARING_DIAMOND_ABI
 from ..bindings.product_registry import ABI as PRODUCT_REGISTRY_ABI
 from ..decorators import convert_web3_error
 from ..exceptions import NotFoundError
-from ..schemas import PredictionProductV1, Transaction
+from ..schemas import (
+    BaseProduct,
+    ExpirySpecification,
+    OracleSpecification,
+    PredictionProductV1,
+    ProductMetadata,
+    Transaction,
+)
 from .base import ClearingSystemAPI
 
 
@@ -127,7 +135,7 @@ class Product(ClearingSystemAPI):
         )
         return self._transact(
             product_registry_contract.register_prediction_product(
-                self._convert_product_specification(product, decimals),
+                self._convert_prediction_product_specification(product, decimals),
                 int(initial_builder_stake * 10**decimals),
             )
         )
@@ -165,6 +173,33 @@ class Product(ClearingSystemAPI):
         )
 
     ### Views ###
+
+    @convert_web3_error(PRODUCT_REGISTRY_ABI, CLEARING_DIAMOND_ABI)
+    def get(self, product_id: str) -> PredictionProductV1:
+        """Retrieves a product registered on chain.
+
+        Parameters
+        ----------
+        product_id : str
+            The ID of the product.
+
+        Returns
+        -------
+        afp.schemas.PredictionProductV1
+        """
+        product_id = validators.validate_hexstr32(product_id)
+
+        product_registry_contract = ProductRegistry(
+            self._w3, self._config.product_registry_address
+        )
+        # Note: when FuturesProductV1 support is added, call type_of(product_id) first
+        # to figure out which view function should be used
+        product = product_registry_contract.prediction_product_v1(HexBytes(product_id))
+
+        erc20_contract = ERC20(self._w3, product.base.collateral_asset)
+        decimals = erc20_contract.decimals()
+
+        return self._convert_on_chain_prediction_product(product, decimals)
 
     @convert_web3_error(PRODUCT_REGISTRY_ABI, CLEARING_DIAMOND_ABI)
     def state(self, product_id: str) -> str:
@@ -213,7 +248,7 @@ class Product(ClearingSystemAPI):
     ### Internal helpers ###
 
     @staticmethod
-    def _convert_product_specification(
+    def _convert_prediction_product_specification(
         product: PredictionProductV1, decimals: int
     ) -> OnChainPredictionProductV1:
         return OnChainPredictionProductV1(
@@ -252,4 +287,44 @@ class Product(ClearingSystemAPI):
             ),
             max_price=int(product.max_price * 10**product.base.price_decimals),
             min_price=int(product.min_price * 10**product.base.price_decimals),
+        )
+
+    @staticmethod
+    def _convert_on_chain_prediction_product(
+        product: OnChainPredictionProductV1, decimals: int
+    ) -> PredictionProductV1:
+        return PredictionProductV1(
+            base=BaseProduct(
+                metadata=ProductMetadata(
+                    builder=product.base.metadata.builder,
+                    symbol=product.base.metadata.symbol,
+                    description=product.base.metadata.description,
+                ),
+                oracle_spec=OracleSpecification(
+                    oracle_address=product.base.oracle_spec.oracle_address,
+                    fsv_decimals=product.base.oracle_spec.fsv_decimals,
+                    fsp_alpha=(
+                        Decimal(product.base.oracle_spec.fsp_alpha)
+                        / constants.FULL_PRECISION_MULTIPLIER
+                    ),
+                    fsp_beta=(
+                        Decimal(product.base.oracle_spec.fsp_beta)
+                        / 10**product.base.oracle_spec.fsv_decimals
+                    ),
+                    fsv_calldata=product.base.oracle_spec.fsv_calldata.to_0x_hex(),
+                ),
+                collateral_asset=product.base.collateral_asset,
+                start_time=datetime.fromtimestamp(product.base.start_time),
+                point_value=Decimal(product.base.point_value) / 10**decimals,
+                price_decimals=product.base.price_decimals,
+                extended_metadata=product.base.extended_metadata,
+            ),
+            expiry_spec=ExpirySpecification(
+                earliest_fsp_submission_time=datetime.fromtimestamp(
+                    product.expiry_spec.earliest_fsp_submission_time
+                ),
+                tradeout_interval=product.expiry_spec.tradeout_interval,
+            ),
+            max_price=Decimal(product.max_price) / 10**product.base.price_decimals,
+            min_price=Decimal(product.min_price) / 10**product.base.price_decimals,
         )
