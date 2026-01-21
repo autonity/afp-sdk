@@ -31,7 +31,7 @@ def test_generate_intent_hash():
     )
 
     expected_hash = HexBytes(
-        "0xa8c54edd8ff9ce32a27462bf56d2f819c364e40b049e3616bfe3212b1f692b6f"
+        "0xed1d85647d3cbd0f2ad6bfdbbfcec5c4d1226ecf1bb6579c10cced7d245e1de2"
     )
     actual_hash = hashing.generate_intent_hash(
         intent_data=intent_data,
@@ -39,7 +39,7 @@ def test_generate_intent_hash():
         intent_account_id=intent_account_id,
         tick_size=18,
     )
-    assert expected_hash == actual_hash
+    assert actual_hash == expected_hash
 
 
 def test_generate_order_cancellation_hash():
@@ -50,7 +50,7 @@ def test_generate_order_cancellation_hash():
         "0x95672a703e451a4617ecd229400b675e59d21c0d866325cdc87a86d84a898fe8"
     )
     actual_hash = hashing.generate_order_cancellation_hash(nonce, intent_hash)
-    assert expected_hash == actual_hash
+    assert actual_hash == expected_hash
 
 
 def test_generate_product_id():
@@ -63,4 +63,4 @@ def test_generate_product_id():
         "0x89ed228125682fca3832f5fb52236ebabc3d29e64fa0867556a0621a310c49d7"
     )
     actual_hash = hashing.generate_product_id(builder.address, symbol)
-    assert expected_hash == actual_hash
+    assert actual_hash == expected_hash

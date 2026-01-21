@@ -18,7 +18,7 @@ from pydantic import (
     model_validator,
 )
 
-from . import validators
+from . import constants, validators
 from .enums import ListingState, OrderSide, OrderState, OrderType, TradeState
 
 
@@ -66,7 +66,10 @@ class IntentData(Model):
     product_id: str
     limit_price: Decimal
     quantity: Annotated[int, Field(gt=0)]
-    max_trading_fee_rate: Decimal
+    max_trading_fee_rate: Annotated[
+        Decimal,
+        Field(le=Decimal((2**32 - 1) / constants.FEE_RATE_MULTIPLIER)),  # uint32
+    ]
     side: OrderSide
     good_until_time: Timestamp
     nonce: int
