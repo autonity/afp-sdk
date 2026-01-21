@@ -20,11 +20,7 @@ from ..bindings.facade import CLEARING_DIAMOND_ABI
 from ..bindings.product_registry import ABI as PRODUCT_REGISTRY_ABI
 from ..decorators import convert_web3_error
 from ..exceptions import NotFoundError
-from ..schemas import (
-    PredictionProduct,
-    PredictionProductV1,
-    Transaction,
-)
+from ..schemas import PredictionProductV1, Transaction
 from .base import ClearingSystemAPI
 
 
@@ -33,8 +29,8 @@ class Product(ClearingSystemAPI):
 
     ### Product Specification ###
 
-    def parse[T: Type[PredictionProduct | PredictionProductV1]](
-        self, dct: dict[str, Any], schema: T = PredictionProduct
+    def parse[T: Type[PredictionProductV1]](
+        self, dct: dict[str, Any], schema: T = PredictionProductV1
     ) -> T:
         """Creates a product specification from a dictionary.
 
@@ -45,22 +41,20 @@ class Product(ClearingSystemAPI):
         spec : dict
             A dictionary that follows the PredictionProduct schema.
         schema : type
-            afp.schemas.PredictionProduct or afp.schemas.PredictionProductV1
+            afp.schemas.PredictionProductV1
 
         Returns
         -------
-        afp.schemas.PredictionProduct or afp.schemas.PredictionProductV1
+        afp.schemas.PredictionProductV1
         """
-        return schema.model_validate(dct)
+        return schema.model_validate(dct, by_alias=True)
 
-    def dump(
-        self, product_spec: PredictionProduct | PredictionProductV1
-    ) -> dict[str, Any]:
+    def dump(self, product_spec: PredictionProductV1) -> dict[str, Any]:
         """Creates a dictionary from a product specification.
 
         Parameters
         ----------
-        product_spec : afp.schemas.PredictionProduct or afp.schemas.PredictionProductV1
+        product_spec : afp.schemas.PredictionProductV1
 
         Returns
         -------
@@ -68,25 +62,21 @@ class Product(ClearingSystemAPI):
         """
         return product_spec.model_dump(by_alias=True)
 
-    def id(self, product_spec: PredictionProduct | PredictionProductV1) -> str:
+    def id(self, product_spec: PredictionProductV1) -> str:
         """Generates the product ID for a product specification.
 
         This is the ID that the product will get after successful registration.
 
         Parameters
         ----------
-        product_spec : afp.schemas.PredictionProduct or afp.schemas.PredictionProductV1
+        product_spec : afp.schemas.PredictionProductV1
             The product specification.
 
         Returns
         -------
         str
         """
-        product = (
-            product_spec
-            if isinstance(product_spec, PredictionProductV1)
-            else product_spec.product
-        )
+        product = product_spec
 
         return Web3.to_hex(
             hashing.generate_product_id(
@@ -100,7 +90,7 @@ class Product(ClearingSystemAPI):
     @convert_web3_error(PRODUCT_REGISTRY_ABI, CLEARING_DIAMOND_ABI)
     def register(
         self,
-        product_spec: PredictionProduct | PredictionProductV1,
+        product_spec: PredictionProductV1,
         initial_builder_stake: Decimal,
     ) -> Transaction:
         """Submits a product specification to the clearing system.
@@ -110,8 +100,8 @@ class Product(ClearingSystemAPI):
 
         Parameters
         ----------
-        product_spec : afp.schemas.PredictionProduct or afp.schemas.PredictionProductV1
-            The product specification with or without extended metadata.
+        product_spec : afp.schemas.PredictionProductV1
+            The product specification.
         initial_builder_stake : Decimal
             Registration stake (product maintenance fee) in units of the collateral
             asset.
@@ -121,11 +111,7 @@ class Product(ClearingSystemAPI):
         afp.schemas.Transaction
             Transaction parameters.
         """
-        product = (
-            product_spec
-            if isinstance(product_spec, PredictionProductV1)
-            else product_spec.product
-        )
+        product = product_spec
 
         # Verify contracts exist
         validators.verify_collateral_asset(self._w3, product.base.collateral_asset)
