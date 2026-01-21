@@ -29,7 +29,7 @@ class Product(ClearingSystemAPI):
 
     ### Product Specification ###
 
-    def parse[T: Type[PredictionProductV1]](
+    def validate[T: Type[PredictionProductV1]](
         self, dct: dict[str, Any], schema: T = PredictionProductV1
     ) -> T:
         """Creates a product specification from a dictionary.
