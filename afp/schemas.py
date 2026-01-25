@@ -1,13 +1,22 @@
 """AFP data structures."""
 
 from decimal import Decimal
-from typing import Annotated, Any, Literal, Self
+from typing import Annotated, Any, ClassVar, Literal, Self
 
 from pydantic import AfterValidator, AnyUrl, BeforeValidator, Field, model_validator
 
 from . import constants, validators
+from .constants import schema_cids
 from .enums import ListingState, OrderSide, OrderState, OrderType, TradeState
-from .types import AliasedModel, CID, ISODate, ISODateTime, Model, Timestamp
+from .types import (
+    AliasedModel,
+    CID,
+    ISODate,
+    ISODateTime,
+    Model,
+    PinnedModel,
+    Timestamp,
+)
 
 
 # Trading API
@@ -163,9 +172,12 @@ class PredictionProductV1(AliasedModel):
     max_price: Decimal
 
     @model_validator(mode="after")
-    def validate_price_limits(self) -> Self:
+    def _validate_price_limits(self) -> Self:
         validators.validate_price_limits(self.min_price, self.max_price)
         return self
+
+
+# Extended metadata schemas
 
 
 class ApiSpec(Model):
@@ -208,7 +220,9 @@ class EdgeCase(Model):
     fsp_resolution: Annotated[str, Field(min_length=1)]
 
 
-class OutcomeSpace(Model):
+class OutcomeSpace(PinnedModel):
+    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_SPACE_V02
+
     fsp_type: Literal["scalar", "binary", "ternary"]
     description: Annotated[str, Field(min_length=1)]
     base_case: BaseCaseResolution
@@ -216,6 +230,8 @@ class OutcomeSpace(Model):
 
 
 class OutcomeSpaceScalar(OutcomeSpace):
+    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_SPACE_SCALAR_V02
+
     fsp_type: Literal["scalar"] = "scalar"  # type: ignore
     units: Annotated[str, Field(min_length=1)]
     source_name: Annotated[str, Field(min_length=1)]
@@ -227,6 +243,8 @@ class OutcomeSpaceScalar(OutcomeSpace):
 
 
 class OutcomeSpaceTimeSeries(OutcomeSpaceScalar):
+    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_SPACE_TIME_SERIES_V02
+
     frequency: Literal[
         "daily",
         "weekly",
@@ -239,30 +257,39 @@ class OutcomeSpaceTimeSeries(OutcomeSpaceScalar):
     history_api_spec: ApiSpecJSONPath | ApiSpec | None = None
 
 
-class OutcomePoint(Model):
-    fsp_type: Literal["scalar", "binary", "ternary"]
-
-
 class TemporalObservation(Model):
     reference_date: ISODate
     release_date: ISODate
 
 
+class OutcomePoint(PinnedModel):
+    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_POINT_V02
+
+    fsp_type: Literal["scalar", "binary", "ternary"]
+
+
 class OutcomePointScalar(OutcomePoint):
-    pass
+    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_POINT_SCALAR_V02
+
+    fsp_type: Literal["scalar"] = "scalar"  # type: ignore
+
+
+class OutcomePointTimeSeries(OutcomePointScalar):
+    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_POINT_TIME_SERIES_V02
+
+    observation: TemporalObservation
 
 
 class OutcomePointEvent(OutcomePoint):
+    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_POINT_EVENT_V02
+
     fsp_type: Literal["binary", "ternary"]  # type: ignore
     outcome: Annotated[str, Field(min_length=1)]
 
 
-class OutcomePointTimeSeries(OutcomePointScalar):
-    fsp_type: Literal["scalar"] = "scalar"  # type: ignore
-    observation: TemporalObservation
+class OracleConfig(PinnedModel):
+    SCHEMA_CID: ClassVar[CID] = schema_cids.ORACLE_CONFIG_V02
 
-
-class OracleConfig(Model):
     description: Annotated[str, Field(min_length=1)]
     project_url: Annotated[
         AnyUrl | None,
@@ -272,17 +299,23 @@ class OracleConfig(Model):
 
 
 class OracleConfigPrototype1(OracleConfig):
+    SCHEMA_CID: ClassVar[CID] = schema_cids.ORACLE_CONFIG_PROTOTYPE1_V02
+
     evaluation_api_spec: ApiSpecJSONPath | ApiSpec
 
 
-class OracleFallback(Model):
+class OracleFallback(PinnedModel):
+    SCHEMA_CID: ClassVar[CID] = schema_cids.ORACLE_FALLBACK_V02
+
     fallback_time: ISODateTime
     fallback_fsp: Decimal
 
 
 class PredictionProduct(Model):
     product: PredictionProductV1
-    outcome_space: OutcomeSpace
-    outcome_point: OutcomePoint
-    oracle_config: OracleConfig
+    outcome_space: OutcomeSpaceTimeSeries | OutcomeSpaceScalar | OutcomeSpace
+    outcome_point: (
+        OutcomePointEvent | OutcomePointTimeSeries | OutcomePointScalar | OutcomePoint
+    )
+    oracle_config: OracleConfigPrototype1 | OracleConfig
     oracle_fallback: OracleFallback

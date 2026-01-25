@@ -1,6 +1,6 @@
 from datetime import date, datetime, UTC
 from functools import partial
-from typing import Annotated, Any, Self
+from typing import Annotated, Any, ClassVar, Self
 
 import inflection
 from pydantic import (
@@ -11,49 +11,12 @@ from pydantic import (
     ConfigDict,
     Field,
     PlainSerializer,
+    model_validator,
 )
 
 from . import validators
 
-
-# Base models
-
-
-class Model(BaseModel):
-    """Base immutable schema."""
-
-    model_config = ConfigDict(frozen=True)
-
-    # Always serialize/deserialize by alias
-
-    def model_dump(self, by_alias: bool = True, **kwargs: Any) -> dict[Any, Any]:
-        return super().model_dump(by_alias=by_alias, **kwargs)
-
-    def model_dump_json(self, by_alias: bool = True, **kwargs: Any) -> str:
-        return super().model_dump_json(by_alias=by_alias, **kwargs)
-
-    @classmethod
-    def model_validate(cls, *args: Any, by_alias: bool = True, **kwargs: Any) -> Self:
-        return super().model_validate(*args, by_alias=by_alias, **kwargs)
-
-    @classmethod
-    def model_validate_json(
-        cls, *args: Any, by_alias: bool = True, **kwargs: Any
-    ) -> Self:
-        return super().model_validate_json(*args, by_alias=by_alias, **kwargs)
-
-
-class AliasedModel(Model):
-    """Schema that converts property names from snake case to camel case for
-    serialization.
-    """
-
-    model_config = Model.model_config | ConfigDict(
-        alias_generator=AliasGenerator(
-            alias=partial(inflection.camelize, uppercase_first_letter=False),
-        ),
-        populate_by_name=True,
-    )
+CID_MODEL_MAP: dict["CID", type["PinnedModel"]] = {}
 
 
 # Conversions
@@ -121,3 +84,63 @@ ISODate = Annotated[
     BeforeValidator(ensure_py_date),
     PlainSerializer(ensure_iso_date, return_type=str),
 ]
+
+
+# Base models
+
+
+class Model(BaseModel):
+    """Base immutable schema."""
+
+    model_config = ConfigDict(frozen=True)
+
+    # Always serialize/deserialize by alias
+
+    def model_dump(self, by_alias: bool = True, **kwargs: Any) -> dict[Any, Any]:
+        return super().model_dump(by_alias=by_alias, **kwargs)
+
+    def model_dump_json(self, by_alias: bool = True, **kwargs: Any) -> str:
+        return super().model_dump_json(by_alias=by_alias, **kwargs)
+
+    @classmethod
+    def model_validate(cls, *args: Any, by_alias: bool = True, **kwargs: Any) -> Self:
+        return super().model_validate(*args, by_alias=by_alias, **kwargs)
+
+    @classmethod
+    def model_validate_json(
+        cls, *args: Any, by_alias: bool = True, **kwargs: Any
+    ) -> Self:
+        return super().model_validate_json(*args, by_alias=by_alias, **kwargs)
+
+
+class AliasedModel(Model):
+    """Schema that converts property names from snake case to camel case for
+    serialization.
+    """
+
+    model_config = Model.model_config | ConfigDict(
+        alias_generator=AliasGenerator(
+            alias=partial(inflection.camelize, uppercase_first_letter=False),
+        ),
+        populate_by_name=True,
+    )
+
+
+class PinnedModel(Model):
+    """Extended metadata schema that has an IPFS CID."""
+    SCHEMA_CID: ClassVar[CID]
+
+    def __init_subclass__(cls, **kwargs: Any):
+        super().__init_subclass__(**kwargs)
+        if "SCHEMA_CID" in cls.__dict__:
+            assert cls.SCHEMA_CID not in CID_MODEL_MAP, (
+                f"{cls.__name__} model does not have unique CID"
+            )
+            CID_MODEL_MAP[cls.SCHEMA_CID] = cls
+
+    @model_validator(mode="after")
+    def _ensure_schema_cid(self) -> Self:
+        assert "SCHEMA_CID" in self.__class__.__dict__, (
+            f"SCHEMA_CID is missing from {self.__class__.__name__} schema"
+        )
+        return self

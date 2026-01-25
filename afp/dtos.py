@@ -10,10 +10,16 @@ from .enums import ListingState, OrderSide, OrderState, OrderType, TradeState
 from .schemas import (
     Intent,
     OracleConfig,
+    OracleConfigPrototype1,
     OracleFallback,
     OrderCancellationData,
     OutcomePoint,
+    OutcomePointEvent,
+    OutcomePointScalar,
+    OutcomePointTimeSeries,
     OutcomeSpace,
+    OutcomeSpaceScalar,
+    OutcomeSpaceTimeSeries,
     Timestamp,
 )
 from .types import CID, AliasedModel, Model
@@ -117,9 +123,11 @@ class OrderFillFilter(PaginationFilter):
 
 
 class ExtendedMetadata(Model):
-    outcome_space: OutcomeSpace
-    outcome_point: OutcomePoint
-    oracle_config: OracleConfig
+    outcome_space: OutcomeSpaceTimeSeries | OutcomeSpaceScalar | OutcomeSpace
+    outcome_point: (
+        OutcomePointEvent | OutcomePointTimeSeries | OutcomePointScalar | OutcomePoint
+    )
+    oracle_config: OracleConfigPrototype1 | OracleConfig
     oracle_fallback: OracleFallback
 
 

@@ -17,6 +17,20 @@ RATE_MULTIPLIER = 10**4
 FEE_RATE_MULTIPLIER = 10**6
 FULL_PRECISION_MULTIPLIER = 10**18
 
+schema_cids = SimpleNamespace(
+    # afp-product-schemas v0.2
+    ORACLE_CONFIG_V02="QmfXNPrsPvhKmMPKxsxr6Z3TzH35eHykzpQrruSjPFqeYa",
+    ORACLE_CONFIG_PROTOTYPE1_V02="QmfXNPrsPvhKmMPKxsxr6Z3TzH35eHykzpQrruSjPFqeYb",
+    ORACLE_FALLBACK_V02="QmfXNPrsPvhKmMPKxsxr6Z3TzH35eHykzpQrruSjPFqeYc",
+    OUTCOME_POINT_V02="QmfXNPrsPvhKmMPKxsxr6Z3TzH35eHykzpQrruSjPFqeYd",
+    OUTCOME_POINT_EVENT_V02="QmfXNPrsPvhKmMPKxsxr6Z3TzH35eHykzpQrruSjPFqeYe",
+    OUTCOME_POINT_SCALAR_V02="QmfXNPrsPvhKmMPKxsxr6Z3TzH35eHykzpQrruSjPFqeYf",
+    OUTCOME_POINT_TIME_SERIES_V02="QmfXNPrsPvhKmMPKxsxr6Z3TzH35eHykzpQrruSjPFqeYg",
+    OUTCOME_SPACE_V02="QmfXNPrsPvhKmMPKxsxr6Z3TzH35eHykzpQrruSjPFqeYh",
+    OUTCOME_SPACE_SCALAR_V02="QmfXNPrsPvhKmMPKxsxr6Z3TzH35eHykzpQrruSjPFqeYi",
+    OUTCOME_SPACE_TIME_SERIES_V02="QmfXNPrsPvhKmMPKxsxr6Z3TzH35eHykzpQrruSjPFqeYj",
+)
+
 defaults = SimpleNamespace(
     # Authentication parameters
     KEYFILE=os.getenv("AFP_KEYFILE", None),
