@@ -1,6 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Type, cast
+from typing import Any, cast
 
 from eth_typing.evm import ChecksumAddress
 from hexbytes import HexBytes
@@ -25,6 +25,7 @@ from ..schemas import (
     BaseProduct,
     ExpirySpecification,
     OracleSpecification,
+    PredictionProduct,
     PredictionProductV1,
     ProductMetadata,
     Transaction,
@@ -37,32 +38,49 @@ class Product(ClearingSystemAPI):
 
     ### Product Specification ###
 
-    def validate[T: Type[PredictionProductV1]](
-        self, dct: dict[str, Any], schema: T = PredictionProductV1
-    ) -> T:
+    def validate(self, product_dict: dict[str, Any]) -> PredictionProduct:
         """Creates a product specification from a dictionary.
 
         The dictionary must follow the schema of the afp.schemas.ProductSpec model.
 
         Parameters
         ----------
-        spec : dict
+        product_dict : dict
             A dictionary that follows the PredictionProduct schema.
-        schema : type
-            afp.schemas.PredictionProductV1
 
         Returns
         -------
-        afp.schemas.PredictionProductV1
+        afp.schemas.PredictionProduct
         """
-        return schema.model_validate(dct, by_alias=True)
+        return self._verify_product_spec(
+            PredictionProduct.model_validate(product_dict, by_alias=True)
+        )
 
-    def dump(self, product_spec: PredictionProductV1) -> dict[str, Any]:
+    def validate_json(self, product_json: str) -> PredictionProduct:
+        """Creates a product specification from a dictionary.
+
+        The dictionary must follow the schema of the afp.schemas.ProductSpec model.
+
+        Parameters
+        ----------
+        product_json : str
+            A JSON string that follows the PredictionProduct schema.
+
+        Returns
+        -------
+        afp.schemas.PredictionProduct
+        """
+        return self._verify_product_spec(
+            PredictionProduct.model_validate_json(product_json, by_alias=True)
+        )
+
+    def dump(self, product_spec: PredictionProduct) -> dict[str, Any]:
         """Creates a dictionary from a product specification.
 
         Parameters
         ----------
-        product_spec : afp.schemas.PredictionProductV1
+        product_spec : afp.schemas.PredictionProduct
+            The product specification.
 
         Returns
         -------
@@ -70,26 +88,38 @@ class Product(ClearingSystemAPI):
         """
         return product_spec.model_dump(by_alias=True)
 
-    def id(self, product_spec: PredictionProductV1) -> str:
-        """Generates the product ID for a product specification.
-
-        This is the ID that the product will get after successful registration.
+    def dump_json(self, product_spec: PredictionProduct) -> str:
+        """Creates a JSON string from a product specification.
 
         Parameters
         ----------
-        product_spec : afp.schemas.PredictionProductV1
+        product_spec : afp.schemas.PredictionProduct
             The product specification.
 
         Returns
         -------
         str
         """
-        product = product_spec
+        return product_spec.model_dump_json(by_alias=True)
 
+    def id(self, product_spec: PredictionProduct) -> str:
+        """Generates the product ID for a product specification.
+
+        This is the ID that the product will get after successful registration.
+
+        Parameters
+        ----------
+        product_spec : afp.schemas.PredictionProduct
+            The product specification.
+
+        Returns
+        -------
+        str
+        """
         return Web3.to_hex(
             hashing.generate_product_id(
-                cast(ChecksumAddress, product.base.metadata.builder),
-                product.base.metadata.symbol,
+                cast(ChecksumAddress, product_spec.product.base.metadata.builder),
+                product_spec.product.base.metadata.symbol,
             )
         )
 
@@ -97,9 +127,7 @@ class Product(ClearingSystemAPI):
 
     @convert_web3_error(PRODUCT_REGISTRY_ABI, CLEARING_DIAMOND_ABI)
     def register(
-        self,
-        product_spec: PredictionProductV1,
-        initial_builder_stake: Decimal,
+        self, product_spec: PredictionProduct, initial_builder_stake: Decimal
     ) -> Transaction:
         """Submits a product specification to the clearing system.
 
@@ -108,7 +136,7 @@ class Product(ClearingSystemAPI):
 
         Parameters
         ----------
-        product_spec : afp.schemas.PredictionProductV1
+        product_spec : afp.schemas.PredictionProduct or afp.schemas.PredictionProductV1
             The product specification.
         initial_builder_stake : Decimal
             Registration stake (product maintenance fee) in units of the collateral
@@ -119,14 +147,8 @@ class Product(ClearingSystemAPI):
         afp.schemas.Transaction
             Transaction parameters.
         """
-        product = product_spec
-
-        # Verify contracts exist
-        validators.verify_collateral_asset(self._w3, product.base.collateral_asset)
-        validators.verify_oracle(self._w3, product.base.oracle_spec.oracle_address)
-
         erc20_contract = ERC20(
-            self._w3, cast(ChecksumAddress, product.base.collateral_asset)
+            self._w3, cast(ChecksumAddress, product_spec.product.base.collateral_asset)
         )
         decimals = erc20_contract.decimals()
 
@@ -135,7 +157,9 @@ class Product(ClearingSystemAPI):
         )
         return self._transact(
             product_registry_contract.register_prediction_product(
-                self._convert_prediction_product_specification(product, decimals),
+                self._convert_prediction_product_specification(
+                    product_spec.product, decimals
+                ),
                 int(initial_builder_stake * 10**decimals),
             )
         )
@@ -175,7 +199,7 @@ class Product(ClearingSystemAPI):
     ### Views ###
 
     @convert_web3_error(PRODUCT_REGISTRY_ABI, CLEARING_DIAMOND_ABI)
-    def get(self, product_id: str) -> PredictionProductV1:
+    def get(self, product_id: str) -> PredictionProduct:
         """Retrieves a product registered on chain.
 
         Parameters
@@ -185,7 +209,7 @@ class Product(ClearingSystemAPI):
 
         Returns
         -------
-        afp.schemas.PredictionProductV1
+        afp.schemas.PredictionProduct
         """
         product_id = validators.validate_hexstr32(product_id)
 
@@ -199,7 +223,8 @@ class Product(ClearingSystemAPI):
         erc20_contract = ERC20(self._w3, product.base.collateral_asset)
         decimals = erc20_contract.decimals()
 
-        return self._convert_on_chain_prediction_product(product, decimals)
+        product = self._convert_on_chain_prediction_product(product, decimals)
+        return product  # TODO
 
     @convert_web3_error(PRODUCT_REGISTRY_ABI, CLEARING_DIAMOND_ABI)
     def state(self, product_id: str) -> str:
@@ -247,9 +272,20 @@ class Product(ClearingSystemAPI):
 
     ### Internal helpers ###
 
+    def _verify_product_spec(
+        self, product_spec: PredictionProduct
+    ) -> PredictionProduct:
+        validators.verify_collateral_asset(
+            self._w3, product_spec.product.base.collateral_asset
+        )
+        validators.verify_oracle(
+            self._w3, product_spec.product.base.oracle_spec.oracle_address
+        )
+        return product_spec
+
     @staticmethod
     def _convert_prediction_product_specification(
-        product: PredictionProductV1, decimals: int
+        product: PredictionProductV1, collateral_asset_decimals: int
     ) -> OnChainPredictionProductV1:
         return OnChainPredictionProductV1(
             base=OnChainBaseProduct(
@@ -275,7 +311,9 @@ class Product(ClearingSystemAPI):
                 ),
                 collateral_asset=cast(ChecksumAddress, product.base.collateral_asset),
                 start_time=int(product.base.start_time.timestamp()),
-                point_value=int(product.base.point_value * 10**decimals),
+                point_value=int(
+                    product.base.point_value * 10**collateral_asset_decimals
+                ),
                 price_decimals=product.base.price_decimals,
                 extended_metadata=product.base.extended_metadata,
             ),
@@ -291,7 +329,7 @@ class Product(ClearingSystemAPI):
 
     @staticmethod
     def _convert_on_chain_prediction_product(
-        product: OnChainPredictionProductV1, decimals: int
+        product: OnChainPredictionProductV1, collateral_asset_decimals: int
     ) -> PredictionProductV1:
         return PredictionProductV1(
             base=BaseProduct(
@@ -315,7 +353,9 @@ class Product(ClearingSystemAPI):
                 ),
                 collateral_asset=product.base.collateral_asset,
                 start_time=datetime.fromtimestamp(product.base.start_time),
-                point_value=Decimal(product.base.point_value) / 10**decimals,
+                point_value=(
+                    Decimal(product.base.point_value) / 10**collateral_asset_decimals
+                ),
                 price_decimals=product.base.price_decimals,
                 extended_metadata=product.base.extended_metadata,
             ),
