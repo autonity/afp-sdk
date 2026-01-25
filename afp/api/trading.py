@@ -4,6 +4,7 @@ from decimal import Decimal
 from typing import Generator, Iterable
 
 from web3 import Web3
+from web3.constants import CHECKSUM_ADDRESSS_ZERO
 
 from .. import hashing, validators
 from ..constants import DEFAULT_BATCH_SIZE
@@ -21,9 +22,6 @@ from ..schemas import (
     OrderFill,
 )
 from .base import ExchangeAPI
-
-
-NULL_ADDRESS = "0x0000000000000000000000000000000000000000"
 
 
 class Trading(ExchangeAPI):
@@ -99,7 +97,7 @@ class Trading(ExchangeAPI):
             side=OrderSide(side.upper()),
             good_until_time=good_until_time,
             nonce=self._generate_nonce(),
-            referral=(referral if referral is not None else NULL_ADDRESS),
+            referral=(referral if referral is not None else CHECKSUM_ADDRESSS_ZERO),
         )
         intent_hash = hashing.generate_intent_hash(
             intent_data=intent_data,
