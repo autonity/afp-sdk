@@ -10,18 +10,6 @@ from web3 import Web3
 from .exceptions import NotFoundError, ValidationError
 
 
-def ensure_timestamp(value: int | float | datetime) -> int:
-    return int(value.timestamp()) if isinstance(value, datetime) else int(value)
-
-
-def ensure_datetime(value: int | float | str) -> datetime:
-    if isinstance(value, datetime):
-        return value
-    if isinstance(value, int) or isinstance(value, float):
-        return datetime.fromtimestamp(value)
-    return datetime.fromisoformat(value)
-
-
 def validate_timedelta(value: timedelta) -> timedelta:
     if value.total_seconds() < 0:
         raise ValueError(f"{value} should be positive")
@@ -30,7 +18,7 @@ def validate_timedelta(value: timedelta) -> timedelta:
 
 def validate_non_negative_timestamp(value: datetime) -> datetime:
     if value.timestamp() < 0:
-        raise ValueError(f"{value} should be a non-negative timestamp")
+        raise ValueError(f"{value} should be greater than {datetime.fromtimestamp(0)}")
     return value
 
 

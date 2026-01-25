@@ -53,7 +53,7 @@ class Product(ClearingSystemAPI):
         afp.schemas.PredictionProduct
         """
         return self._verify_product_spec(
-            PredictionProduct.model_validate(product_dict, by_alias=True)
+            PredictionProduct.model_validate(product_dict)
         )
 
     def validate_json(self, product_json: str) -> PredictionProduct:
@@ -71,7 +71,7 @@ class Product(ClearingSystemAPI):
         afp.schemas.PredictionProduct
         """
         return self._verify_product_spec(
-            PredictionProduct.model_validate_json(product_json, by_alias=True)
+            PredictionProduct.model_validate_json(product_json)
         )
 
     def dump(self, product_spec: PredictionProduct) -> dict[str, Any]:
@@ -86,7 +86,7 @@ class Product(ClearingSystemAPI):
         -------
         dict
         """
-        return product_spec.model_dump(by_alias=True)
+        return product_spec.model_dump()
 
     def dump_json(self, product_spec: PredictionProduct) -> str:
         """Creates a JSON string from a product specification.
@@ -100,7 +100,7 @@ class Product(ClearingSystemAPI):
         -------
         str
         """
-        return product_spec.model_dump_json(by_alias=True)
+        return product_spec.model_dump_json()
 
     def id(self, product_spec: PredictionProduct) -> str:
         """Generates the product ID for a product specification.

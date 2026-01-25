@@ -7,10 +7,11 @@ from pydantic import AfterValidator, Field, computed_field
 
 from . import validators
 from .enums import ListingState, OrderSide, OrderState, OrderType, TradeState
-from .schemas import AliasedModel, Intent, OrderCancellationData, Timestamp
+from .schemas import Intent, OrderCancellationData, Timestamp
+from .types import AliasedModel, Model
 
 
-class PaginationFilter(AliasedModel):
+class PaginationFilter(Model):
     batch: Annotated[None | int, Field(gt=0, exclude=True)]
     batch_size: Annotated[None | int, Field(gt=0, exclude=True)]
     newest_first: Annotated[None | bool, Field(exclude=True)]

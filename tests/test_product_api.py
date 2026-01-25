@@ -11,7 +11,7 @@ def test_product_parsing_from_dictionary():
         "base": {
             "metadata": {
                 "builder": "0xFfbf2643CF22760AfD3b878BA8aE849c48944Aa5",
-                "symbol": "BTC-USD-PERP",
+                "symbol": "BTCUSDPERP",
                 "description": "Bitcoin perpetual futures",
             },
             "oracleSpec": {
@@ -25,7 +25,7 @@ def test_product_parsing_from_dictionary():
             "startTime": "2024-01-01T00:00Z",
             "pointValue": "1.0",
             "priceDecimals": 2,
-            "extendedMetadata": "",
+            "extendedMetadata": "QmfXNPrsPvhKmMPKxsxr6Z3TzH35eHykzpQrruSjPFqeYa",
         },
         "expirySpec": {
             "earliestFspSubmissionTime": "2024-01-01T12:00Z",
@@ -40,7 +40,7 @@ def test_product_parsing_from_dictionary():
     assert isinstance(result, PredictionProductV1)
 
     assert result.base.metadata.builder == "0xFfbf2643CF22760AfD3b878BA8aE849c48944Aa5"
-    assert result.base.metadata.symbol == "BTC-USD-PERP"
+    assert result.base.metadata.symbol == "BTCUSDPERP"
     assert result.base.metadata.description == "Bitcoin perpetual futures"
 
     assert (
@@ -58,7 +58,10 @@ def test_product_parsing_from_dictionary():
     assert result.base.start_time == datetime(2024, 1, 1, 0, 0, tzinfo=timezone.utc)
     assert result.base.point_value == Decimal("1.0")
     assert result.base.price_decimals == 2
-    assert result.base.extended_metadata == ""
+    assert (
+        result.base.extended_metadata
+        == "QmfXNPrsPvhKmMPKxsxr6Z3TzH35eHykzpQrruSjPFqeYa"
+    )
 
     assert result.expiry_spec.earliest_fsp_submission_time == datetime(
         2024, 1, 1, 12, 0, tzinfo=timezone.utc
