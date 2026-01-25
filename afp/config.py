@@ -9,6 +9,10 @@ from .auth import Authenticator
 class Config:
     authenticator: Authenticator | None
 
+    # IPFS client parameters
+    ipfs_api_url: str
+    ipfs_api_key: str | None
+
     # Venue parameters
     exchange_url: str
 

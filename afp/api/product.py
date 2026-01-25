@@ -20,6 +20,7 @@ from ..bindings.erc20 import ERC20
 from ..bindings.facade import CLEARING_DIAMOND_ABI
 from ..bindings.product_registry import ABI as PRODUCT_REGISTRY_ABI
 from ..decorators import convert_web3_error
+from ..dtos import ExtendedMetadata
 from ..exceptions import NotFoundError
 from ..schemas import (
     BaseProduct,
@@ -30,10 +31,10 @@ from ..schemas import (
     ProductMetadata,
     Transaction,
 )
-from .base import ClearingSystemAPI
+from .base import ClearingSystemAPI, IPFSManager
 
 
-class Product(ClearingSystemAPI):
+class Product(ClearingSystemAPI, IPFSManager):
     """API for managing products."""
 
     ### Product Specification ###
@@ -124,6 +125,35 @@ class Product(ClearingSystemAPI):
         )
 
     ### Transactions ###
+
+    def pin(self, product_spec: PredictionProduct) -> PredictionProduct:
+        """Uploads the product's extended metadata to IPFS and pins the CID.
+
+        Adds the CID to the product specification and returns the modified specification
+        with the extended metadata CID included.
+
+        Parameters
+        ----------
+        product_spec : afp.schemas.PredictionProduct or afp.schemas.PredictionProductV1
+            The product specification.
+
+        Returns
+        -------
+        afp.schemas.PredictionProduct
+            The product specification with extended metadata CID included.
+        """
+        extended_metadata_cid = self._ipfs_client.upload_extended_metadata(
+            ExtendedMetadata(
+                outcome_space=product_spec.outcome_space,
+                outcome_point=product_spec.outcome_point,
+                oracle_config=product_spec.oracle_config,
+                oracle_fallback=product_spec.oracle_fallback,
+            )
+        )
+        updated_product = product_spec.product.model_copy(
+            update=dict(extended_metadata=extended_metadata_cid)
+        )
+        return product_spec.model_copy(update=dict(product=updated_product))
 
     @convert_web3_error(PRODUCT_REGISTRY_ABI, CLEARING_DIAMOND_ABI)
     def register(
@@ -224,7 +254,16 @@ class Product(ClearingSystemAPI):
         decimals = erc20_contract.decimals()
 
         product = self._convert_on_chain_prediction_product(product, decimals)
-        return product  # TODO
+        extended_metadata = self._ipfs_client.download_extended_metadata(
+            product.base.extended_metadata
+        )
+        return PredictionProduct(
+            product=product,
+            outcome_space=extended_metadata.outcome_space,
+            outcome_point=extended_metadata.outcome_point,
+            oracle_config=extended_metadata.oracle_config,
+            oracle_fallback=extended_metadata.oracle_fallback,
+        )
 
     @convert_web3_error(PRODUCT_REGISTRY_ABI, CLEARING_DIAMOND_ABI)
     def state(self, product_id: str) -> str:

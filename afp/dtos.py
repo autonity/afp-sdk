@@ -1,4 +1,4 @@
-"""Internal schemas for SDK - Exchange communication."""
+"""Internal schemas."""
 
 from decimal import Decimal
 from typing import Annotated, Literal
@@ -7,8 +7,16 @@ from pydantic import AfterValidator, Field, computed_field
 
 from . import validators
 from .enums import ListingState, OrderSide, OrderState, OrderType, TradeState
-from .schemas import Intent, OrderCancellationData, Timestamp
-from .types import AliasedModel, Model
+from .schemas import (
+    Intent,
+    OracleConfig,
+    OracleFallback,
+    OrderCancellationData,
+    OutcomePoint,
+    OutcomeSpace,
+    Timestamp,
+)
+from .types import CID, AliasedModel, Model
 
 
 class PaginationFilter(Model):
@@ -103,3 +111,25 @@ class OrderFillFilter(PaginationFilter):
     @property
     def trade_state(self) -> str | None:
         return ",".join(self.trade_states) if self.trade_states else None
+
+
+# IPFS Client
+
+
+class ExtendedMetadata(Model):
+    outcome_space: OutcomeSpace
+    outcome_point: OutcomePoint
+    oracle_config: OracleConfig
+    oracle_fallback: OracleFallback
+
+
+class ComponentLink(AliasedModel):
+    data: CID
+    schema_: Annotated[CID, Field(alias="schema")]
+
+
+class ExtendedMetadataDAG(Model):
+    outcome_space: ComponentLink
+    outcome_point: ComponentLink
+    oracle_config: ComponentLink
+    oracle_fallback: ComponentLink

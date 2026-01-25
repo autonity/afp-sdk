@@ -26,6 +26,9 @@ defaults = SimpleNamespace(
     EXCHANGE_URL=os.getenv(
         "AFP_EXCHANGE_URL", "https://afp-exchange-stable.up.railway.app/"
     ),
+    # IPFS client parameters
+    IPFS_API_URL=os.getenv("AFP_IPFS_API_URL", "http://127.0.0.1:5001/api/v0"),
+    IPFS_API_KEY=os.getenv("AFP_IPFS_API_KEY", None),
     # Blockchain parameters
     RPC_URL=os.getenv("AFP_RPC_URL", None),
     CHAIN_ID=int(os.getenv("AFP_CHAIN_ID", 65000000)),

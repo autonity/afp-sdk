@@ -27,6 +27,13 @@ class AFP:
         The REST API base URL of the exchange. Defaults to the URL of the AutEx
         exchange. Its default value can be overridden with the `AFP_EXCHANGE_URL`
         environment variable.
+    ipfs_api_url : str, optional
+        The RPC API root URL of an IPFS client, required for product registration.
+        Defaults to the URL of a local IPFS node. Its default value can be overridden
+        with the `AFP_IPFS_API_URL` environment variable.
+    ipfs_api_key : str, optional
+        The access token to include in API requests to the IPFS client. Its default
+        value can be overridden with the `AFP_IPFS_API_KEY` environment variable.
     chain_id : str, optional
         The chain ID of the Autonity network. Defauls to the chain ID of Autonity
         Mainnet. Its default value can be overridden with the `AFP_CHAIN_ID` environment
@@ -79,6 +86,8 @@ class AFP:
         authenticator: Authenticator | None = None,
         rpc_url: str | None = defaults.RPC_URL,
         exchange_url: str = defaults.EXCHANGE_URL,
+        ipfs_api_url: str = defaults.IPFS_API_URL,
+        ipfs_api_key: str | None = defaults.IPFS_API_KEY,
         chain_id: int = defaults.CHAIN_ID,
         gas_limit: int | None = defaults.GAS_LIMIT,
         max_fee_per_gas: int | None = defaults.MAX_FEE_PER_GAS,
@@ -97,6 +106,8 @@ class AFP:
             authenticator=authenticator,
             exchange_url=exchange_url,
             rpc_url=rpc_url,
+            ipfs_api_url=ipfs_api_url,
+            ipfs_api_key=ipfs_api_key,
             chain_id=chain_id,
             gas_limit=gas_limit,
             max_fee_per_gas=max_fee_per_gas,

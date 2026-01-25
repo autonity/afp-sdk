@@ -286,17 +286,3 @@ class PredictionProduct(Model):
     outcome_point: OutcomePoint
     oracle_config: OracleConfig
     oracle_fallback: OracleFallback
-
-
-# IPFS Client
-
-
-class ExtendedMetadataDAG(Model):
-    class ComponentLink(AliasedModel):
-        data: CID
-        schema_: Annotated[CID, Field(alias="schema")]
-
-    outcome_space: ComponentLink
-    outcome_point: ComponentLink
-    oracle_config: ComponentLink
-    oracle_fallback: ComponentLink
