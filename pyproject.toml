@@ -24,6 +24,7 @@ dependencies = [
     "inflection>=0.5.1",
     "pydantic>=2.10.6",
     "requests>=2.32.0",
+    "rfc8785>=0.1.4",
     "siwe>=4.4.0",
     "web3>=7.6.0",
 ]

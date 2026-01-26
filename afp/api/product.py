@@ -2,6 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, cast
 
+import rfc8785
 from eth_typing.evm import ChecksumAddress
 from hexbytes import HexBytes
 from web3 import Web3
@@ -92,6 +93,8 @@ class Product(ClearingSystemAPI, IPFSManager):
     def dump_json(self, product_spec: PredictionProduct) -> str:
         """Creates a JSON string from a product specification.
 
+        The producted JSON is JSON Canonicalization Scheme (RFC 8785) compliant.
+
         Parameters
         ----------
         product_spec : afp.schemas.PredictionProduct
@@ -101,7 +104,8 @@ class Product(ClearingSystemAPI, IPFSManager):
         -------
         str
         """
-        return product_spec.model_dump_json()
+        product_dict = product_spec.model_dump(mode="json")
+        return rfc8785.dumps(product_dict).decode("utf-8")
 
     def id(self, product_spec: PredictionProduct) -> str:
         """Generates the product ID for a product specification.
