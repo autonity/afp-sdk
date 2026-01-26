@@ -2,12 +2,13 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, cast
 
-import rfc8785
 from eth_typing.evm import ChecksumAddress
 from hexbytes import HexBytes
 from web3 import Web3
 
 from .. import constants, hashing, validators
+from ..auth import Authenticator
+from ..config import Config
 from ..bindings import (
     BaseProduct as OnChainBaseProduct,
     ClearingDiamond,
@@ -22,7 +23,7 @@ from ..bindings.facade import CLEARING_DIAMOND_ABI
 from ..bindings.product_registry import ABI as PRODUCT_REGISTRY_ABI
 from ..decorators import convert_web3_error
 from ..dtos import ExtendedMetadata
-from ..exceptions import NotFoundError
+from ..exceptions import NotFoundError, ValidationError
 from ..schemas import (
     BaseProduct,
     ExpirySpecification,
@@ -37,6 +38,10 @@ from .base import ClearingSystemAPI, IPFSManager
 
 class Product(ClearingSystemAPI, IPFSManager):
     """API for managing products."""
+
+    def __init__(self, config: Config, authenticator: Authenticator | None = None):
+        ClearingSystemAPI.__init__(self, config, authenticator)
+        IPFSManager.__init__(self, config)
 
     ### Product Specification ###
 
@@ -54,9 +59,7 @@ class Product(ClearingSystemAPI, IPFSManager):
         -------
         afp.schemas.PredictionProduct
         """
-        return self._verify_product_spec(
-            PredictionProduct.model_validate(product_dict)
-        )
+        return self._verify_product_spec(PredictionProduct.model_validate(product_dict))
 
     def validate_json(self, product_json: str) -> PredictionProduct:
         """Creates a product specification from a dictionary.
@@ -104,8 +107,7 @@ class Product(ClearingSystemAPI, IPFSManager):
         -------
         str
         """
-        product_dict = product_spec.model_dump(mode="json")
-        return rfc8785.dumps(product_dict).decode("utf-8")
+        return product_spec.model_dump_canonical_json()
 
     def id(self, product_spec: PredictionProduct) -> str:
         """Generates the product ID for a product specification.
@@ -181,6 +183,11 @@ class Product(ClearingSystemAPI, IPFSManager):
         afp.schemas.Transaction
             Transaction parameters.
         """
+        if product_spec.product.base.extended_metadata is None:
+            raise ValidationError(
+                "Extended metadata CID missing from product specification"
+            )
+
         erc20_contract = ERC20(
             self._w3, cast(ChecksumAddress, product_spec.product.base.collateral_asset)
         )
@@ -258,6 +265,11 @@ class Product(ClearingSystemAPI, IPFSManager):
         decimals = erc20_contract.decimals()
 
         product = self._convert_on_chain_prediction_product(product, decimals)
+        if product.base.extended_metadata is None:
+            raise ValidationError(
+                "Extended metadata CID missing from product specification"
+            )
+
         extended_metadata = self._ipfs_client.download_extended_metadata(
             product.base.extended_metadata
         )
@@ -330,6 +342,8 @@ class Product(ClearingSystemAPI, IPFSManager):
     def _convert_prediction_product_specification(
         product: PredictionProductV1, collateral_asset_decimals: int
     ) -> OnChainPredictionProductV1:
+        assert product.base.extended_metadata is not None
+
         return OnChainPredictionProductV1(
             base=OnChainBaseProduct(
                 metadata=OnChainProductMetadata(

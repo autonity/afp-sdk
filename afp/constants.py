@@ -17,6 +17,9 @@ RATE_MULTIPLIER = 10**4
 FEE_RATE_MULTIPLIER = 10**6
 FULL_PRECISION_MULTIPLIER = 10**18
 
+# IPFS client constants
+IPFS_REQUEST_TIMEOUT = 120
+
 schema_cids = SimpleNamespace(
     # afp-product-schemas v0.2
     ORACLE_CONFIG_V02="QmfXNPrsPvhKmMPKxsxr6Z3TzH35eHykzpQrruSjPFqeYa",
@@ -41,7 +44,7 @@ defaults = SimpleNamespace(
         "AFP_EXCHANGE_URL", "https://afp-exchange-stable.up.railway.app/"
     ),
     # IPFS client parameters
-    IPFS_API_URL=os.getenv("AFP_IPFS_API_URL", "http://127.0.0.1:5001/api/v0"),
+    IPFS_API_URL=os.getenv("AFP_IPFS_API_URL", "http://localhost:5001"),
     IPFS_API_KEY=os.getenv("AFP_IPFS_API_KEY", None),
     # Blockchain parameters
     RPC_URL=os.getenv("AFP_RPC_URL", None),

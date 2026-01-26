@@ -20,8 +20,11 @@ keywords = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "dag-cbor>=0.3.3",
     "decorator>=5.2.1",
     "inflection>=0.5.1",
+    "ipld-car>=0.0.1",
+    "multiformats>=0.3.1.post4",
     "pydantic>=2.10.6",
     "requests>=2.32.0",
     "rfc8785>=0.1.4",

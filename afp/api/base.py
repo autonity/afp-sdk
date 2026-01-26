@@ -134,5 +134,5 @@ class ExchangeAPI(BaseAPI, ABC):
 class IPFSManager(ABC):
     _ipfs_client: IPFSClient
 
-    def __init__(self, config: Config, _: Authenticator | None = None):
+    def __init__(self, config: Config):
         self._ipfs_client = IPFSClient(config.ipfs_api_url, config.ipfs_api_key)

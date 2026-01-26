@@ -5,9 +5,14 @@ import requests
 from binascii import Error
 from eth_typing.evm import ChecksumAddress
 from hexbytes import HexBytes
+from pydantic import AnyUrl
 from web3 import Web3
 
 from .exceptions import NotFoundError, ValidationError
+
+CID_PATTERN = (
+    r"^(Qm[1-9A-HJ-NP-Za-km-z]{44}|b[a-z2-7]{58,}|z[1-9A-HJ-NP-Za-km-z]{48,})$"
+)
 
 
 def validate_timedelta(value: timedelta) -> timedelta:
@@ -78,6 +83,11 @@ def validate_price_limits(
             "The minimum product price should be less than the maximum product price"
         )
     return (min_price, max_price)
+
+
+def validate_url(value: str) -> str:
+    AnyUrl(value)
+    return value
 
 
 def verify_collateral_asset(w3: Web3, address: str) -> ChecksumAddress:

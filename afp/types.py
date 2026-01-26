@@ -3,6 +3,8 @@ from functools import partial
 from typing import Annotated, Any, ClassVar, Self
 
 import inflection
+import multiformats
+import rfc8785
 from pydantic import (
     AfterValidator,
     AliasGenerator,
@@ -16,7 +18,7 @@ from pydantic import (
 
 from . import validators
 
-CID_MODEL_MAP: dict["CID", type["PinnedModel"]] = {}
+CID_MODEL_MAP: dict[str, type["PinnedModel"]] = {}
 
 
 # Conversions
@@ -52,14 +54,20 @@ def ensure_iso_date(value: date) -> str:
 # Custom types
 
 
-CID = Annotated[
+URL = Annotated[
     str,
-    Field(
-        pattern=(
-            r"^(Qm[1-9A-HJ-NP-Za-km-z]{44}|b[a-z2-7]{58,}|"
-            r"z[1-9A-HJ-NP-Za-km-z]{48,})$"
-        )
-    ),
+    Field(min_length=1, max_length=2083),
+    BeforeValidator(validators.validate_url),
+    AfterValidator(validators.verify_url),
+]
+
+CID = Annotated[str, Field(pattern=validators.CID_PATTERN)]
+
+# Convert CIDs into IPLD link objects for dag-cbor/dag-json encoding and back
+IPLD_LINK = Annotated[
+    CID,
+    BeforeValidator(str),
+    PlainSerializer(multiformats.CID.decode, return_type=multiformats.CID),
 ]
 
 # Use datetime internally but UNIX timestamp in serialized format
@@ -102,6 +110,10 @@ class Model(BaseModel):
     def model_dump_json(self, by_alias: bool = True, **kwargs: Any) -> str:
         return super().model_dump_json(by_alias=by_alias, **kwargs)
 
+    def model_dump_canonical_json(self, **kwargs: Any) -> str:
+        obj = self.model_dump(mode="json", **kwargs)
+        return rfc8785.dumps(obj).decode("utf-8")
+
     @classmethod
     def model_validate(cls, *args: Any, by_alias: bool = True, **kwargs: Any) -> Self:
         return super().model_validate(*args, by_alias=by_alias, **kwargs)
@@ -128,6 +140,7 @@ class AliasedModel(Model):
 
 class PinnedModel(Model):
     """Extended metadata schema that has an IPFS CID."""
+
     SCHEMA_CID: ClassVar[CID]
 
     def __init_subclass__(cls, **kwargs: Any):

@@ -3,7 +3,7 @@
 from decimal import Decimal
 from typing import Annotated, Literal
 
-from pydantic import AfterValidator, Field, computed_field
+from pydantic import AfterValidator, ConfigDict, Field, computed_field
 
 from . import validators
 from .enums import ListingState, OrderSide, OrderState, OrderType, TradeState
@@ -22,7 +22,7 @@ from .schemas import (
     OutcomeSpaceTimeSeries,
     Timestamp,
 )
-from .types import CID, AliasedModel, Model
+from .types import IPLD_LINK, AliasedModel, Model
 
 
 class PaginationFilter(Model):
@@ -132,8 +132,10 @@ class ExtendedMetadata(Model):
 
 
 class ComponentLink(AliasedModel):
-    data: CID
-    schema_: Annotated[CID, Field(alias="schema")]
+    model_config = AliasedModel.model_config | ConfigDict(arbitrary_types_allowed=True)
+
+    data: IPLD_LINK
+    schema_: Annotated[IPLD_LINK, Field(alias="schema")]
 
 
 class ExtendedMetadataDAG(Model):

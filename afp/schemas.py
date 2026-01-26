@@ -3,14 +3,15 @@
 from decimal import Decimal
 from typing import Annotated, Any, ClassVar, Literal, Self
 
-from pydantic import AfterValidator, AnyUrl, BeforeValidator, Field, model_validator
+from pydantic import AfterValidator, BeforeValidator, Field, model_validator
 
 from . import constants, validators
 from .constants import schema_cids
 from .enums import ListingState, OrderSide, OrderState, OrderType, TradeState
 from .types import (
-    AliasedModel,
     CID,
+    URL,
+    AliasedModel,
     ISODate,
     ISODateTime,
     Model,
@@ -134,7 +135,9 @@ class Position(Model):
 
 
 class ExpirySpecification(AliasedModel):
-    earliest_fsp_submission_time: ISODateTime
+    earliest_fsp_submission_time: Annotated[
+        ISODateTime, Field(alias="earliestFSPSubmissionTime")
+    ]
     tradeout_interval: Annotated[int, Field(ge=0)]
 
 
@@ -162,7 +165,7 @@ class BaseProduct(AliasedModel):
     start_time: ISODateTime
     point_value: Decimal
     price_decimals: Annotated[int, Field(ge=0, le=255)]  # uint8
-    extended_metadata: CID
+    extended_metadata: CID | None = None
 
 
 class PredictionProductV1(AliasedModel):
@@ -187,11 +190,7 @@ class ApiSpec(Model):
 
 class ApiSpecJSONPath(ApiSpec):
     standard: Literal["JSONPath"] = "JSONPath"  # type: ignore
-    url: Annotated[
-        AnyUrl,
-        Field(min_length=1, max_length=2083),
-        AfterValidator(validators.verify_url),
-    ]
+    url: URL
     date_path: str
     value_path: str
     auth_param_location: Literal["query", "header", "none"] = "none"
@@ -235,11 +234,7 @@ class OutcomeSpaceScalar(OutcomeSpace):
     fsp_type: Literal["scalar"] = "scalar"  # type: ignore
     units: Annotated[str, Field(min_length=1)]
     source_name: Annotated[str, Field(min_length=1)]
-    source_uri: Annotated[
-        AnyUrl,
-        Field(min_length=1, max_length=2083),
-        AfterValidator(validators.verify_url),
-    ]
+    source_uri: URL
 
 
 class OutcomeSpaceTimeSeries(OutcomeSpaceScalar):
@@ -291,11 +286,7 @@ class OracleConfig(PinnedModel):
     SCHEMA_CID: ClassVar[CID] = schema_cids.ORACLE_CONFIG_V02
 
     description: Annotated[str, Field(min_length=1)]
-    project_url: Annotated[
-        AnyUrl | None,
-        Field(min_length=1, max_length=2083),
-        AfterValidator(validators.verify_url),
-    ] = None
+    project_url: URL | None = None
 
 
 class OracleConfigPrototype1(OracleConfig):

@@ -28,7 +28,7 @@ def test_product_parsing_from_dictionary():
             "extendedMetadata": "QmfXNPrsPvhKmMPKxsxr6Z3TzH35eHykzpQrruSjPFqeYa",
         },
         "expirySpec": {
-            "earliestFspSubmissionTime": "2024-01-01T12:00Z",
+            "earliestFSPSubmissionTime": "2024-01-01T12:00Z",
             "tradeoutInterval": 3600,
         },
         "minPrice": "0.01",
