@@ -29,17 +29,18 @@ class IPFSClient:
     ) -> types.CID:
         """Uploads extended metadata as a single CAR file."""
 
+        # Use mode="json" to convert Decimal & datetime types to strings
         outcome_space_cid, outcome_space_data = _encode_object(
-            extended_metadata.outcome_space
+            extended_metadata.outcome_space, mode="json"
         )
         outcome_point_cid, outcome_point_data = _encode_object(
-            extended_metadata.outcome_point
+            extended_metadata.outcome_point, mode="json"
         )
         oracle_config_cid, oracle_config_data = _encode_object(
-            extended_metadata.oracle_config
+            extended_metadata.oracle_config, mode="json"
         )
         oracle_fallback_cid, oracle_fallback_data = _encode_object(
-            extended_metadata.oracle_fallback
+            extended_metadata.oracle_fallback, mode="json"
         )
 
         extended_metadata_dag = ExtendedMetadataDAG(
@@ -60,7 +61,8 @@ class IPFSClient:
                 schema_=extended_metadata.oracle_fallback.SCHEMA_CID,
             ),
         )
-        # Use mode="python" to preserve multiformats.CID types
+        # Use mode="python" to preserve multiformats.CID types so that dag_cbor will
+        # convert them into IPLD Link format
         root_cid, root_data = _encode_object(extended_metadata_dag, mode="python")
 
         blocks: list[ipld_car.Block] = [
@@ -192,7 +194,7 @@ def _find_model_by_schema_cid(cid: types.CID) -> type[PinnedModel]:
 
 
 def _encode_object(
-    obj: Model, mode: Literal["json", "python"] = "json"
+    obj: Model, mode: Literal["json", "python"]
 ) -> tuple[multiformats.CID, bytes]:
     data = obj.model_dump(mode=mode)
     cbor_data = dag_cbor.encode(data)
