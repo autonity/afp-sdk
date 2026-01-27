@@ -41,16 +41,6 @@ class MarginAccount:
         return self._contract.events.Deposit
 
     @property
-    def FeeCollected(self) -> contract.ContractEvent:
-        """Binding for `event FeeCollected` on the MarginAccount contract."""
-        return self._contract.events.FeeCollected
-
-    @property
-    def FeeDispersed(self) -> contract.ContractEvent:
-        """Binding for `event FeeDispersed` on the MarginAccount contract."""
-        return self._contract.events.FeeDispersed
-
-    @property
     def Initialized(self) -> contract.ContractEvent:
         """Binding for `event Initialized` on the MarginAccount contract."""
         return self._contract.events.Initialized
@@ -79,6 +69,68 @@ class MarginAccount:
     def Withdraw(self) -> contract.ContractEvent:
         """Binding for `event Withdraw` on the MarginAccount contract."""
         return self._contract.events.Withdraw
+
+    def add_allowed(
+        self,
+        addr: eth_typing.ChecksumAddress,
+    ) -> contract.ContractFunction:
+        """Binding for `addAllowed` on the MarginAccount contract.
+
+        Parameters
+        ----------
+        addr : eth_typing.ChecksumAddress
+
+        Returns
+        -------
+        web3.contract.contract.ContractFunction
+            A contract function instance to be sent in a transaction.
+        """
+        return self._contract.functions.addAllowed(
+            addr,
+        )
+
+    def admin(
+        self,
+        block_identifier: types.BlockIdentifier = "latest",
+    ) -> eth_typing.ChecksumAddress:
+        """Binding for `admin` on the MarginAccount contract.
+
+        Parameters
+        ----------
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
+
+        Returns
+        -------
+        eth_typing.ChecksumAddress
+        """
+        return_value = self._contract.functions.admin().call(
+            block_identifier=block_identifier
+        )
+        return eth_typing.ChecksumAddress(return_value)
+
+    def allowed(
+        self,
+        block_identifier: types.BlockIdentifier = "latest",
+    ) -> typing.List[eth_typing.ChecksumAddress]:
+        """Binding for `allowed` on the MarginAccount contract.
+
+        Parameters
+        ----------
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
+
+        Returns
+        -------
+        typing.List[eth_typing.ChecksumAddress]
+        """
+        return_value = self._contract.functions.allowed().call(
+            block_identifier=block_identifier
+        )
+        return [
+            eth_typing.ChecksumAddress(return_value_elem)
+            for return_value_elem in return_value
+        ]
 
     def authorize(
         self,
@@ -202,6 +254,28 @@ class MarginAccount:
             A contract function instance to be sent in a transaction.
         """
         return self._contract.functions.deposit(
+            amount,
+        )
+
+    def deposit_for(
+        self,
+        margin_account_id: eth_typing.ChecksumAddress,
+        amount: int,
+    ) -> contract.ContractFunction:
+        """Binding for `depositFor` on the MarginAccount contract.
+
+        Parameters
+        ----------
+        margin_account_id : eth_typing.ChecksumAddress
+        amount : int
+
+        Returns
+        -------
+        web3.contract.contract.ContractFunction
+            A contract function instance to be sent in a transaction.
+        """
+        return self._contract.functions.depositFor(
+            margin_account_id,
             amount,
         )
 
@@ -459,6 +533,25 @@ class MarginAccount:
             hexbytes.HexBytes(return_value_elem) for return_value_elem in return_value
         ]
 
+    def remove_allowed(
+        self,
+        addr: eth_typing.ChecksumAddress,
+    ) -> contract.ContractFunction:
+        """Binding for `removeAllowed` on the MarginAccount contract.
+
+        Parameters
+        ----------
+        addr : eth_typing.ChecksumAddress
+
+        Returns
+        -------
+        web3.contract.contract.ContractFunction
+            A contract function instance to be sent in a transaction.
+        """
+        return self._contract.functions.removeAllowed(
+            addr,
+        )
+
     def renounce_ownership(
         self,
     ) -> contract.ContractFunction:
@@ -556,6 +649,27 @@ ABI = typing.cast(
     [
         {
             "type": "function",
+            "name": "addAllowed",
+            "inputs": [{"name": "addr", "type": "address", "internalType": "address"}],
+            "outputs": [],
+            "stateMutability": "nonpayable",
+        },
+        {
+            "type": "function",
+            "name": "admin",
+            "inputs": [],
+            "outputs": [{"name": "", "type": "address", "internalType": "address"}],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
+            "name": "allowed",
+            "inputs": [],
+            "outputs": [{"name": "", "type": "address[]", "internalType": "address[]"}],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
             "name": "authorize",
             "inputs": [
                 {"name": "intentAccount", "type": "address", "internalType": "address"}
@@ -615,6 +729,20 @@ ABI = typing.cast(
             "name": "deposit",
             "inputs": [
                 {"name": "amount", "type": "uint256", "internalType": "uint256"}
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable",
+        },
+        {
+            "type": "function",
+            "name": "depositFor",
+            "inputs": [
+                {
+                    "name": "marginAccountId",
+                    "type": "address",
+                    "internalType": "address",
+                },
+                {"name": "amount", "type": "uint256", "internalType": "uint256"},
             ],
             "outputs": [],
             "stateMutability": "nonpayable",
@@ -782,6 +910,13 @@ ABI = typing.cast(
         },
         {
             "type": "function",
+            "name": "removeAllowed",
+            "inputs": [{"name": "addr", "type": "address", "internalType": "address"}],
+            "outputs": [],
+            "stateMutability": "nonpayable",
+        },
+        {
+            "type": "function",
             "name": "renounceOwnership",
             "inputs": [],
             "outputs": [],
@@ -839,44 +974,6 @@ ABI = typing.cast(
                 },
                 {
                     "name": "amount",
-                    "type": "uint256",
-                    "indexed": False,
-                    "internalType": "uint256",
-                },
-            ],
-            "anonymous": False,
-        },
-        {
-            "type": "event",
-            "name": "FeeCollected",
-            "inputs": [
-                {
-                    "name": "marginAccountId",
-                    "type": "address",
-                    "indexed": True,
-                    "internalType": "address",
-                },
-                {
-                    "name": "capitalAmount",
-                    "type": "int256",
-                    "indexed": False,
-                    "internalType": "int256",
-                },
-            ],
-            "anonymous": False,
-        },
-        {
-            "type": "event",
-            "name": "FeeDispersed",
-            "inputs": [
-                {
-                    "name": "recipient",
-                    "type": "address",
-                    "indexed": True,
-                    "internalType": "address",
-                },
-                {
-                    "name": "capitalAmount",
                     "type": "uint256",
                     "indexed": False,
                     "internalType": "uint256",
@@ -1039,6 +1136,13 @@ ABI = typing.cast(
             "type": "error",
             "name": "SafeERC20FailedOperation",
             "inputs": [{"name": "token", "type": "address", "internalType": "address"}],
+        },
+        {
+            "type": "error",
+            "name": "Unauthorized",
+            "inputs": [
+                {"name": "account", "type": "address", "internalType": "address"}
+            ],
         },
     ],
 )
