@@ -58,20 +58,20 @@ class ClearingFacet:
 
     def estimate_fees(
         self,
-        key0: hexbytes.HexBytes,
-        key1: int,
-        key2: int,
-        key3: int,
+        product_id: hexbytes.HexBytes,
+        price: int,
+        quantity: int,
+        trading_fee_rate: int,
         block_identifier: types.BlockIdentifier = "latest",
     ) -> typing.Tuple[int, int]:
         """Binding for `estimateFees` on the ClearingFacet contract.
 
         Parameters
         ----------
-        key0 : hexbytes.HexBytes
-        key1 : int
-        key2 : int
-        key3 : int
+        product_id : hexbytes.HexBytes
+        price : int
+        quantity : int
+        trading_fee_rate : int
         block_identifier : web3.types.BlockIdentifier
             The block identifier, defaults to the latest block.
 
@@ -81,10 +81,10 @@ class ClearingFacet:
         int
         """
         return_value = self._contract.functions.estimateFees(
-            key0,
-            key1,
-            key2,
-            key3,
+            product_id,
+            price,
+            quantity,
+            trading_fee_rate,
         ).call(block_identifier=block_identifier)
         return (
             int(return_value[0]),
@@ -151,16 +151,16 @@ ABI = typing.cast(
             "type": "function",
             "name": "estimateFees",
             "inputs": [
-                {"name": "", "type": "bytes32", "internalType": "bytes32"},
-                {"name": "", "type": "uint256", "internalType": "uint256"},
-                {"name": "", "type": "uint256", "internalType": "uint256"},
-                {"name": "", "type": "int256", "internalType": "int256"},
+                {"name": "productID", "type": "bytes32", "internalType": "bytes32"},
+                {"name": "price", "type": "int256", "internalType": "int256"},
+                {"name": "quantity", "type": "uint256", "internalType": "uint256"},
+                {"name": "tradingFeeRate", "type": "int256", "internalType": "int256"},
             ],
             "outputs": [
                 {"name": "", "type": "uint256", "internalType": "uint256"},
                 {"name": "", "type": "int256", "internalType": "int256"},
             ],
-            "stateMutability": "pure",
+            "stateMutability": "view",
         },
         {
             "type": "function",
@@ -309,6 +309,12 @@ ABI = typing.cast(
                     "internalType": "address",
                 },
                 {
+                    "name": "collateralAsset",
+                    "type": "address",
+                    "indexed": True,
+                    "internalType": "address",
+                },
+                {
                     "name": "capitalAmount",
                     "type": "int256",
                     "indexed": False,
@@ -329,6 +335,12 @@ ABI = typing.cast(
             "inputs": [
                 {
                     "name": "recipient",
+                    "type": "address",
+                    "indexed": True,
+                    "internalType": "address",
+                },
+                {
+                    "name": "collateralAsset",
                     "type": "address",
                     "indexed": True,
                     "internalType": "address",
@@ -359,7 +371,7 @@ ABI = typing.cast(
                     "internalType": "address",
                 },
                 {
-                    "name": "positionId",
+                    "name": "productId",
                     "type": "bytes32",
                     "indexed": True,
                     "internalType": "bytes32",
@@ -538,6 +550,11 @@ ABI = typing.cast(
             "inputs": [
                 {"name": "parameter", "type": "string", "internalType": "string"}
             ],
+        },
+        {
+            "type": "error",
+            "name": "NotImplemented",
+            "inputs": [{"name": "feature", "type": "string", "internalType": "string"}],
         },
         {
             "type": "error",

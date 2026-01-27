@@ -147,6 +147,23 @@ class ExpirySpecification:
 
 
 @dataclass
+class PendingStakeData:
+    """Port of `struct PendingStakeData` on the ProductRegistry contract."""
+
+    payout: int
+    active_at: int
+
+
+@dataclass
+class BuilderStakeData:
+    """Port of `struct BuilderStakeData` on the ProductRegistry contract."""
+
+    payout_remaining: int
+    claimable_rewards: int
+    pending_stake_data: PendingStakeData
+
+
+@dataclass
 class ProductMetadata:
     """Port of `struct ProductMetadata` on the ProductRegistryFacet contract."""
 
