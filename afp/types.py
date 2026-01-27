@@ -149,7 +149,7 @@ class PinnedModel(Model):
             assert cls.SCHEMA_CID not in CID_MODEL_MAP, (
                 f"{cls.__name__} model does not have unique CID"
             )
-            CID_MODEL_MAP[cls.SCHEMA_CID] = cls
+        CID_MODEL_MAP[cls.SCHEMA_CID] = cls
 
     @model_validator(mode="after")
     def _ensure_schema_cid(self) -> Self:
