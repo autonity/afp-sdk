@@ -220,7 +220,7 @@ class EdgeCase(Model):
 
 
 class OutcomeSpace(PinnedModel):
-    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_SPACE_V02
+    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_SPACE_V020
 
     fsp_type: Literal["scalar", "binary", "ternary"]
     description: Annotated[str, Field(min_length=1)]
@@ -229,7 +229,7 @@ class OutcomeSpace(PinnedModel):
 
 
 class OutcomeSpaceScalar(OutcomeSpace):
-    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_SPACE_SCALAR_V02
+    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_SPACE_SCALAR_V020
 
     fsp_type: Literal["scalar"] = "scalar"  # type: ignore
     units: Annotated[str, Field(min_length=1)]
@@ -238,7 +238,7 @@ class OutcomeSpaceScalar(OutcomeSpace):
 
 
 class OutcomeSpaceTimeSeries(OutcomeSpaceScalar):
-    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_SPACE_TIME_SERIES_V02
+    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_SPACE_TIME_SERIES_V020
 
     frequency: Literal[
         "daily",
@@ -258,45 +258,45 @@ class TemporalObservation(Model):
 
 
 class OutcomePoint(PinnedModel):
-    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_POINT_V02
+    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_POINT_V020
 
     fsp_type: Literal["scalar", "binary", "ternary"]
 
 
 class OutcomePointScalar(OutcomePoint):
-    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_POINT_SCALAR_V02
+    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_POINT_SCALAR_V020
 
     fsp_type: Literal["scalar"] = "scalar"  # type: ignore
 
 
 class OutcomePointTimeSeries(OutcomePointScalar):
-    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_POINT_TIME_SERIES_V02
+    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_POINT_TIME_SERIES_V020
 
     observation: TemporalObservation
 
 
 class OutcomePointEvent(OutcomePoint):
-    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_POINT_EVENT_V02
+    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_POINT_EVENT_V020
 
     fsp_type: Literal["binary", "ternary"]  # type: ignore
     outcome: Annotated[str, Field(min_length=1)]
 
 
 class OracleConfig(PinnedModel):
-    SCHEMA_CID: ClassVar[CID] = schema_cids.ORACLE_CONFIG_V02
+    SCHEMA_CID: ClassVar[CID] = schema_cids.ORACLE_CONFIG_V020
 
     description: Annotated[str, Field(min_length=1)]
     project_url: URL | None = None
 
 
 class OracleConfigPrototype1(OracleConfig):
-    SCHEMA_CID: ClassVar[CID] = schema_cids.ORACLE_CONFIG_PROTOTYPE1_V02
+    SCHEMA_CID: ClassVar[CID] = schema_cids.ORACLE_CONFIG_PROTOTYPE1_V020
 
     evaluation_api_spec: ApiSpecJSONPath | ApiSpec
 
 
 class OracleFallback(PinnedModel):
-    SCHEMA_CID: ClassVar[CID] = schema_cids.ORACLE_FALLBACK_V02
+    SCHEMA_CID: ClassVar[CID] = schema_cids.ORACLE_FALLBACK_V020
 
     fallback_time: ISODateTime
     fallback_fsp: Decimal
