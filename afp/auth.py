@@ -9,6 +9,7 @@ from eth_account.signers.local import LocalAccount
 from eth_account.types import TransactionDictType
 from eth_typing.evm import ChecksumAddress
 from hexbytes import HexBytes
+from web3.constants import CHECKSUM_ADDRESSS_ZERO
 from web3.types import TxParams
 
 
@@ -18,6 +19,19 @@ class Authenticator(Protocol):
     def sign_message(self, message: bytes) -> HexBytes: ...
 
     def sign_transaction(self, params: TxParams) -> SignedTransaction: ...
+
+
+class NullAuthenticator(Authenticator):
+    """Authenticator stub as placeholder for testing."""
+
+    def __init__(self):
+        self.address = CHECKSUM_ADDRESSS_ZERO
+
+    def sign_message(self, message: bytes) -> HexBytes:
+        raise NotImplementedError()
+
+    def sign_transaction(self, params: TxParams) -> SignedTransaction:
+        raise NotImplementedError()
 
 
 class PrivateKeyAuthenticator(Authenticator):
