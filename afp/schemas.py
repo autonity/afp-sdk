@@ -263,15 +263,10 @@ class OutcomePoint(PinnedModel):
     fsp_type: Literal["scalar", "binary", "ternary"]
 
 
-class OutcomePointScalar(OutcomePoint):
-    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_POINT_SCALAR_V020
-
-    fsp_type: Literal["scalar"] = "scalar"  # type: ignore
-
-
-class OutcomePointTimeSeries(OutcomePointScalar):
+class OutcomePointTimeSeries(OutcomePoint):
     SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_POINT_TIME_SERIES_V020
 
+    fsp_type: Literal["scalar"] = "scalar"  # type: ignore
     observation: TemporalObservation
 
 
@@ -305,8 +300,6 @@ class OracleFallback(PinnedModel):
 class PredictionProduct(Model):
     product: PredictionProductV1
     outcome_space: OutcomeSpaceTimeSeries | OutcomeSpaceScalar | OutcomeSpace
-    outcome_point: (
-        OutcomePointEvent | OutcomePointTimeSeries | OutcomePointScalar | OutcomePoint
-    )
+    outcome_point: OutcomePointEvent | OutcomePointTimeSeries | OutcomePoint
     oracle_config: OracleConfigPrototype1 | OracleConfig
     oracle_fallback: OracleFallback

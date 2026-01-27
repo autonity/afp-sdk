@@ -15,7 +15,6 @@ from .schemas import (
     OrderCancellationData,
     OutcomePoint,
     OutcomePointEvent,
-    OutcomePointScalar,
     OutcomePointTimeSeries,
     OutcomeSpace,
     OutcomeSpaceScalar,
@@ -124,9 +123,7 @@ class OrderFillFilter(PaginationFilter):
 
 class ExtendedMetadata(Model):
     outcome_space: OutcomeSpaceTimeSeries | OutcomeSpaceScalar | OutcomeSpace
-    outcome_point: (
-        OutcomePointEvent | OutcomePointTimeSeries | OutcomePointScalar | OutcomePoint
-    )
+    outcome_point: OutcomePointEvent | OutcomePointTimeSeries | OutcomePoint
     oracle_config: OracleConfigPrototype1 | OracleConfig
     oracle_fallback: OracleFallback
 
