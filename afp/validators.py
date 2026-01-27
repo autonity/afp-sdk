@@ -5,21 +5,14 @@ import requests
 from binascii import Error
 from eth_typing.evm import ChecksumAddress
 from hexbytes import HexBytes
+from pydantic import AnyUrl
 from web3 import Web3
 
 from .exceptions import NotFoundError, ValidationError
 
-
-def ensure_timestamp(value: int | float | datetime) -> int:
-    return int(value.timestamp()) if isinstance(value, datetime) else int(value)
-
-
-def ensure_datetime(value: int | float | str) -> datetime:
-    if isinstance(value, datetime):
-        return value
-    if isinstance(value, int) or isinstance(value, float):
-        return datetime.fromtimestamp(value)
-    return datetime.fromisoformat(value)
+CID_PATTERN = (
+    r"^(Qm[1-9A-HJ-NP-Za-km-z]{44}|b[a-z2-7]{58,}|z[1-9A-HJ-NP-Za-km-z]{48,})$"
+)
 
 
 def validate_timedelta(value: timedelta) -> timedelta:
@@ -30,7 +23,7 @@ def validate_timedelta(value: timedelta) -> timedelta:
 
 def validate_non_negative_timestamp(value: datetime) -> datetime:
     if value.timestamp() < 0:
-        raise ValueError(f"{value} should be a non-negative timestamp")
+        raise ValueError(f"{value} should be greater than {datetime.fromtimestamp(0)}")
     return value
 
 
@@ -90,6 +83,11 @@ def validate_price_limits(
             "The minimum product price should be less than the maximum product price"
         )
     return (min_price, max_price)
+
+
+def validate_url(value: str) -> str:
+    AnyUrl(value)
+    return value
 
 
 def verify_collateral_asset(w3: Web3, address: str) -> ChecksumAddress:

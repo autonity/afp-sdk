@@ -1,16 +1,31 @@
-"""Internal schemas for SDK - Exchange communication."""
+"""Internal schemas."""
 
 from decimal import Decimal
 from typing import Annotated, Literal
 
-from pydantic import AfterValidator, Field, computed_field
+from pydantic import AfterValidator, ConfigDict, Field, computed_field
 
 from . import validators
 from .enums import ListingState, OrderSide, OrderState, OrderType, TradeState
-from .schemas import AliasedModel, Intent, OrderCancellationData, Timestamp
+from .schemas import (
+    Intent,
+    OracleConfig,
+    OracleConfigPrototype1,
+    OracleFallback,
+    OrderCancellationData,
+    OutcomePoint,
+    OutcomePointEvent,
+    OutcomePointScalar,
+    OutcomePointTimeSeries,
+    OutcomeSpace,
+    OutcomeSpaceScalar,
+    OutcomeSpaceTimeSeries,
+    Timestamp,
+)
+from .types import IPLD_LINK, AliasedModel, Model
 
 
-class PaginationFilter(AliasedModel):
+class PaginationFilter(Model):
     batch: Annotated[None | int, Field(gt=0, exclude=True)]
     batch_size: Annotated[None | int, Field(gt=0, exclude=True)]
     newest_first: Annotated[None | bool, Field(exclude=True)]
@@ -102,3 +117,29 @@ class OrderFillFilter(PaginationFilter):
     @property
     def trade_state(self) -> str | None:
         return ",".join(self.trade_states) if self.trade_states else None
+
+
+# IPFS Client
+
+
+class ExtendedMetadata(Model):
+    outcome_space: OutcomeSpaceTimeSeries | OutcomeSpaceScalar | OutcomeSpace
+    outcome_point: (
+        OutcomePointEvent | OutcomePointTimeSeries | OutcomePointScalar | OutcomePoint
+    )
+    oracle_config: OracleConfigPrototype1 | OracleConfig
+    oracle_fallback: OracleFallback
+
+
+class ComponentLink(AliasedModel):
+    model_config = AliasedModel.model_config | ConfigDict(arbitrary_types_allowed=True)
+
+    data: IPLD_LINK
+    schema_: Annotated[IPLD_LINK, Field(alias="schema")]
+
+
+class ExtendedMetadataDAG(Model):
+    outcome_space: ComponentLink
+    outcome_point: ComponentLink
+    oracle_config: ComponentLink
+    oracle_fallback: ComponentLink

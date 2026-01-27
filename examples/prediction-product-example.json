@@ -1,0 +1,64 @@
+{
+  "product": {
+    "base": {
+      "metadata": {
+        "builder": "0xe779567A6dbd636ED6872678Bc7dD9f724b329CD",
+        "symbol": "GOP28PAUL",
+        "description": "Randal Howard Paul wins 2028 Republican presidential nomination"
+      },
+      "oracleSpec": {
+        "oracleAddress": "0x72EeD9f7286292f119089F56e3068a3A931FCD49",
+        "fsvDecimals": 0,
+        "fspAlpha": "0.0",
+        "fspBeta": "1.0",
+        "fsvCalldata": "0x"
+      },
+      "collateralAsset": "0xDEfAaC81a079533Bf2fb004c613cc2870cF0A5b5",
+      "startTime": "2025-01-01T00:00:00Z",
+      "pointValue": "1.0",
+      "priceDecimals": 2,
+      "extendedMetadata": "bafkreihdwdcefgh4kdnjxwnxd43whjskfxuk4c5jtusp4gvu6k6kbbypwu"
+    },
+    "expirySpec": {
+      "earliestFSPSubmissionTime": "2028-08-02T00:00:00Z",
+      "tradeoutInterval": 0
+    },
+    "minPrice": "0",
+    "maxPrice": "1"
+  },
+  "outcome_space": {
+    "fsp_type": "binary",
+    "description": "Who will win the 2028 Republican Presidential Nomination?",
+    "base_case": {
+      "condition": "{outcome} wins the 2028 Republican Presidential Nomination",
+      "fsp_resolution": "FSP = 1 if {outcome} is formally nominated as the Republican Party's presidential candidate at the 2028 Republican National Convention. FSP = 0 if any other candidate is nominated or no nomination occurs by December 31, 2028. Primary sources: Republican National Committee official announcements and official 2028 Republican National Convention proceedings. Secondary sources: major news outlets (AP, Reuters, NYT, WSJ)."
+    },
+    "edge_cases": [
+      {
+        "condition": "Convention cancelled or postponed beyond December 31, 2028",
+        "fsp_resolution": "FSP is UNRESOLVED"
+      },
+      {
+        "condition": "{outcome} nominated but dies or withdraws before general election",
+        "fsp_resolution": "FSP = 1 (nomination occurred)"
+      },
+      {
+        "condition": "Multiple ballots with no clear nominee by convention end (August 31, 2028)",
+        "fsp_resolution": "FSP = 0 for all candidates"
+      }
+    ]
+  },
+  "outcome_point": {
+    "fsp_type": "binary",
+    "outcome": "Randal Howard Paul"
+  },
+  "_comment": "This is a canonical example. The extendedMetadata CID is for example purposes only and does not reference actual IPFS content. In production, this would be the CID of the pinned outcome_space and outcome_point JSON above.",
+  "oracle_config": {
+    "description": "Manual oracle system for product settlement",
+    "project_url": null
+  },
+  "oracle_fallback": {
+    "fallback_time": "2028-09-01T00:00:00Z",
+    "fallback_fsp": "0.5"
+  }
+}

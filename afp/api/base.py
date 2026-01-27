@@ -11,11 +11,12 @@ from web3.contract.contract import ContractFunction
 from web3.types import TxParams
 
 from ..auth import Authenticator
-from ..config import Config
 from ..bindings.erc20 import ERC20
+from ..config import Config
 from ..dtos import LoginSubmission
 from ..exceptions import ConfigurationError
 from ..exchange import ExchangeClient
+from ..ipfs import IPFSClient
 from ..schemas import Transaction
 
 
@@ -128,3 +129,10 @@ class ExchangeAPI(BaseAPI, ABC):
             statement=None,
         )
         return message.prepare_message()
+
+
+class IPFSManager(ABC):
+    _ipfs_client: IPFSClient
+
+    def __init__(self, config: Config):
+        self._ipfs_client = IPFSClient(config.ipfs_api_url, config.ipfs_api_key)

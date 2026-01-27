@@ -17,6 +17,23 @@ RATE_MULTIPLIER = 10**4
 FEE_RATE_MULTIPLIER = 10**6
 FULL_PRECISION_MULTIPLIER = 10**18
 
+# IPFS client constants
+IPFS_REQUEST_TIMEOUT = 120
+
+schema_cids = SimpleNamespace(
+    # afp-product-schemas v0.2
+    ORACLE_CONFIG_V020="QmWt9GJTdzPZyLpq3tzuK6SK9aRSo4UwsPFLt38eQfnAeR",
+    ORACLE_CONFIG_PROTOTYPE1_V020="QmakM2By5A5NaMWxZGbu13AjRxAUx1gstB7UHfbQm8kz4o",
+    ORACLE_FALLBACK_V020="QmdapsmT2Boti7KkhCgfBWQHzVKyJYUnejF1Eyz8jEjMdi",
+    OUTCOME_POINT_V020="QmQTFa4y9bxh6oSrhjVFAACXJrtKmyzGYCs1y2gYFt7TJR",
+    OUTCOME_POINT_EVENT_V020="QmfSBwg7oaS55dM8sQNb2DWf9SU8zbe7rVaA2rLgTT5VPD",
+    OUTCOME_POINT_SCALAR_V020="QmayW1wgBCiycJRT4FUEi3L9xXqXnDNuPfneUDpmUSn3Li",
+    OUTCOME_POINT_TIME_SERIES_V020="QmZ9nRXxsChMwac7dCo8cn69isuSCEnyVShMT2KbmkZ9BJ",
+    OUTCOME_SPACE_V020="QmZuv6h1EXDmrjfK8rNinvEzEzWCcwsMbLZbQ4dANMr3yk",
+    OUTCOME_SPACE_SCALAR_V020="QmUEousdTeH91HkcPKXTbrS6295fudQ7KXFY14GMMWZnMA",
+    OUTCOME_SPACE_TIME_SERIES_V020="Qmby5wyktYya1EL7WA3o7PTL2biefSTNevjbQ5Eeto9nZj",
+)
+
 defaults = SimpleNamespace(
     # Authentication parameters
     KEYFILE=os.getenv("AFP_KEYFILE", None),
@@ -26,6 +43,9 @@ defaults = SimpleNamespace(
     EXCHANGE_URL=os.getenv(
         "AFP_EXCHANGE_URL", "https://afp-exchange-stable.up.railway.app/"
     ),
+    # IPFS client parameters
+    IPFS_API_URL=os.getenv("AFP_IPFS_API_URL", "http://localhost:5001"),
+    IPFS_API_KEY=os.getenv("AFP_IPFS_API_KEY", None),
     # Blockchain parameters
     RPC_URL=os.getenv("AFP_RPC_URL", None),
     CHAIN_ID=int(os.getenv("AFP_CHAIN_ID", 65000000)),

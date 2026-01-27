@@ -1,57 +1,23 @@
 """AFP data structures."""
 
-from datetime import datetime
 from decimal import Decimal
-from functools import partial
-from typing import Annotated, Any, Literal, Self
+from typing import Annotated, Any, ClassVar, Literal, Self
 
-import inflection
-from pydantic import (
-    AfterValidator,
-    AliasGenerator,
-    AnyUrl,
-    BaseModel,
-    BeforeValidator,
-    ConfigDict,
-    Field,
-    PlainSerializer,
-    model_validator,
-)
+from pydantic import AfterValidator, BeforeValidator, Field, model_validator
 
 from . import constants, validators
+from .constants import schema_cids
 from .enums import ListingState, OrderSide, OrderState, OrderType, TradeState
-
-
-# Use datetime internally but UNIX timestamp in client-server communication
-Timestamp = Annotated[
-    datetime,
-    BeforeValidator(validators.ensure_datetime),
-    AfterValidator(validators.validate_non_negative_timestamp),
-    PlainSerializer(validators.ensure_timestamp, return_type=int, when_used="json"),
-]
-
-
-class Model(BaseModel):
-    """Base immutable schema."""
-
-    model_config = ConfigDict(frozen=True)
-
-    # Change the default value of by_alias to True
-    def model_dump_json(self, by_alias: bool = True, **kwargs: Any) -> str:
-        return super().model_dump_json(by_alias=by_alias, **kwargs)
-
-
-class AliasedModel(Model):
-    """Schema that converts property names from snake case to camel case for
-    serialization.
-    """
-
-    model_config = Model.model_config | ConfigDict(
-        alias_generator=AliasGenerator(
-            alias=partial(inflection.camelize, uppercase_first_letter=False),
-        ),
-        populate_by_name=True,
-    )
+from .types import (
+    CID,
+    URL,
+    AliasedModel,
+    ISODate,
+    ISODateTime,
+    Model,
+    PinnedModel,
+    Timestamp,
+)
 
 
 # Trading API
@@ -169,7 +135,9 @@ class Position(Model):
 
 
 class ExpirySpecification(AliasedModel):
-    earliest_fsp_submission_time: Timestamp
+    earliest_fsp_submission_time: Annotated[
+        ISODateTime, Field(alias="earliestFSPSubmissionTime")
+    ]
     tradeout_interval: Annotated[int, Field(ge=0)]
 
 
@@ -183,7 +151,10 @@ class OracleSpecification(AliasedModel):
 
 class ProductMetadata(AliasedModel):
     builder: Annotated[str, AfterValidator(validators.validate_address)]
-    symbol: str
+    symbol: Annotated[
+        str,
+        Field(pattern=r"^[A-Z0-9]{1,16}$", min_length=1, max_length=16),
+    ]
     description: str
 
 
@@ -191,10 +162,10 @@ class BaseProduct(AliasedModel):
     metadata: ProductMetadata
     oracle_spec: OracleSpecification
     collateral_asset: Annotated[str, AfterValidator(validators.validate_address)]
-    start_time: Timestamp
+    start_time: ISODateTime
     point_value: Decimal
-    price_decimals: Annotated[int, Field(ge=0, le=255)]
-    extended_metadata: str = ""
+    price_decimals: Annotated[int, Field(ge=0, le=255)]  # uint8
+    extended_metadata: CID | None = None
 
 
 class PredictionProductV1(AliasedModel):
@@ -204,9 +175,12 @@ class PredictionProductV1(AliasedModel):
     max_price: Decimal
 
     @model_validator(mode="after")
-    def validate_price_limits(self) -> Self:
+    def _validate_price_limits(self) -> Self:
         validators.validate_price_limits(self.min_price, self.max_price)
         return self
+
+
+# Extended metadata schemas
 
 
 class ApiSpec(Model):
@@ -216,11 +190,7 @@ class ApiSpec(Model):
 
 class ApiSpecJSONPath(ApiSpec):
     standard: Literal["JSONPath"] = "JSONPath"  # type: ignore
-    url: Annotated[
-        AnyUrl,
-        Field(min_length=1, max_length=2083),
-        AfterValidator(validators.verify_url),
-    ]
+    url: URL
     date_path: str
     value_path: str
     auth_param_location: Literal["query", "header", "none"] = "none"
@@ -249,59 +219,94 @@ class EdgeCase(Model):
     fsp_resolution: Annotated[str, Field(min_length=1)]
 
 
-class OutcomeSpace(Model):
+class OutcomeSpace(PinnedModel):
+    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_SPACE_V020
+
+    fsp_type: Literal["scalar", "binary", "ternary"]
     description: Annotated[str, Field(min_length=1)]
     base_case: BaseCaseResolution
-    edge_cases: list[EdgeCase]
+    edge_cases: Annotated[list[EdgeCase], Field(default_factory=list)]
 
 
 class OutcomeSpaceScalar(OutcomeSpace):
+    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_SPACE_SCALAR_V020
+
+    fsp_type: Literal["scalar"] = "scalar"  # type: ignore
     units: Annotated[str, Field(min_length=1)]
     source_name: Annotated[str, Field(min_length=1)]
-    source_uri: Annotated[
-        AnyUrl,
-        Field(min_length=1, max_length=2083),
-        AfterValidator(validators.verify_url),
-    ]
+    source_uri: URL
 
 
 class OutcomeSpaceTimeSeries(OutcomeSpaceScalar):
-    frequency: Literal["daily", "weekly", "monthly", "quarterly", "yearly"]
+    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_SPACE_TIME_SERIES_V020
+
+    frequency: Literal[
+        "daily",
+        "weekly",
+        "fortnightly",
+        "semimonthly",
+        "monthly",
+        "quarterly",
+        "yearly",
+    ]
     history_api_spec: ApiSpecJSONPath | ApiSpec | None = None
 
 
-class OutcomePoint(Model):
-    pass
+class TemporalObservation(Model):
+    reference_date: ISODate
+    release_date: ISODate
+
+
+class OutcomePoint(PinnedModel):
+    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_POINT_V020
+
+    fsp_type: Literal["scalar", "binary", "ternary"]
 
 
 class OutcomePointScalar(OutcomePoint):
-    pass
+    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_POINT_SCALAR_V020
 
-
-class OutcomePointEvent(OutcomePoint):
-    outcome: Annotated[str, Field(min_length=1)]
+    fsp_type: Literal["scalar"] = "scalar"  # type: ignore
 
 
 class OutcomePointTimeSeries(OutcomePointScalar):
-    reference_date: str
-    release_date: str | None = None
+    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_POINT_TIME_SERIES_V020
+
+    observation: TemporalObservation
 
 
-class OracleConfig(Model):
+class OutcomePointEvent(OutcomePoint):
+    SCHEMA_CID: ClassVar[CID] = schema_cids.OUTCOME_POINT_EVENT_V020
+
+    fsp_type: Literal["binary", "ternary"]  # type: ignore
+    outcome: Annotated[str, Field(min_length=1)]
+
+
+class OracleConfig(PinnedModel):
+    SCHEMA_CID: ClassVar[CID] = schema_cids.ORACLE_CONFIG_V020
+
     description: Annotated[str, Field(min_length=1)]
-    project_url: Annotated[
-        AnyUrl | None,
-        Field(min_length=1, max_length=2083),
-        AfterValidator(validators.verify_url),
-    ] = None
+    project_url: URL | None = None
 
 
 class OracleConfigPrototype1(OracleConfig):
+    SCHEMA_CID: ClassVar[CID] = schema_cids.ORACLE_CONFIG_PROTOTYPE1_V020
+
     evaluation_api_spec: ApiSpecJSONPath | ApiSpec
+
+
+class OracleFallback(PinnedModel):
+    SCHEMA_CID: ClassVar[CID] = schema_cids.ORACLE_FALLBACK_V020
+
+    fallback_time: ISODateTime
+    fallback_fsp: Decimal
 
 
 class PredictionProduct(Model):
     product: PredictionProductV1
-    outcome_space: OutcomeSpace
-    outcome_point: OutcomePoint
-    oracle_config: OracleConfig | None = None
+    outcome_space: OutcomeSpaceTimeSeries | OutcomeSpaceScalar | OutcomeSpace
+    outcome_point: (
+        OutcomePointEvent | OutcomePointTimeSeries | OutcomePointScalar | OutcomePoint
+    )
+    oracle_config: OracleConfigPrototype1 | OracleConfig
+    oracle_fallback: OracleFallback
