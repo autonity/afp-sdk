@@ -156,8 +156,11 @@ class Product(ClearingSystemAPI, IPFSManager):
                 oracle_fallback=product_spec.oracle_fallback,
             )
         )
-        updated_product = product_spec.product.model_copy(
+        updated_base_product = product_spec.product.base.model_copy(
             update=dict(extended_metadata=extended_metadata_cid)
+        )
+        updated_product = product_spec.product.model_copy(
+            update=dict(base=updated_base_product)
         )
         return product_spec.model_copy(update=dict(product=updated_product))
 
