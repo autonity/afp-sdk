@@ -61,8 +61,8 @@ class IPFSClient:
                 schema_=extended_metadata.oracle_fallback.SCHEMA_CID,
             ),
         )
-        # Use mode="python" to preserve multiformats.CID types so that dag_cbor will
-        # convert them into IPLD Link format
+        # Use mode="python" to preserve multiformats.CID types so that the DAG-CBOR
+        # encoder will convert them into IPLD Link format
         root_cid, root_data = _encode_object(extended_metadata_dag, mode="python")
 
         blocks: list[ipld_car.Block] = [

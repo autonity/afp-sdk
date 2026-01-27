@@ -61,9 +61,15 @@ URL = Annotated[
     AfterValidator(validators.verify_url),
 ]
 
-CID = Annotated[str, Field(pattern=validators.CID_PATTERN)]
+CID = Annotated[
+    str,
+    Field(
+        pattern=r"^(Qm[1-9A-HJ-NP-Za-km-z]{44}|b[a-z2-7]{58,}|z[1-9A-HJ-NP-Za-km-z]{48,})$"
+    ),
+]
 
-# Convert CIDs into IPLD link objects for dag-cbor/dag-json encoding and back
+# Decode CIDs for serialization so that the DAG-CBOR encoder will convert them
+# into IPLD Link format
 IPLD_LINK = Annotated[
     CID,
     BeforeValidator(str),

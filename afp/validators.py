@@ -10,10 +10,6 @@ from web3 import Web3
 
 from .exceptions import NotFoundError, ValidationError
 
-CID_PATTERN = (
-    r"^(Qm[1-9A-HJ-NP-Za-km-z]{44}|b[a-z2-7]{58,}|z[1-9A-HJ-NP-Za-km-z]{48,})$"
-)
-
 
 def validate_timedelta(value: timedelta) -> timedelta:
     if value.total_seconds() < 0:
