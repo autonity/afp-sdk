@@ -1,0 +1,40 @@
+#!/usr/bin/env -S uv run --script
+
+"""Computes JSON file CIDs using a local IPFS node.
+
+The CIDs are v1 using DAG-CBOR codec.
+"""
+
+import json
+import sys
+
+from afp.constants import defaults
+from afp.ipfs import IPFSClient
+
+
+def main():
+    if len(sys.argv) > 1 and sys.argv[1] in ("-h", "--help"):
+        print(__doc__)
+        sys.exit(0)
+
+    if len(sys.argv) < 2:
+        print(f"Usage: {sys.argv[0]} JSON_FILE [JSON_FILE...]", file=sys.stderr)
+        sys.exit(2)
+
+    json_files = sys.argv[1:]
+
+    client = IPFSClient(defaults.IPFS_API_URL, defaults.IPFS_API_KEY)
+
+    for json_file in json_files:
+        with open(json_file) as f:
+            schema = json.load(f)
+
+        computed_cid, data = IPFSClient.encode(schema)
+        actual_cid = client.upload_car([(computed_cid, data)])
+        IPFSClient.ensure_cids_match(actual_cid, computed_cid)
+
+        print(f"{json_file}: {actual_cid}")
+
+
+if __name__ == "__main__":
+    main()

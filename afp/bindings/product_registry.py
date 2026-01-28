@@ -13,6 +13,8 @@ from web3.contract import contract
 from .types import (
     ProductState,
     ExpirySpecification,
+    PendingStakeData,
+    BuilderStakeData,
     ProductMetadata,
     OracleSpecification,
     BaseProduct,
@@ -84,6 +86,94 @@ class ProductRegistry:
         )
         return str(return_value)
 
+    def add_allowed(
+        self,
+        addr: eth_typing.ChecksumAddress,
+    ) -> contract.ContractFunction:
+        """Binding for `addAllowed` on the ProductRegistry contract.
+
+        Parameters
+        ----------
+        addr : eth_typing.ChecksumAddress
+
+        Returns
+        -------
+        web3.contract.contract.ContractFunction
+            A contract function instance to be sent in a transaction.
+        """
+        return self._contract.functions.addAllowed(
+            addr,
+        )
+
+    def admin(
+        self,
+        block_identifier: types.BlockIdentifier = "latest",
+    ) -> eth_typing.ChecksumAddress:
+        """Binding for `admin` on the ProductRegistry contract.
+
+        Parameters
+        ----------
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
+
+        Returns
+        -------
+        eth_typing.ChecksumAddress
+        """
+        return_value = self._contract.functions.admin().call(
+            block_identifier=block_identifier
+        )
+        return eth_typing.ChecksumAddress(return_value)
+
+    def allowed(
+        self,
+        block_identifier: types.BlockIdentifier = "latest",
+    ) -> typing.List[eth_typing.ChecksumAddress]:
+        """Binding for `allowed` on the ProductRegistry contract.
+
+        Parameters
+        ----------
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
+
+        Returns
+        -------
+        typing.List[eth_typing.ChecksumAddress]
+        """
+        return_value = self._contract.functions.allowed().call(
+            block_identifier=block_identifier
+        )
+        return [
+            eth_typing.ChecksumAddress(return_value_elem)
+            for return_value_elem in return_value
+        ]
+
+    def builder_stake_data(
+        self,
+        product_id: hexbytes.HexBytes,
+        block_identifier: types.BlockIdentifier = "latest",
+    ) -> BuilderStakeData:
+        """Binding for `builderStakeData` on the ProductRegistry contract.
+
+        Parameters
+        ----------
+        product_id : hexbytes.HexBytes
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
+
+        Returns
+        -------
+        BuilderStakeData
+        """
+        return_value = self._contract.functions.builderStakeData(
+            product_id,
+        ).call(block_identifier=block_identifier)
+        return BuilderStakeData(
+            int(return_value[0]),
+            int(return_value[1]),
+            PendingStakeData(int(return_value[2][0]), int(return_value[2][1])),
+        )
+
     def claim_builder_rewards(
         self,
         product_id: hexbytes.HexBytes,
@@ -101,6 +191,32 @@ class ProductRegistry:
         """
         return self._contract.functions.claimBuilderRewards(
             product_id,
+        )
+
+    def claimable_builder_rewards(
+        self,
+        product_id: hexbytes.HexBytes,
+        block_identifier: types.BlockIdentifier = "latest",
+    ) -> typing.Tuple[int, int]:
+        """Binding for `claimableBuilderRewards` on the ProductRegistry contract.
+
+        Parameters
+        ----------
+        product_id : hexbytes.HexBytes
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
+
+        Returns
+        -------
+        int
+        int
+        """
+        return_value = self._contract.functions.claimableBuilderRewards(
+            product_id,
+        ).call(block_identifier=block_identifier)
+        return (
+            int(return_value[0]),
+            int(return_value[1]),
         )
 
     def clearing(
@@ -354,6 +470,28 @@ class ProductRegistry:
         int
         """
         return_value = self._contract.functions.mmr(
+            product_id,
+        ).call(block_identifier=block_identifier)
+        return int(return_value)
+
+    def next_interval(
+        self,
+        product_id: hexbytes.HexBytes,
+        block_identifier: types.BlockIdentifier = "latest",
+    ) -> int:
+        """Binding for `nextInterval` on the ProductRegistry contract.
+
+        Parameters
+        ----------
+        product_id : hexbytes.HexBytes
+        block_identifier : web3.types.BlockIdentifier
+            The block identifier, defaults to the latest block.
+
+        Returns
+        -------
+        int
+        """
+        return_value = self._contract.functions.nextInterval(
             product_id,
         ).call(block_identifier=block_identifier)
         return int(return_value)
@@ -676,6 +814,73 @@ class ProductRegistry:
             initial_builder_stake,
         )
 
+    def register_prediction_product_for(
+        self,
+        product: PredictionProductV1,
+        initial_builder_stake: int,
+    ) -> contract.ContractFunction:
+        """Binding for `registerPredictionProductFor` on the ProductRegistry contract.
+
+        Parameters
+        ----------
+        product : PredictionProductV1
+        initial_builder_stake : int
+
+        Returns
+        -------
+        web3.contract.contract.ContractFunction
+            A contract function instance to be sent in a transaction.
+        """
+        return self._contract.functions.registerPredictionProductFor(
+            (
+                (
+                    (
+                        product.base.metadata.builder,
+                        product.base.metadata.symbol,
+                        product.base.metadata.description,
+                    ),
+                    (
+                        product.base.oracle_spec.oracle_address,
+                        product.base.oracle_spec.fsv_decimals,
+                        product.base.oracle_spec.fsp_alpha,
+                        product.base.oracle_spec.fsp_beta,
+                        product.base.oracle_spec.fsv_calldata,
+                    ),
+                    product.base.collateral_asset,
+                    product.base.start_time,
+                    product.base.point_value,
+                    product.base.price_decimals,
+                    product.base.extended_metadata,
+                ),
+                (
+                    product.expiry_spec.earliest_fsp_submission_time,
+                    product.expiry_spec.tradeout_interval,
+                ),
+                product.max_price,
+                product.min_price,
+            ),
+            initial_builder_stake,
+        )
+
+    def remove_allowed(
+        self,
+        addr: eth_typing.ChecksumAddress,
+    ) -> contract.ContractFunction:
+        """Binding for `removeAllowed` on the ProductRegistry contract.
+
+        Parameters
+        ----------
+        addr : eth_typing.ChecksumAddress
+
+        Returns
+        -------
+        web3.contract.contract.ContractFunction
+            A contract function instance to be sent in a transaction.
+        """
+        return self._contract.functions.removeAllowed(
+            addr,
+        )
+
     def renounce_ownership(
         self,
     ) -> contract.ContractFunction:
@@ -786,12 +991,97 @@ ABI = typing.cast(
         },
         {
             "type": "function",
+            "name": "addAllowed",
+            "inputs": [{"name": "addr", "type": "address", "internalType": "address"}],
+            "outputs": [],
+            "stateMutability": "nonpayable",
+        },
+        {
+            "type": "function",
+            "name": "admin",
+            "inputs": [],
+            "outputs": [{"name": "", "type": "address", "internalType": "address"}],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
+            "name": "allowed",
+            "inputs": [],
+            "outputs": [{"name": "", "type": "address[]", "internalType": "address[]"}],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
+            "name": "builderStakeData",
+            "inputs": [
+                {"name": "productId", "type": "bytes32", "internalType": "bytes32"}
+            ],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "tuple",
+                    "internalType": "struct BuilderStakeData",
+                    "components": [
+                        {
+                            "name": "payoutRemaining",
+                            "type": "uint256",
+                            "internalType": "uint256",
+                        },
+                        {
+                            "name": "claimableRewards",
+                            "type": "uint256",
+                            "internalType": "uint256",
+                        },
+                        {
+                            "name": "pendingStakeData",
+                            "type": "tuple",
+                            "internalType": "struct PendingStakeData",
+                            "components": [
+                                {
+                                    "name": "payout",
+                                    "type": "uint256",
+                                    "internalType": "uint256",
+                                },
+                                {
+                                    "name": "activeAt",
+                                    "type": "uint256",
+                                    "internalType": "uint256",
+                                },
+                            ],
+                        },
+                    ],
+                }
+            ],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
             "name": "claimBuilderRewards",
             "inputs": [
                 {"name": "productId", "type": "bytes32", "internalType": "bytes32"}
             ],
             "outputs": [],
             "stateMutability": "nonpayable",
+        },
+        {
+            "type": "function",
+            "name": "claimableBuilderRewards",
+            "inputs": [
+                {"name": "productId", "type": "bytes32", "internalType": "bytes32"}
+            ],
+            "outputs": [
+                {
+                    "name": "builderRewards",
+                    "type": "uint256",
+                    "internalType": "uint256",
+                },
+                {
+                    "name": "treasuryRewads",
+                    "type": "uint256",
+                    "internalType": "uint256",
+                },
+            ],
+            "stateMutability": "view",
         },
         {
             "type": "function",
@@ -1099,6 +1389,15 @@ ABI = typing.cast(
         {
             "type": "function",
             "name": "mmr",
+            "inputs": [
+                {"name": "productId", "type": "bytes32", "internalType": "bytes32"}
+            ],
+            "outputs": [{"name": "", "type": "uint256", "internalType": "uint256"}],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
+            "name": "nextInterval",
             "inputs": [
                 {"name": "productId", "type": "bytes32", "internalType": "bytes32"}
             ],
@@ -1686,6 +1985,146 @@ ABI = typing.cast(
         },
         {
             "type": "function",
+            "name": "registerPredictionProductFor",
+            "inputs": [
+                {
+                    "name": "product",
+                    "type": "tuple",
+                    "internalType": "struct PredictionProductV1",
+                    "components": [
+                        {
+                            "name": "base",
+                            "type": "tuple",
+                            "internalType": "struct BaseProduct",
+                            "components": [
+                                {
+                                    "name": "metadata",
+                                    "type": "tuple",
+                                    "internalType": "struct ProductMetadata",
+                                    "components": [
+                                        {
+                                            "name": "builder",
+                                            "type": "address",
+                                            "internalType": "address",
+                                        },
+                                        {
+                                            "name": "symbol",
+                                            "type": "string",
+                                            "internalType": "string",
+                                        },
+                                        {
+                                            "name": "description",
+                                            "type": "string",
+                                            "internalType": "string",
+                                        },
+                                    ],
+                                },
+                                {
+                                    "name": "oracleSpec",
+                                    "type": "tuple",
+                                    "internalType": "struct OracleSpecification",
+                                    "components": [
+                                        {
+                                            "name": "oracleAddress",
+                                            "type": "address",
+                                            "internalType": "address",
+                                        },
+                                        {
+                                            "name": "fsvDecimals",
+                                            "type": "uint8",
+                                            "internalType": "uint8",
+                                        },
+                                        {
+                                            "name": "fspAlpha",
+                                            "type": "int256",
+                                            "internalType": "int256",
+                                        },
+                                        {
+                                            "name": "fspBeta",
+                                            "type": "int256",
+                                            "internalType": "int256",
+                                        },
+                                        {
+                                            "name": "fsvCalldata",
+                                            "type": "bytes",
+                                            "internalType": "bytes",
+                                        },
+                                    ],
+                                },
+                                {
+                                    "name": "collateralAsset",
+                                    "type": "address",
+                                    "internalType": "address",
+                                },
+                                {
+                                    "name": "startTime",
+                                    "type": "uint256",
+                                    "internalType": "uint256",
+                                },
+                                {
+                                    "name": "pointValue",
+                                    "type": "uint256",
+                                    "internalType": "uint256",
+                                },
+                                {
+                                    "name": "priceDecimals",
+                                    "type": "uint8",
+                                    "internalType": "uint8",
+                                },
+                                {
+                                    "name": "extendedMetadata",
+                                    "type": "string",
+                                    "internalType": "string",
+                                },
+                            ],
+                        },
+                        {
+                            "name": "expirySpec",
+                            "type": "tuple",
+                            "internalType": "struct ExpirySpecification",
+                            "components": [
+                                {
+                                    "name": "earliestFSPSubmissionTime",
+                                    "type": "uint256",
+                                    "internalType": "uint256",
+                                },
+                                {
+                                    "name": "tradeoutInterval",
+                                    "type": "uint256",
+                                    "internalType": "uint256",
+                                },
+                            ],
+                        },
+                        {
+                            "name": "maxPrice",
+                            "type": "int256",
+                            "internalType": "int256",
+                        },
+                        {
+                            "name": "minPrice",
+                            "type": "int256",
+                            "internalType": "int256",
+                        },
+                    ],
+                },
+                {
+                    "name": "initialBuilderStake",
+                    "type": "uint256",
+                    "internalType": "uint256",
+                },
+            ],
+            "outputs": [{"name": "", "type": "bytes32", "internalType": "bytes32"}],
+            "stateMutability": "nonpayable",
+        },
+        {
+            "type": "function",
+            "name": "removeAllowed",
+            "inputs": [{"name": "addr", "type": "address", "internalType": "address"}],
+            "outputs": [],
+            "stateMutability": "nonpayable",
+        },
+        {
+            "type": "function",
             "name": "renounceOwnership",
             "inputs": [],
             "outputs": [],
@@ -1815,6 +2254,13 @@ ABI = typing.cast(
         {"type": "error", "name": "ERC1967NonPayable", "inputs": []},
         {"type": "error", "name": "FailedCall", "inputs": []},
         {"type": "error", "name": "InvalidInitialization", "inputs": []},
+        {
+            "type": "error",
+            "name": "InvalidParameter",
+            "inputs": [
+                {"name": "paramName", "type": "string", "internalType": "string"}
+            ],
+        },
         {"type": "error", "name": "NotInitializing", "inputs": []},
         {
             "type": "error",
@@ -1833,6 +2279,13 @@ ABI = typing.cast(
             "type": "error",
             "name": "UUPSUnsupportedProxiableUUID",
             "inputs": [{"name": "slot", "type": "bytes32", "internalType": "bytes32"}],
+        },
+        {
+            "type": "error",
+            "name": "Unauthorized",
+            "inputs": [
+                {"name": "account", "type": "address", "internalType": "address"}
+            ],
         },
     ],
 )
