@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from importlib import metadata
 from types import SimpleNamespace
 
@@ -21,6 +22,23 @@ FULL_PRECISION_MULTIPLIER = 10**18
 IPFS_CID_ENCODING = "base32"
 IPFS_REQUEST_TIMEOUT = 30
 JSON_SCHEMAS_DIRECTORY = os.path.join(os.path.dirname(__file__), "json-schemas")
+
+# Product schema constants
+MINIMUM_ORACLE_FALLBACK_INTERVAL = timedelta(days=7)
+MONTH_CODES = {
+    "F": 1,
+    "G": 2,
+    "H": 3,
+    "J": 4,
+    "K": 5,
+    "M": 6,
+    "N": 7,
+    "Q": 8,
+    "U": 9,
+    "V": 10,
+    "X": 11,
+    "Z": 12,
+}
 
 schema_cids = SimpleNamespace(
     # afp-product-schemas v0.2.0

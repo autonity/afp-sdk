@@ -25,7 +25,7 @@ from .types import (
 
 class ExchangeProduct(AliasedModel):
     id: str
-    symbol: str
+    symbol: Annotated[str, AfterValidator(validators.validate_all_caps)]
     tick_size: int
     collateral_asset: str
     listing_state: ListingState
@@ -175,8 +175,11 @@ class PredictionProductV1(AliasedModel):
     max_price: Decimal
 
     @model_validator(mode="after")
-    def _validate_price_limits(self) -> Self:
+    def _cross_validate(self) -> Self:
         validators.validate_price_limits(self.min_price, self.max_price)
+        validators.validate_time_limits(
+            self.base.start_time, self.expiry_spec.earliest_fsp_submission_time
+        )
         return self
 
 
@@ -303,3 +306,32 @@ class PredictionProduct(Model):
     outcome_point: OutcomePointEvent | OutcomePointTimeSeries | OutcomePoint
     oracle_config: OracleConfigPrototype1 | OracleConfig
     oracle_fallback: OracleFallback
+
+    @model_validator(mode="after")
+    def _cross_validate(self) -> Self:
+        validators.validate_matching_fsp_types(
+            self.outcome_space.fsp_type, self.outcome_point.fsp_type
+        )
+        validators.validate_oracle_fallback_time(
+            self.oracle_fallback.fallback_time,
+            self.product.expiry_spec.earliest_fsp_submission_time,
+        )
+        validators.validate_oracle_fallback_fsp(
+            self.oracle_fallback.fallback_fsp,
+            self.product.min_price,
+            self.product.max_price,
+        )
+        validators.validate_outcome_space_conditions(
+            self.outcome_space.base_case.condition,
+            [case.condition for case in self.outcome_space.edge_cases],
+            self.outcome_point.model_dump(),
+        )
+        if isinstance(self.outcome_space, OutcomeSpaceTimeSeries) and isinstance(
+            self.outcome_point, OutcomePointTimeSeries
+        ):
+            validators.validate_symbol(
+                self.product.base.metadata.symbol,
+                self.outcome_space.frequency,
+                self.outcome_point.observation.release_date,
+            )
+        return self
