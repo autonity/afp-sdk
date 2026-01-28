@@ -46,13 +46,13 @@ class IPFSClient:
             self._load_schema_json(extended_metadata.outcome_space.SCHEMA_CID)
         )
         outcome_point_schema_cid, outcome_point_schema_data = self.encode(
-            self._load_schema_json(extended_metadata.outcome_space.SCHEMA_CID)
+            self._load_schema_json(extended_metadata.outcome_point.SCHEMA_CID)
         )
         oracle_config_schema_cid, oracle_config_schema_data = self.encode(
-            self._load_schema_json(extended_metadata.outcome_space.SCHEMA_CID)
+            self._load_schema_json(extended_metadata.oracle_config.SCHEMA_CID)
         )
         oracle_fallback_schema_cid, oracle_fallback_schema_data = self.encode(
-            self._load_schema_json(extended_metadata.outcome_space.SCHEMA_CID)
+            self._load_schema_json(extended_metadata.oracle_fallback.SCHEMA_CID)
         )
 
         self.ensure_cids_match(
@@ -219,12 +219,13 @@ class IPFSClient:
     def encode(value: Any) -> tuple[multiformats.CID, bytes]:
         cbor_data = dag_cbor.encode(value)
         digest = multiformats.multihash.digest(cbor_data, "sha2-256")
-        cid = multiformats.CID("base32", 1, "dag-cbor", digest)
+        cid = multiformats.CID(constants.IPFS_CID_ENCODING, 1, "dag-cbor", digest)
         return (cid, cbor_data)
 
     @staticmethod
     def ensure_cids_match(
-        actual_cid: types.CID | multiformats.CID, computed_cid: types.CID | multiformats.CID
+        actual_cid: types.CID | multiformats.CID,
+        computed_cid: types.CID | multiformats.CID,
     ) -> None:
         if str(computed_cid) != str(actual_cid):
             raise IPFSError(
@@ -240,5 +241,5 @@ class IPFSClient:
 
     @staticmethod
     def _load_schema_json(cid: types.CID) -> dict[Any, Any]:
-        with open(os.path.join(constants.SCHEMAS_DIRECTORY, f"{cid}.json")) as f:
+        with open(os.path.join(constants.JSON_SCHEMAS_DIRECTORY, f"{cid}.json")) as f:
             return json.load(f)

@@ -18,8 +18,9 @@ FEE_RATE_MULTIPLIER = 10**6
 FULL_PRECISION_MULTIPLIER = 10**18
 
 # IPFS client constants
+IPFS_CID_ENCODING = "base32"
 IPFS_REQUEST_TIMEOUT = 120
-SCHEMAS_DIRECTORY = os.path.join(os.path.dirname(__file__), "json-schemas")
+JSON_SCHEMAS_DIRECTORY = os.path.join(os.path.dirname(__file__), "json-schemas")
 
 schema_cids = SimpleNamespace(
     # afp-product-schemas v0.2.0

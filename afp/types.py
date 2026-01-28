@@ -16,7 +16,7 @@ from pydantic import (
     model_validator,
 )
 
-from . import validators
+from . import constants, validators
 
 CID_MODEL_MAP: dict[str, type["PinnedModel"]] = {}
 
@@ -72,7 +72,11 @@ CID = Annotated[
 # into IPLD Link format
 IPLD_LINK = Annotated[
     CID,
-    BeforeValidator(str),
+    BeforeValidator(  # Ensure the same encoding is used consistently
+        lambda cid: multiformats.CID.decode(str(cid)).encode(
+            constants.IPFS_CID_ENCODING
+        )
+    ),
     PlainSerializer(multiformats.CID.decode, return_type=multiformats.CID),
 ]
 

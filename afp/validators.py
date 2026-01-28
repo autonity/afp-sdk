@@ -89,7 +89,9 @@ def validate_url(value: str) -> str:
 def verify_collateral_asset(w3: Web3, address: str) -> ChecksumAddress:
     address = validate_address(address)
     if len(w3.eth.get_code(address)) == 0:
-        raise ValidationError(f"No contract found at collateral asset address {address}")
+        raise ValidationError(
+            f"No contract found at collateral asset address {address}"
+        )
     return address
 
 
