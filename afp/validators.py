@@ -160,8 +160,8 @@ def validate_oracle_fallback_time(
     )
     if fallback_time < earliest_fallback_time:
         raise ValueError(
-            "OracleFallback: fallback_time: Should be at least "
-            f"{MINIMUM_ORACLE_FALLBACK_INTERVAL} after "
+            f"OracleFallback: fallback_time {fallback_time} "
+            f"should be at least {MINIMUM_ORACLE_FALLBACK_INTERVAL} after "
             "ExpirySpecification.earliest_fsp_submission_time "
             f"{earliest_fsp_submission_time}"
         )
@@ -172,7 +172,7 @@ def validate_oracle_fallback_fsp(
 ) -> None:
     if not (min_price <= fallback_fsp <= max_price):
         raise ValueError(
-            f"OracleFallback: fallback_fsp: Should be between "
+            f"OracleFallback: fallback_fsp {fallback_fsp} should be between "
             f"PredictionProductV1.min_price {min_price} and "
             f"PredictionProductV1.max_price {max_price}"
         )
