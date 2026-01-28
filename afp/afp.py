@@ -28,9 +28,9 @@ class AFP:
         exchange. Its default value can be overridden with the `AFP_EXCHANGE_URL`
         environment variable.
     ipfs_api_url : str, optional
-        The RPC API root URL of an IPFS client, required for product registration.
-        Defaults to the URL of a local IPFS node. Its default value can be overridden
-        with the `AFP_IPFS_API_URL` environment variable.
+        The RPC API root URL of an IPFS node that supports Kubo RPC API v0, required
+        for product registration. Defaults to the URL of a local IPFS node. Its default
+        value can be overridden with the `AFP_IPFS_API_URL` environment variable.
     ipfs_api_key : str, optional
         The access token to include in API requests to the IPFS client. Its default
         value can be overridden with the `AFP_IPFS_API_KEY` environment variable.
