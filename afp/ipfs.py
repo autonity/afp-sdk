@@ -30,41 +30,41 @@ class IPFSClient:
         """Uploads extended metadata as a single CAR file."""
 
         # Use mode="json" to convert Decimal & datetime types to strings
-        outcome_space_cid, outcome_space_data = _encode(
+        outcome_space_cid, outcome_space_data = self.encode(
             extended_metadata.outcome_space.model_dump(mode="json")
         )
-        outcome_point_cid, outcome_point_data = _encode(
+        outcome_point_cid, outcome_point_data = self.encode(
             extended_metadata.outcome_point.model_dump(mode="json")
         )
-        oracle_config_cid, oracle_config_data = _encode(
+        oracle_config_cid, oracle_config_data = self.encode(
             extended_metadata.oracle_config.model_dump(mode="json")
         )
-        oracle_fallback_cid, oracle_fallback_data = _encode(
+        oracle_fallback_cid, oracle_fallback_data = self.encode(
             extended_metadata.oracle_fallback.model_dump(mode="json")
         )
-        outcome_space_schema_cid, outcome_space_schema_data = _encode(
-            _load_schema_json(extended_metadata.outcome_space.SCHEMA_CID)
+        outcome_space_schema_cid, outcome_space_schema_data = self.encode(
+            self._load_schema_json(extended_metadata.outcome_space.SCHEMA_CID)
         )
-        outcome_point_schema_cid, outcome_point_schema_data = _encode(
-            _load_schema_json(extended_metadata.outcome_space.SCHEMA_CID)
+        outcome_point_schema_cid, outcome_point_schema_data = self.encode(
+            self._load_schema_json(extended_metadata.outcome_space.SCHEMA_CID)
         )
-        oracle_config_schema_cid, oracle_config_schema_data = _encode(
-            _load_schema_json(extended_metadata.outcome_space.SCHEMA_CID)
+        oracle_config_schema_cid, oracle_config_schema_data = self.encode(
+            self._load_schema_json(extended_metadata.outcome_space.SCHEMA_CID)
         )
-        oracle_fallback_schema_cid, oracle_fallback_schema_data = _encode(
-            _load_schema_json(extended_metadata.outcome_space.SCHEMA_CID)
+        oracle_fallback_schema_cid, oracle_fallback_schema_data = self.encode(
+            self._load_schema_json(extended_metadata.outcome_space.SCHEMA_CID)
         )
 
-        _ensure_cids_match(
+        self.ensure_cids_match(
             outcome_space_schema_cid, extended_metadata.outcome_space.SCHEMA_CID
         )
-        _ensure_cids_match(
+        self.ensure_cids_match(
             outcome_point_schema_cid, extended_metadata.outcome_point.SCHEMA_CID
         )
-        _ensure_cids_match(
+        self.ensure_cids_match(
             oracle_config_schema_cid, extended_metadata.oracle_config.SCHEMA_CID
         )
-        _ensure_cids_match(
+        self.ensure_cids_match(
             oracle_fallback_schema_cid, extended_metadata.oracle_fallback.SCHEMA_CID
         )
 
@@ -88,7 +88,7 @@ class IPFSClient:
         )
         # Use mode="python" to preserve multiformats.CID types so that the DAG-CBOR
         # encoder will convert them into IPLD Link format
-        extended_metadata_dag_cid, extended_metadata_dag_data = _encode(
+        extended_metadata_dag_cid, extended_metadata_dag_data = self.encode(
             extended_metadata_dag.model_dump(mode="python")
         )
 
@@ -103,10 +103,8 @@ class IPFSClient:
             (oracle_config_schema_cid, oracle_config_schema_data),
             (oracle_fallback_schema_cid, oracle_fallback_schema_data),
         ]
-        car_data = ipld_car.encode([extended_metadata_dag_cid], blocks).tobytes()
-
-        root_cid = self._upload_car(car_data)
-        _ensure_cids_match(root_cid, extended_metadata_dag_cid)
+        root_cid = self.upload_car(blocks)
+        self.ensure_cids_match(root_cid, extended_metadata_dag_cid)
         return root_cid
 
     def download_extended_metadata(self, cid: types.CID) -> ExtendedMetadata:
@@ -118,19 +116,21 @@ class IPFSClient:
 
         outcome_space_model = cast(
             type[OutcomeSpace],
-            _find_model_by_schema_cid(extended_metadata_dag.outcome_space.schema_),
+            self._find_model_by_schema_cid(extended_metadata_dag.outcome_space.schema_),
         )
         outcome_point_model = cast(
             type[OutcomePoint],
-            _find_model_by_schema_cid(extended_metadata_dag.outcome_point.schema_),
+            self._find_model_by_schema_cid(extended_metadata_dag.outcome_point.schema_),
         )
         oracle_config_model = cast(
             type[OracleConfig],
-            _find_model_by_schema_cid(extended_metadata_dag.oracle_config.schema_),
+            self._find_model_by_schema_cid(extended_metadata_dag.oracle_config.schema_),
         )
         oracle_fallback_model = cast(
             type[OracleFallback],
-            _find_model_by_schema_cid(extended_metadata_dag.oracle_fallback.schema_),
+            self._find_model_by_schema_cid(
+                extended_metadata_dag.oracle_fallback.schema_
+            ),
         )
 
         return ExtendedMetadata(
@@ -148,7 +148,10 @@ class IPFSClient:
             ),
         )
 
-    def _upload_car(self, data: bytes) -> types.CID:
+    def upload_car(self, blocks: list[ipld_car.Block]) -> types.CID:
+        root_cid = blocks[0][0]
+        data = ipld_car.encode([root_cid], blocks).tobytes()
+
         response = self._send_client_request(
             "/api/v0/dag/import",
             params={"pin-roots": "true"},
@@ -212,30 +215,30 @@ class IPFSClient:
 
         return response
 
+    @staticmethod
+    def encode(value: Any) -> tuple[multiformats.CID, bytes]:
+        cbor_data = dag_cbor.encode(value)
+        digest = multiformats.multihash.digest(cbor_data, "sha2-256")
+        cid = multiformats.CID("base32", 1, "dag-cbor", digest)
+        return (cid, cbor_data)
 
-def _find_model_by_schema_cid(cid: types.CID) -> type[PinnedModel]:
-    if cid not in types.CID_MODEL_MAP:
-        raise ValidationError(f"Unsupported schema CID: {cid}")
-    return types.CID_MODEL_MAP[cid]
+    @staticmethod
+    def ensure_cids_match(
+        actual_cid: types.CID | multiformats.CID, computed_cid: types.CID | multiformats.CID
+    ) -> None:
+        if str(computed_cid) != str(actual_cid):
+            raise IPFSError(
+                f"Mismatch between computed CID '{computed_cid}' "
+                f"and actual CID '{actual_cid}'"
+            )
 
+    @staticmethod
+    def _find_model_by_schema_cid(cid: types.CID) -> type[PinnedModel]:
+        if cid not in types.CID_MODEL_MAP:
+            raise ValidationError(f"Unsupported schema CID: {cid}")
+        return types.CID_MODEL_MAP[cid]
 
-def _encode(value: Any) -> tuple[multiformats.CID, bytes]:
-    cbor_data = dag_cbor.encode(value)
-    digest = multiformats.multihash.digest(cbor_data, "sha2-256")
-    cid = multiformats.CID("base32", 1, "dag-cbor", digest)
-    return (cid, cbor_data)
-
-
-def _load_schema_json(cid: types.CID) -> dict[Any, Any]:
-    with open(os.path.join(constants.SCHEMAS_DIRECTORY, f"{cid}.json")) as f:
-        return json.load(f)
-
-
-def _ensure_cids_match(
-    actual_cid: types.CID | multiformats.CID, computed_cid: types.CID | multiformats.CID
-) -> None:
-    if str(computed_cid) != str(actual_cid):
-        raise IPFSError(
-            f"Mismatch between computed CID '{computed_cid}' "
-            f"and actual CID '{actual_cid}'"
-        )
+    @staticmethod
+    def _load_schema_json(cid: types.CID) -> dict[Any, Any]:
+        with open(os.path.join(constants.SCHEMAS_DIRECTORY, f"{cid}.json")) as f:
+            return json.load(f)
