@@ -8,7 +8,7 @@ from hexbytes import HexBytes
 from pydantic import AnyUrl
 from web3 import Web3
 
-from .exceptions import NotFoundError, ValidationError
+from .exceptions import ValidationError
 
 
 def validate_timedelta(value: timedelta) -> timedelta:
