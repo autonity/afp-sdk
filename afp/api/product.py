@@ -58,6 +58,11 @@ class Product(ClearingSystemAPI, IPFSManager):
         Returns
         -------
         afp.schemas.PredictionProduct
+
+        Raises
+        ------
+        ValueError, afp.exceptions.ValidationError
+            If the product specification fails validation.
         """
         return self._verify_product_spec(PredictionProduct.model_validate(product_dict))
 
@@ -74,6 +79,11 @@ class Product(ClearingSystemAPI, IPFSManager):
         Returns
         -------
         afp.schemas.PredictionProduct
+
+        Raises
+        ------
+        ValueError, afp.exceptions.ValidationError
+            If the product specification fails validation.
         """
         return self._verify_product_spec(
             PredictionProduct.model_validate_json(product_json)
@@ -147,6 +157,11 @@ class Product(ClearingSystemAPI, IPFSManager):
         -------
         afp.schemas.PredictionProduct
             The product specification with extended metadata CID included.
+
+        Raises
+        ------
+        afp.exceptions.IPFSError
+            If there is an error uploading to the IPFS node.
         """
         extended_metadata_cid = self._ipfs_client.upload_extended_metadata(
             ExtendedMetadata(
