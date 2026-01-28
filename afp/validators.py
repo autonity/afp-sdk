@@ -8,7 +8,7 @@ from hexbytes import HexBytes
 from pydantic import AnyUrl
 from web3 import Web3
 
-from .exceptions import NotFoundError, ValidationError
+from .exceptions import ValidationError
 
 
 def validate_timedelta(value: timedelta) -> timedelta:
@@ -89,7 +89,9 @@ def validate_url(value: str) -> str:
 def verify_collateral_asset(w3: Web3, address: str) -> ChecksumAddress:
     address = validate_address(address)
     if len(w3.eth.get_code(address)) == 0:
-        raise ValidationError(f"No contract found at collateral asset address {address}")
+        raise ValidationError(
+            f"No contract found at collateral asset address {address}"
+        )
     return address
 
 

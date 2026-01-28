@@ -18,19 +18,25 @@ FEE_RATE_MULTIPLIER = 10**6
 FULL_PRECISION_MULTIPLIER = 10**18
 
 # IPFS client constants
-IPFS_REQUEST_TIMEOUT = 120
+IPFS_CID_ENCODING = "base32"
+IPFS_REQUEST_TIMEOUT = 30
+JSON_SCHEMAS_DIRECTORY = os.path.join(os.path.dirname(__file__), "json-schemas")
 
 schema_cids = SimpleNamespace(
     # afp-product-schemas v0.2.0
-    ORACLE_CONFIG_V020="QmaFPbwwYScZunDKeqMk1NFrgBLknJH67Zc3dZM3XecJaM",
-    ORACLE_CONFIG_PROTOTYPE1_V020="QmakM2By5A5NaMWxZGbu13AjRxAUx1gstB7UHfbQm8kz4o",
-    ORACLE_FALLBACK_V020="QmdapsmT2Boti7KkhCgfBWQHzVKyJYUnejF1Eyz8jEjMdi",
-    OUTCOME_POINT_V020="QmQTFa4y9bxh6oSrhjVFAACXJrtKmyzGYCs1y2gYFt7TJR",
-    OUTCOME_POINT_EVENT_V020="QmfSBwg7oaS55dM8sQNb2DWf9SU8zbe7rVaA2rLgTT5VPD",
-    OUTCOME_POINT_TIME_SERIES_V020="QmZ9nRXxsChMwac7dCo8cn69isuSCEnyVShMT2KbmkZ9BJ",
-    OUTCOME_SPACE_V020="QmZuv6h1EXDmrjfK8rNinvEzEzWCcwsMbLZbQ4dANMr3yk",
-    OUTCOME_SPACE_SCALAR_V020="QmUEousdTeH91HkcPKXTbrS6295fudQ7KXFY14GMMWZnMA",
-    OUTCOME_SPACE_TIME_SERIES_V020="Qmby5wyktYya1EL7WA3o7PTL2biefSTNevjbQ5Eeto9nZj",
+    ORACLE_CONFIG_V020="bafyreifcec2km7hxwq6oqzjlspni2mgipetjb7pqtaewh2efislzoctboi",
+    ORACLE_CONFIG_PROTOTYPE1_V020="bafyreiaw34o6l3rmatabzbds2i2myazdw2yolevcpsoyd2i2g3ms7wa2eq",
+    ORACLE_FALLBACK_V020="bafyreicgr6dfo5yduixjkcifghiulskfegwojvuwodtouvivl362zndhxe",
+    OUTCOME_POINT_V020="bafyreibnfg6nq74dvpkre5rakkccij7iadp5rxpim7omsatjnrpmj3y7v4",
+    OUTCOME_POINT_EVENT_V020="bafyreihur3dzwhja6uxsbcw6eeoj3xmmc4e3zkmyzpot5v5dleevxe5zam",
+    OUTCOME_POINT_TIME_SERIES_V020=(
+        "bafyreidzs7okcpqiss6ztftltyptqwnw5e5opsy5yntospekjha4kpykaa"
+    ),
+    OUTCOME_SPACE_V020="bafyreicheoypx6synljushh7mq2572iyhlolf4nake2p5dwobgnj3r5eua",
+    OUTCOME_SPACE_SCALAR_V020="bafyreihn3oiaxffe4e2w7pwtreadpw3obfd7gqlogbcxm56jc2hzfvco74",
+    OUTCOME_SPACE_TIME_SERIES_V020=(
+        "bafyreid35a67db4sqh4fs6boddyt2xvscbqy6nqvsp5jjur56qhkw4ixre"
+    ),
 )
 
 defaults = SimpleNamespace(
