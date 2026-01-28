@@ -13,7 +13,7 @@ wheels = [
 
 [[package]]
 name = "afp-sdk"
-version = "0.5.4"
+version = "0.6.0"
 source = { editable = "." }
 dependencies = [
     { name = "dag-cbor" },
