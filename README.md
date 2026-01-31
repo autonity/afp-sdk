@@ -227,8 +227,10 @@ tx = product.register(
 )
 ```
 
-See further code examples in the [examples](./examples/) directory.
+See further code examples in the
+[examples](https://github.com/autonity/afp-sdk/tree/master/examples/) directory.
 
 ## Development
 
-See [DEVELOPMENT.md](./DEVELOPMENT.md) for developer documentation.
+See [DEVELOPMENT.md](https://github.com/autonity/afp-sdk/blob/master/DEVELOPMENT.md)
+for developer documentation.
