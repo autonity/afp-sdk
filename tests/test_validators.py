@@ -110,7 +110,7 @@ def test_validate_price_limits__error():
         validators.validate_price_limits(Decimal("0.11"), Decimal("0.10"))
 
 
-def test_validate_outcome_space_conditions__pass():
+def test_validate_outcome_space_template_variables__pass():
     dct = {
         "a": {
             "b": {
@@ -120,15 +120,18 @@ def test_validate_outcome_space_conditions__pass():
         },
     }
 
-    validators.validate_outcome_space_conditions(
-        "Reference to {a.b.c} should pass",
-        ["And to {a.b.d} as well", "So as having no template variable"],
+    validators.validate_outcome_space_template_variables(
+        [
+            "Reference to {a.b.c} should pass",
+            "And to {a.b.d} as well",
+            "So as having no template variable",
+        ],
         dct,
     )
 
 
 @pytest.mark.parametrize(
-    "base_case_condition",
+    "value",
     [
         "{a.b.c} and {a.b.e}",
         "{c}",
@@ -138,7 +141,7 @@ def test_validate_outcome_space_conditions__pass():
     ],
     ids=str,
 )
-def test_validate_outcome_space_conditions__error(base_case_condition):
+def test_validate_outcome_space_tempate_variables__error(value):
     dct = {
         "a": {
             "b": {
@@ -149,7 +152,7 @@ def test_validate_outcome_space_conditions__error(base_case_condition):
     }
 
     with pytest.raises(ValueError):
-        validators.validate_outcome_space_conditions(base_case_condition, [], dct)
+        validators.validate_outcome_space_template_variables([value], dct)
 
 
 @pytest.mark.parametrize(
