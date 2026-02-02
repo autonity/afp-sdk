@@ -188,13 +188,18 @@ def validate_outcome_space_conditions(
         f"EdgeCase[{i}]" for i in range(len(edge_case_conditions))
     ]
     for condition, schema in zip(conditions, schemas):
-        for variable in re.findall(r"{(.+?)}", condition):
+        for variable in re.findall(r"{(.*?)}", condition):
             parts = variable.split(".")
             try:
-                reduce(getitem, parts, outcome_point_dict)
-            except KeyError:
+                referred_value = reduce(getitem, parts, outcome_point_dict)
+            except (TypeError, KeyError):
                 raise ValueError(
                     f"{schema}: condition: Invalid template variable '{variable}'"
+                )
+            if isinstance(referred_value, dict) or isinstance(referred_value, list):  # type: ignore
+                raise ValueError(
+                    f"{schema}: Template variable '{variable}' "
+                    "should not refer to a nested object or list"
                 )
 
 
