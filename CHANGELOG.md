@@ -1,3 +1,9 @@
+## [v0.6.1] - 2026-02-03
+
+### Changed
+
+- Fix incomplete template variable validation in product specifications ([#54](https://github.com/autonity/afp-sdk/pull/54))
+
 ## [v0.6.0] - 2026-01-28
 
 ### Added
@@ -102,6 +108,7 @@
 
 _First public release for Forecastathon._
 
+[v0.6.1]: https://github.com/autonity/afp-sdk/releases/tag/v0.6.1
 [v0.6.0]: https://github.com/autonity/afp-sdk/releases/tag/v0.6.0
 [v0.5.4]: https://github.com/autonity/afp-sdk/releases/tag/v0.5.4
 [v0.5.3]: https://github.com/autonity/afp-sdk/releases/tag/v0.5.3
