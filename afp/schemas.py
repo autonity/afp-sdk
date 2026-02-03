@@ -1,6 +1,7 @@
 """AFP data structures."""
 
 from decimal import Decimal
+from itertools import chain
 from typing import Annotated, Any, ClassVar, Literal, Self
 
 from pydantic import AfterValidator, BeforeValidator, Field, model_validator
@@ -321,9 +322,17 @@ class PredictionProduct(Model):
             self.product.min_price,
             self.product.max_price,
         )
-        validators.validate_outcome_space_conditions(
-            self.outcome_space.base_case.condition,
-            [case.condition for case in self.outcome_space.edge_cases],
+        validators.validate_outcome_space_template_variables(
+            [
+                self.outcome_space.base_case.condition,
+                self.outcome_space.base_case.fsp_resolution,
+            ]
+            + list(
+                chain.from_iterable(
+                    [edge_case.condition, edge_case.fsp_resolution]
+                    for edge_case in self.outcome_space.edge_cases
+                )
+            ),
             self.outcome_point.model_dump(),
         )
         if isinstance(self.outcome_space, OutcomeSpaceTimeSeries) and isinstance(

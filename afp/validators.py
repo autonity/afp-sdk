@@ -3,7 +3,7 @@ from datetime import date, datetime, timedelta
 from decimal import Decimal
 from functools import reduce
 from operator import getitem
-from typing import Any
+from typing import Any, Iterable
 
 import requests
 from binascii import Error
@@ -178,23 +178,23 @@ def validate_oracle_fallback_fsp(
         )
 
 
-def validate_outcome_space_conditions(
-    base_case_condition: str,
-    edge_case_conditions: list[str],
-    outcome_point_dict: dict[Any, Any],
+def validate_outcome_space_template_variables(
+    values: Iterable[str], outcome_point_dict: dict[Any, Any]
 ) -> None:
-    conditions = [base_case_condition] + edge_case_conditions
-    schemas = ["BaseCaseResolution"] + [
-        f"EdgeCase[{i}]" for i in range(len(edge_case_conditions))
-    ]
-    for condition, schema in zip(conditions, schemas):
-        for variable in re.findall(r"{(.+?)}", condition):
-            parts = variable.split(".")
+    for value in values:
+        for variable in re.findall(r"{(.*?)}", value):
             try:
-                reduce(getitem, parts, outcome_point_dict)
-            except KeyError:
+                referred_value = reduce(
+                    getitem, variable.split("."), outcome_point_dict
+                )
+            except (TypeError, KeyError):
                 raise ValueError(
-                    f"{schema}: condition: Invalid template variable '{variable}'"
+                    f"OutcomeSpace: Invalid template variable '{variable}'"
+                )
+            if isinstance(referred_value, dict) or isinstance(referred_value, list):  # type: ignore
+                raise ValueError(
+                    f"OutcomeSpace: Template variable '{variable}' "
+                    "should not refer to a nested object or list"
                 )
 
 
