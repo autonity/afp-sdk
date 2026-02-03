@@ -1,7 +1,7 @@
 ---
 name: afp-product-builder
 description: Build valid AFP products by composing on-chain PredictionProductV1, extended metadata DAG, and API-backed resolution rules. Use when creating or validating AFP product JSON for Forecastathon, selecting public data sources, or preparing IPFS pinning and registration.
-compatibility: Requires Python 3.11+, afp-sdk, internet access, and an IPFS pinning endpoint (Filebase or IPFS node).
+compatibility: Requires Python 3.12+, afp-sdk, internet access, and an IPFS pinning endpoint (Filebase or IPFS node).
 metadata:
   author: autonity
   version: "0.1.0"
