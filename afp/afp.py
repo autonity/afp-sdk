@@ -13,6 +13,9 @@ class AFP:
     """Application object for interacting with the AFP Clearing System and the AutEx
     exchange.
 
+    Connects to the Autonity Mainnet environment by default. Set `AFP_TESTNET=true`
+    environment variable to use the Autonity Bakerloo (Nile) Testnet environment.
+
     Parameters
     ----------
     authenticator : afp.Authenticator, optional
