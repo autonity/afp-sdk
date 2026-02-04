@@ -13,8 +13,13 @@ class AFP:
     """Application object for interacting with the AFP Clearing System and the AutEx
     exchange.
 
-    Connects to the Autonity Mainnet environment by default. Set `AFP_TESTNET=true`
-    environment variable to use the Autonity Bakerloo (Nile) Testnet environment.
+    Configuration precedence:
+    1) Defaults: Autonity Mainnet parameters, or Autonity Bakerloo (Nile) Testnet
+       parameters when `AFP_TESTNET=true` is set.
+    2) Environment variables override defaults.
+    3) AFP constructor arguments override environment variables.
+    4) Admin, MarginAccount, Product, and Trading API constructor arguments override
+       AFP constructor arguments.
 
     Parameters
     ----------
