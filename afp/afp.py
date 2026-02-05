@@ -13,6 +13,14 @@ class AFP:
     """Application object for interacting with the AFP Clearing System and the AutEx
     exchange.
 
+    Configuration precedence:
+    1) Defaults: Autonity Mainnet parameters, or Autonity Bakerloo (Nile) Testnet
+       parameters when `AFP_TESTNET=true` is set.
+    2) Environment variables override defaults.
+    3) AFP constructor arguments override environment variables.
+    4) Admin, MarginAccount, Product, and Trading API constructor arguments override
+       AFP constructor arguments.
+
     Parameters
     ----------
     authenticator : afp.Authenticator, optional
