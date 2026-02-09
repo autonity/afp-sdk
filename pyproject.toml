@@ -29,6 +29,7 @@ dependencies = [
     "requests>=2.32.0",
     "rfc8785>=0.1.4",
     "siwe>=4.4.0",
+    "trezor[ethereum]>=0.13.0",
     "web3>=7.6.0",
 ]
 classifiers = [
