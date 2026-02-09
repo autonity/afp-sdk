@@ -21,6 +21,10 @@ class ExchangeError(AFPException):
     pass
 
 
+class DeviceError(AFPException):
+    pass
+
+
 # Exchange error sub-types
 
 

@@ -2,7 +2,12 @@
 
 from . import bindings, enums, exceptions, schemas
 from .afp import AFP
-from .auth import Authenticator, KeyfileAuthenticator, PrivateKeyAuthenticator
+from .auth import (
+    Authenticator,
+    KeyfileAuthenticator,
+    PrivateKeyAuthenticator,
+    TrezorAuthenticator,
+)
 from .exceptions import AFPException
 
 __all__ = (
@@ -15,4 +20,5 @@ __all__ = (
     "Authenticator",
     "KeyfileAuthenticator",
     "PrivateKeyAuthenticator",
+    "TrezorAuthenticator",
 )

@@ -41,6 +41,9 @@ MONTH_CODES = {
     "Z": 12,
 }
 
+# Trezor device constants
+TREZOR_DEFAULT_PREFIX = "m/44h/60h/0h/0"
+
 schema_cids = SimpleNamespace(
     # afp-product-schemas v0.2.0
     ORACLE_CONFIG_V020="bafyreifcec2km7hxwq6oqzjlspni2mgipetjb7pqtaewh2efislzoctboi",
