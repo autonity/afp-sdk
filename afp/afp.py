@@ -1,4 +1,9 @@
-from .auth import Authenticator, KeyfileAuthenticator, PrivateKeyAuthenticator
+from .auth import (
+    Authenticator,
+    KeyfileAuthenticator,
+    PrivateKeyAuthenticator,
+    TrezorAuthenticator,
+)
 from .config import Config
 from .api.admin import Admin
 from .api.margin_account import MarginAccount
@@ -25,9 +30,10 @@ class AFP:
     ----------
     authenticator : afp.Authenticator, optional
         The default authenticator for signing transactions & messages. Can also be set
-        with environment variables; use `AFP_PRIVATE_KEY` for private key
-        authentication, `AFP_KEYFILE` and `AFP_KEYFILE_PASSWORD` for keyfile
-        authentication.
+        with environment variables: use `AFP_PRIVATE_KEY` for private key
+        authentication; `AFP_KEYFILE` and `AFP_KEYFILE_PASSWORD` for keyfile
+        authentication; `AFP_TREZOR_PATH_OR_INDEX` and `AFP_TREZOR_PASSPHRASE` for
+        Trezor device authentication.
     rpc_url : str, optional
         The URL of an Autonity RPC provider. Can also be set with the `AFP_RPC_URL`
         environment variable.
@@ -217,13 +223,25 @@ class AFP:
 
 
 def _default_authenticator() -> Authenticator | None:
-    if defaults.PRIVATE_KEY is not None and defaults.KEYFILE is not None:
+    auth_variable_count = sum(
+        [
+            int(bool(defaults.PRIVATE_KEY)),
+            int(bool(defaults.KEYFILE)),
+            int(bool(defaults.TREZOR_PATH_OR_INDEX)),
+        ]
+    )
+    if auth_variable_count > 1:
         raise ConfigurationError(
-            "Only one of AFP_PRIVATE_KEY and AFP_KEYFILE environment "
-            "variables should be specified"
+            "Only one of AFP_PRIVATE_KEY, AFP_KEYFILE and AFP_TREZOR_PATH_OR_INDEX "
+            "environment variables should be specified"
         )
-    if defaults.PRIVATE_KEY is not None:
+
+    if defaults.PRIVATE_KEY:
         return PrivateKeyAuthenticator(defaults.PRIVATE_KEY)
-    if defaults.KEYFILE is not None:
+    if defaults.KEYFILE:
         return KeyfileAuthenticator(defaults.KEYFILE, defaults.KEYFILE_PASSWORD)
+    if defaults.TREZOR_PATH_OR_INDEX:
+        return TrezorAuthenticator(
+            defaults.TREZOR_PATH_OR_INDEX, defaults.TREZOR_PASSPHRASE
+        )
     return None

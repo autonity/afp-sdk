@@ -89,6 +89,8 @@ defaults = SimpleNamespace(
     KEYFILE=os.getenv("AFP_KEYFILE", None),
     KEYFILE_PASSWORD=os.getenv("AFP_KEYFILE_PASSWORD", ""),
     PRIVATE_KEY=os.getenv("AFP_PRIVATE_KEY", None),
+    TREZOR_PATH_OR_INDEX=os.getenv("AFP_TERZOR_PATH_OR_INDEX", None),
+    TREZOR_PASSPHRASE=os.getenv("AFP_TREZOR_PASSPHRASE", ""),
     # Venue parameters
     EXCHANGE_URL=os.getenv("AFP_EXCHANGE_URL", _current_env.EXCHANGE_URL),
     # IPFS client parameters
