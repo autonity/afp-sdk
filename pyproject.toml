@@ -29,7 +29,7 @@ dependencies = [
     "requests>=2.32.0",
     "rfc8785>=0.1.4",
     "siwe>=4.4.0",
-    "trezor[ethereum]>=0.13.0",
+    "trezor[ethereum]>=0.13.10",
     "web3>=7.6.0",
 ]
 classifiers = [
@@ -48,7 +48,7 @@ Changes = "https://github.com/autonity/afp-sdk/blob/master/CHANGELOG.md"
 
 [dependency-groups]
 dev = [
-    "check-wheel-contents>=0.6.3",
+    "check-wheel-contents>=0.6.1,<0.6.2",
     "griffe2md>=1.2.1",
     "poethepoet>=0.33.1",
     "pydistcheck>=0.10.0",
