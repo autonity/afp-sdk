@@ -17,7 +17,9 @@ from eth_typing.evm import ChecksumAddress
 from eth_utils.conversions import to_int
 from eth_utils.crypto import keccak
 from hexbytes import HexBytes
-from trezorlib.client import TrezorClient, TrezorClientUI, get_default_client
+from trezorlib.client import TrezorClient
+from trezorlib.client import get_default_client  # type: ignore
+from trezorlib.ui import TrezorClientUI
 from trezorlib.tools import parse_path
 from trezorlib.transport import DeviceIsBusy
 from web3 import Web3
@@ -108,7 +110,7 @@ class TrezorAuthenticator(Authenticator):
         The passphrase for the Trezor device. Defaults to no passphrase.
     """
 
-    client: TrezorClient
+    client: TrezorClient[TrezorClientUI]
 
     def __init__(self, path_or_index: str | int, passphrase: str = ""):
         if isinstance(path_or_index, int) or path_or_index.isdigit():
@@ -124,7 +126,9 @@ class TrezorAuthenticator(Authenticator):
         self.client = self._get_client(passphrase)
         atexit.register(self.client.end_session)
 
-        address_str = trezor_eth.get_address(self.client, self.path)
+        address_str = trezor_eth.get_address(  # type: ignore
+            self.client, self.path
+        )
         self.address = Web3.to_checksum_address(address_str)
 
     def sign_transaction(self, params: TxParams) -> SignedTransaction:
@@ -136,7 +140,7 @@ class TrezorAuthenticator(Authenticator):
         data_bytes = HexBytes(params["data"] if "data" in params else b"")
 
         if "gasPrice" in params and params["gasPrice"]:
-            v_int, r_bytes, s_bytes = trezor_eth.sign_tx(
+            v_int, r_bytes, s_bytes = trezor_eth.sign_tx(  # type: ignore
                 self.client,
                 self.path,
                 nonce=cast(int, params["nonce"]),
@@ -150,7 +154,7 @@ class TrezorAuthenticator(Authenticator):
         else:
             assert "maxFeePerGas" in params
             assert "maxPriorityFeePerGas" in params
-            v_int, r_bytes, s_bytes = trezor_eth.sign_tx_eip1559(
+            v_int, r_bytes, s_bytes = trezor_eth.sign_tx_eip1559(  # type: ignore
                 self.client,
                 self.path,
                 nonce=cast(int, params["nonce"]),
@@ -183,7 +187,7 @@ class TrezorAuthenticator(Authenticator):
         )
 
     def sign_message(self, message: bytes) -> HexBytes:
-        sigdata = trezor_eth.sign_message(
+        sigdata = trezor_eth.sign_message(  # type: ignore
             self.client,
             self.path,
             message.decode("utf-8"),
@@ -191,10 +195,15 @@ class TrezorAuthenticator(Authenticator):
         return HexBytes(sigdata.signature)
 
     @staticmethod
-    def _get_client(passphrase: str) -> TrezorClient:
+    def _get_client(
+        passphrase: str,
+    ) -> TrezorClient[TrezorClientUI]:
         ui = _NonInteractiveTrezorUI(passphrase)
         try:
-            return get_default_client(ui=ui)
+            return cast(
+                TrezorClient[TrezorClientUI],
+                get_default_client(ui=ui),
+            )
         except DeviceIsBusy as exc:
             raise DeviceError("Device in use by another process") from exc
         except Exception as exc:
@@ -210,6 +219,7 @@ class _NonInteractiveTrezorUI(TrezorClientUI):
     Bringing up an interactive passphrase prompt is unwanted in the SDK;
     this implementation receives the passphrase as constructor argument.
     """
+
     _passphrase: str
 
     def __init__(self, passphrase: str) -> None:
