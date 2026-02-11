@@ -1,6 +1,7 @@
 import atexit
 import json
 import os
+import sys
 from typing import Protocol, cast
 
 import trezorlib.ethereum as trezor_eth
@@ -103,9 +104,9 @@ class TrezorAuthenticator(Authenticator):
     Parameters
     ----------
     path_or_index: str or int
-        The full derivation path of the account, e.g. `m/44h/60h/0h/0/123`; or the
+        The full derivation path of the account, e.g. `m/44'/60'/0'/0/123`; or the
         index of the account at the default Trezor derivation prefix for Ethereum
-        coins `m/44h/60h/0h/0`, e.g. `123`.
+        accounts `m/44'/60'/0'/0`, e.g. `123`.
     passphrase: str
         The passphrase for the Trezor device. Defaults to no passphrase.
     """
@@ -116,7 +117,7 @@ class TrezorAuthenticator(Authenticator):
         if isinstance(path_or_index, int) or path_or_index.isdigit():
             path_str = f"{TREZOR_DEFAULT_PREFIX}/{int(path_or_index)}"
         else:
-            path_str = path_or_index
+            path_str = path_or_index.replace("'", "h")
         try:
             self.path = parse_path(path_str)
         except ValueError as exc:
@@ -138,6 +139,8 @@ class TrezorAuthenticator(Authenticator):
         assert "to" in params
         assert "value" in params
         data_bytes = HexBytes(params["data"] if "data" in params else b"")
+
+        print("[Confirm on Trezor device]", file=sys.stderr)
 
         if "gasPrice" in params and params["gasPrice"]:
             v_int, r_bytes, s_bytes = trezor_eth.sign_tx(  # type: ignore
@@ -187,6 +190,8 @@ class TrezorAuthenticator(Authenticator):
         )
 
     def sign_message(self, message: bytes) -> HexBytes:
+        print("[Confirm on Trezor device]", file=sys.stderr)
+
         sigdata = trezor_eth.sign_message(  # type: ignore
             self.client,
             self.path,
