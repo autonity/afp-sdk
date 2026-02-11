@@ -18,6 +18,19 @@ pip install afp-sdk
 See [afp.autonity.org](https://afp.autonity.org/) for the Autonomous Futures Protocol
 documentation, including the Python SDK reference.
 
+## Authentication
+
+The SDK supports 3 methods for authenticating with AutEx and signing blockchain
+transactions.
+
+- **Private key:** Use an Autonity account's private key as a hex-string with `0x`
+  prefix.
+- **Key file:** Use a [Geth / Clef](https://geth.ethereum.org/docs/fundamentals/account-management)
+  key file.
+- **Trezor device:** Use a [Trezor](https://trezor.io/) hardware wallet. The derivation
+  path of an Ethereum account needs to be specified, which can be found in the Account
+  Settings in the Trezor Suite.
+
 ## Overview
 
 The `afp` package consists of the following:

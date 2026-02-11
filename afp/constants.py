@@ -41,6 +41,9 @@ MONTH_CODES = {
     "Z": 12,
 }
 
+# Trezor device constants
+TREZOR_DEFAULT_PREFIX = "m/44h/60h/0h/0"
+
 schema_cids = SimpleNamespace(
     # afp-product-schemas v0.2.0
     ORACLE_CONFIG_V020="bafyreifcec2km7hxwq6oqzjlspni2mgipetjb7pqtaewh2efislzoctboi",
@@ -86,6 +89,8 @@ defaults = SimpleNamespace(
     KEYFILE=os.getenv("AFP_KEYFILE", None),
     KEYFILE_PASSWORD=os.getenv("AFP_KEYFILE_PASSWORD", ""),
     PRIVATE_KEY=os.getenv("AFP_PRIVATE_KEY", None),
+    TREZOR_PATH_OR_INDEX=os.getenv("AFP_TERZOR_PATH_OR_INDEX", None),
+    TREZOR_PASSPHRASE=os.getenv("AFP_TREZOR_PASSPHRASE", ""),
     # Venue parameters
     EXCHANGE_URL=os.getenv("AFP_EXCHANGE_URL", _current_env.EXCHANGE_URL),
     # IPFS client parameters
