@@ -1,3 +1,10 @@
+## [v0.7.0] - 2026-02-11
+
+### Added
+
+- Add `AFP_TESTNET` environment variable that sets default parameters to Autonity Bakerloo (Nile) Testnet's ([#55](https://github.com/autonity/afp-sdk/pull/55))
+- Add Trezor device authentication ([#56](https://github.com/autonity/afp-sdk/pull/56))
+
 ## [v0.6.1] - 2026-02-03
 
 ### Changed
@@ -108,6 +115,7 @@
 
 _First public release for Forecastathon._
 
+[v0.7.0]: https://github.com/autonity/afp-sdk/releases/tag/v0.7.0
 [v0.6.1]: https://github.com/autonity/afp-sdk/releases/tag/v0.6.1
 [v0.6.0]: https://github.com/autonity/afp-sdk/releases/tag/v0.6.0
 [v0.5.4]: https://github.com/autonity/afp-sdk/releases/tag/v0.5.4
